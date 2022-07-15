@@ -1,1 +1,1 @@
-# MQTcspsolver
+# MQT ProblemSolver 
