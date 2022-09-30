@@ -1,8 +1,7 @@
-from qiskit.algorithms import Grover
 import numpy as np
-from random import random
+from qiskit import QuantumCircuit, QuantumRegister, execute, transpile
+
 from mqt import ddsim
-from qiskit import *
 
 
 class Kakuro:
@@ -17,8 +16,12 @@ class Kakuro:
         qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
         qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc)
         oracle = self.create_oracle(qc, mct_list, flag, anc_mct)
-        qc = self.create_grover(oracle, nqubits, nancilla, ninputs=nqubits - 1)
-        self.simulate(qc)
+        for m in (5, 6, 7, 8, 12):
+            qc = self.create_grover(
+                oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m
+            )
+            if self.simulate(qc):
+                break
 
         return
 
@@ -196,26 +199,24 @@ class Kakuro:
         nancilla = anc.size + anc_mct.size
         return (qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d))
 
-    def create_grover(self, oracle, nqubits, nancilla, ninputs):
+    def create_grover(self, oracle, nqubits, nancilla, ninputs, grover_iterations):
         import numpy as np
 
         # num_iterations = Grover.optimal_num_iterations(1, ninputs)
-        found_sol = False
-        for m in (5, 6, 7, 8, 12):
-            print("m: ", round(m))
-            qc = QuantumCircuit(nqubits + nancilla, ninputs)
+        print("grover_iterations: ", round(grover_iterations))
+        qc = QuantumCircuit(nqubits + nancilla, ninputs)
+        qc.h(range(ninputs))
+        qc.x(nqubits + nancilla - 1)
+        qc.h(nqubits + nancilla - 1)
+        # print(num_iterations)
+        for _ in range(round(grover_iterations)):
+            qc.append(oracle, range(nqubits + nancilla))
             qc.h(range(ninputs))
-            qc.x(nqubits + nancilla - 1)
-            qc.h(nqubits + nancilla - 1)
-            # print(num_iterations)
-            for _ in range(round(m)):
-                qc.append(oracle, range(nqubits + nancilla))
-                qc.h(range(ninputs))
-                qc.x(range(ninputs))
-                qc.mcp(np.pi, list(range(ninputs - 1)), ninputs - 1)
-                qc.x(range(ninputs))
-                qc.h(range(ninputs))
-            qc.measure(range(ninputs), range(ninputs))
+            qc.x(range(ninputs))
+            qc.mcp(np.pi, list(range(ninputs - 1)), ninputs - 1)
+            qc.x(range(ninputs))
+            qc.h(range(ninputs))
+        qc.measure(range(ninputs), range(ninputs))
 
         return qc
 
@@ -225,6 +226,8 @@ class Kakuro:
         counts = job.result().get_counts(qc)
 
         mean_counts = np.mean(list(counts.values()))
+
+        found_sol = False
         for entry in counts.keys():
 
             if counts.get(entry) > 5 * mean_counts:
@@ -248,5 +251,6 @@ class Kakuro:
                         self.s2_input,
                         self.s3_input,
                     )
+                    return (a, b, c, d)
         else:
             print("Sums are impossible to satisfy. Please try another setup.")

@@ -1,10 +1,10 @@
-from qiskit import QuantumCircuit, Aer, QuantumRegister, ClassicalRegister, execute
-from qiskit.visualization import plot_histogram, array_to_latex
-from qiskit.circuit.library import QFT
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 from python_tsp.exact import solve_tsp_dynamic_programming
-import networkx as nx
-import matplotlib.pyplot as plt
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, execute
+from qiskit.circuit.library import QFT
+
 from mqt import ddsim
 
 
@@ -87,7 +87,7 @@ class TSP:
         f = self.int_to_phase(self.dist_2_4)
         k = f
         i = self.int_to_phase(self.dist_3_4)
-        l = i
+        k = i
 
         # Storing the eigenvalues in a list
         eigen_values = ["11000110", "10001101", "10000111"]
@@ -106,7 +106,7 @@ class TSP:
             qc.barrier()
 
             # Controlled Unitary
-            phases = [a, b, c, d, e, f, g, h, i, j, k, l]
+            phases = [a, b, c, d, e, f, g, h, i, j, k, k]
             for i in range(0, num_qubits_qft):
                 qc.append(
                     self.final_U(i, eigen, phases),
@@ -198,7 +198,7 @@ class TSP:
             self.G, self.pos, edge_labels=edge_labels, label_pos=0.3, font_size=20
         )
 
-    def print_problem():
+    def print_problem(self):
         G = nx.DiGraph(directed=True)
         G.add_node(1)
         G.add_node(2)
