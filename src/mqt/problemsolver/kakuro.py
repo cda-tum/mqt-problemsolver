@@ -5,26 +5,37 @@ from mqt import ddsim
 
 
 class Kakuro:
-    def solve(self, s0_input: int, s1_input: int, s2_input: int, s3_input: int):
+    def solve(
+        self,
+        s0_input: int,
+        s1_input: int,
+        s2_input: int,
+        s3_input: int,
+        quantum_algorithm="Grover",
+    ):
         self.s0_input = s0_input
         self.s1_input = s1_input
         self.s2_input = s2_input
         self.s3_input = s3_input
 
-        qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
-        qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc)
-        oracle = self.create_oracle(qc, mct_list, flag, anc_mct)
-        for m in (5, 6, 7, 8, 12):
-            qc = self.create_grover(
-                oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m
-            )
-            res = self.simulate(qc)
-            if res:
-                break
+        if quantum_algorithm == "Grover":
+            qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
+            qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc)
+            oracle = self.create_oracle(qc, mct_list, flag, anc_mct)
+            for m in (5, 6, 7, 8, 12):
+                qc = self.create_grover(
+                    oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m
+                )
+                res = self.simulate(qc)
+                if res:
+                    break
 
-        self.print(a=str(res[0]), b=str(res[1]), c=str(res[2]), d=str(res[3]))
+            self.print(a=str(res[0]), b=str(res[1]), c=str(res[2]), d=str(res[3]))
+            return res
 
-        return res
+        else:
+            print("ERROR: Selected quantum algorithm is not implemented.")
+            return False
 
     def print(self, a="a", b="b", c="c", d="d"):
         print("     | ", self.s0_input, " | ", self.s1_input, " |")
@@ -224,3 +235,6 @@ class Kakuro:
                     return (a, b, c, d)
         else:
             print("Sums are impossible to satisfy. Please try another setup.")
+
+    def get_available_quantum_algorithms(self):
+        return ["Grover"]
