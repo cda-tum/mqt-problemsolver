@@ -38,11 +38,32 @@ class Kakuro:
             return False
 
     def print(self, a="a", b="b", c="c", d="d"):
-        print("     | ", self.s0_input, " | ", self.s1_input, " |")
+
+        if hasattr(self, "s0_input"):
+            s0_input = self.s0_input
+        else:
+            s0_input = "s0"
+
+        if hasattr(self, "s1_input"):
+            s1_input = self.s1_input
+        else:
+            s1_input = "s1"
+
+        if hasattr(self, "s2_input"):
+            s2_input = self.s2_input
+        else:
+            s2_input = "s2"
+
+        if hasattr(self, "s3_input"):
+            s3_input = self.s3_input
+        else:
+            s3_input = "s3"
+
+        print("     | ", s0_input, " | ", s1_input, " |")
         print("------------------")
-        print(" ", self.s2_input, " | ", a, " | ", b, " |")
+        print(" ", s2_input, " | ", a, " | ", b, " |")
         print("------------------")
-        print(" ", self.s3_input, " | ", c, " | ", d, " |")
+        print(" ", s3_input, " | ", c, " | ", d, " |")
         print("------------------\n")
 
     def check_inequality(self, qc, x, y, res_anc):
@@ -193,13 +214,11 @@ class Kakuro:
     def create_grover(self, oracle, nqubits, nancilla, ninputs, grover_iterations):
         import numpy as np
 
-        # num_iterations = Grover.optimal_num_iterations(1, ninputs)
-        print("grover_iterations: ", round(grover_iterations))
         qc = QuantumCircuit(nqubits + nancilla, ninputs)
         qc.h(range(ninputs))
         qc.x(nqubits + nancilla - 1)
         qc.h(nqubits + nancilla - 1)
-        # print(num_iterations)
+
         for _ in range(round(grover_iterations)):
             qc.append(oracle, range(nqubits + nancilla))
             qc.h(range(ninputs))
@@ -222,7 +241,6 @@ class Kakuro:
         for entry in counts.keys():
 
             if counts.get(entry) > 5 * mean_counts:
-                print("Solution found")
                 found_sol = True
                 break
         if found_sol:
