@@ -1,17 +1,15 @@
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, execute, transpile
+from qiskit import QuantumCircuit, QuantumRegister, execute
 
 from mqt import ddsim
 
 
 class Kakuro:
-    def __init__(self, s0_input: int, s1_input: int, s2_input: int, s3_input: int):
+    def solve(self, s0_input: int, s1_input: int, s2_input: int, s3_input: int):
         self.s0_input = s0_input
         self.s1_input = s1_input
         self.s2_input = s2_input
         self.s3_input = s3_input
-
-    def solve(self):
 
         qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
         qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc)
@@ -20,28 +18,20 @@ class Kakuro:
             qc = self.create_grover(
                 oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m
             )
-            if self.simulate(qc):
+            res = self.simulate(qc)
+            if res:
                 break
 
-        return
+        self.print(a=str(res[0]), b=str(res[1]), c=str(res[2]), d=str(res[3]))
 
-    def print(self):
-        return
+        return res
 
-    def print_kakuro_setup(self, s0, s1, s2, s3):
-        print("     | ", s0, " | ", s1, " |")
+    def print(self, a="a", b="b", c="c", d="d"):
+        print("     | ", self.s0_input, " | ", self.s1_input, " |")
         print("------------------")
-        print(" ", s2, " |  a  |  b  |")
+        print(" ", self.s2_input, " | ", a, " | ", b, " |")
         print("------------------")
-        print(" ", s3, " |  c  |  d  |")
-        print("------------------\n")
-
-    def print_kakuro_solved(self, a, b, c, d, s0, s1, s2, s3):
-        print("     | ", s0, " | ", s1, " |")
-        print("------------------")
-        print(" ", s2, " | ", a, " | ", b, " |")
-        print("------------------")
-        print(" ", s3, " | ", c, " | ", d, " |")
+        print(" ", self.s3_input, " | ", c, " | ", d, " |")
         print("------------------\n")
 
     def check_inequality(self, qc, x, y, res_anc):
@@ -62,7 +52,7 @@ class Kakuro:
         qc.x(y_high)
         qc.cx(x_high, y_high)
 
-    def check_equality_smarter(self, qc, x, s, res_anc):
+    def check_equality(self, qc, x, s, res_anc):
         x_low, x_mid, x_high = x
 
         if s[-1] == "0":
@@ -114,31 +104,30 @@ class Kakuro:
         mct_list.append(anc[3])
         qc.barrier()
 
-        # Equalities smarter
+        # Equalities
         tmp_1 = self.add_two_numbers(qc, a, b, anc[4:6], anc[6], anc[7], anc[8])
         qc.barrier()
-        self.check_equality_smarter(qc, tmp_1, bin(self.s2_input)[2:].zfill(3), anc[9])
+        self.check_equality(qc, tmp_1, bin(self.s2_input)[2:].zfill(3), anc[9])
         mct_list.append(anc[9])
         qc.barrier()
 
         tmp_2 = self.add_two_numbers(qc, c, d, anc[10:12], anc[12], anc[13], anc[14])
         qc.barrier()
-        self.check_equality_smarter(qc, tmp_2, bin(self.s3_input)[2:].zfill(3), anc[15])
+        self.check_equality(qc, tmp_2, bin(self.s3_input)[2:].zfill(3), anc[15])
         mct_list.append(anc[15])
         qc.barrier()
 
         tmp_3 = self.add_two_numbers(qc, b, d, anc[16:18], anc[18], anc[19], anc[20])
         qc.barrier()
-        self.check_equality_smarter(qc, tmp_3, bin(self.s1_input)[2:].zfill(3), anc[21])
+        self.check_equality(qc, tmp_3, bin(self.s1_input)[2:].zfill(3), anc[21])
         mct_list.append(anc[21])
         qc.barrier()
 
         tmp_4 = self.add_two_numbers(qc, a, c, anc[22:24], anc[24], anc[25], anc[26])
         qc.barrier()
-        self.check_equality_smarter(qc, tmp_4, bin(self.s0_input)[2:].zfill(3), anc[27])
+        self.check_equality(qc, tmp_4, bin(self.s0_input)[2:].zfill(3), anc[27])
         mct_list.append(anc[27])
 
-        qc.draw(output="mpl", fold=-1)
         return (qc, mct_list)
 
     def create_oracle(self, qc: QuantumCircuit, mct_list, flag, anc_mct):
@@ -152,16 +141,7 @@ class Kakuro:
         uncompute.name = "uncompute"
         qc.append(uncompute, range(qc.num_qubits))
 
-        print(
-            "Complete Oracle (CX): ",
-            transpile(qc, basis_gates=["u", "cx"]).count_ops()["cx"],
-        )
-        print(
-            "Complete Oracle (U): ",
-            transpile(qc, basis_gates=["u", "cx"]).count_ops()["u"],
-        )
         oracle = qc.to_instruction(label="oracle")
-
         return oracle
 
     def init_qc(self):
@@ -194,8 +174,8 @@ class Kakuro:
             anc_mct,
             flag,
         )
-        ninputs = 8
-        nqubits = ninputs + 1
+
+        nqubits = 9
         nancilla = anc.size + anc_mct.size
         return (qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d))
 
@@ -241,16 +221,6 @@ class Kakuro:
                 b = int(entry[4:6], 2)
                 a = int(entry[6:8], 2)
                 if counts.get(entry) > 5 * mean_counts:
-                    self.print_kakuro_solved(
-                        a,
-                        b,
-                        c,
-                        d,
-                        self.s0_input,
-                        self.s1_input,
-                        self.s2_input,
-                        self.s3_input,
-                    )
                     return (a, b, c, d)
         else:
             print("Sums are impossible to satisfy. Please try another setup.")
