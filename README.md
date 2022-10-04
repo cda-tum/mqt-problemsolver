@@ -1,4 +1,5 @@
 [![Lint](https://github.com/nquetschlich/MQTProblemSolver/actions/workflows/linter.yml/badge.svg)](https://github.com/nquetschlich/MQTProblemSolver/actions/workflows/linter.yml)
+
 # MQT ProblemSolver
 
 Two case studies:
