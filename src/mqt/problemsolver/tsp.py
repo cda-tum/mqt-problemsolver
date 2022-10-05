@@ -117,10 +117,11 @@ class TSP:
         dist_2_3,
         dist_2_4,
         dist_3_4,
+        objective_function="shortest_path",
         quantum_algorithm="QPE",
         num_qubits_qft=8,
     ):
-        if quantum_algorithm == "QPE":
+        if quantum_algorithm == "QPE" and objective_function == "shortest_path":
             self.dist_1_2 = dist_1_2
             self.dist_1_3 = dist_1_3
             self.dist_1_4 = dist_1_4
@@ -138,7 +139,9 @@ class TSP:
             return sol_perm
 
         else:
-            print("ERROR: Selected quantum algorithm is not implemented.")
+            print(
+                "ERROR: Combination of objective function quantum algorithm is not implemented."
+            )
             return False
 
     def solve_using_QPE(self):

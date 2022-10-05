@@ -137,6 +137,10 @@ class CSP:
             "c": c,
             "d": d,
         }
+        anc_needed_per_constraint = {
+            "inequality": 1,
+            "addition_equality": 6,
+        }
         anc_index = 0
         for constraint in constraints:
             if constraint.get("type") == "inequality":
@@ -150,7 +154,7 @@ class CSP:
                 self.check_inequality(qc, first_qreg, second_qreg, anc[anc_index])
                 mct_list.append(anc[anc_index])
                 qc.barrier()
-                anc_index += 1
+                anc_index += anc_needed_per_constraint.get(constraint.get("type"))
 
             elif constraint.get("type") == "addition_equality":
                 first_qreg = dict_variable_to_quantumregister.get(
@@ -177,7 +181,7 @@ class CSP:
                 )
                 mct_list.append(anc[anc_index + 5])
                 qc.barrier()
-                anc_index += 6
+                anc_index += anc_needed_per_constraint.get(constraint.get("type"))
             else:
                 print("Unexpected constraint type: ", constraint.get("type"))
 
