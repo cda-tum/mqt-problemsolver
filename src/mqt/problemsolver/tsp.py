@@ -145,24 +145,25 @@ class TSP:
             return False
 
     def solve_using_QPE(self):
-        phases = self.get_all_phases()
 
         eigen_values = ["11000110", "10001101", "10000111"]
         all_perms = []
         all_costs = []
-        for index_eigenstate in range(len(eigen_values)):
+        for eigenstate in eigen_values:
 
-            unit = QuantumRegister(self.num_qubits_qft, "unit")
-            eigen = QuantumRegister(8, "eigen")
-            unit_classical = ClassicalRegister(self.num_qubits_qft, "unit_classical")
+            unit_register = QuantumRegister(self.num_qubits_qft, "unit")
+            eigenstate_register = QuantumRegister(8, "eigen")
+            unit_classical_register = ClassicalRegister(
+                self.num_qubits_qft, "unit_classical"
+            )
 
             qc = self.create_TSP_qc(
-                unit, eigen, unit_classical, index_eigenstate, eigen_values, phases
+                unit_register, eigenstate_register, unit_classical_register, eigenstate
             )
 
             most_frequent = self.simulate(qc)
 
-            route = self.eigenvalue_to_route(eigen_values[index_eigenstate])
+            route = self.eigenvalue_to_route(eigenstate)
 
             most_frequent_decimal = int(most_frequent, 2)
             phase = most_frequent_decimal / (2**self.num_qubits_qft)
@@ -175,34 +176,35 @@ class TSP:
         return sol_perm
 
     def create_TSP_qc(
-        self, unit, eigen, unit_classical, index_eigenstate, eigen_values, phases
+        self, unit_register, eigenstate_register, unit_classical_register, eigenstate
     ):
-        qc = QuantumCircuit(unit, eigen, unit_classical)
-        self.eigenstates(qc, eigen, index_eigenstate, eigen_values)
+        qc = QuantumCircuit(unit_register, eigenstate_register, unit_classical_register)
 
-        qc.h(unit[:])
+        self.encode_eigenstate(qc, eigenstate_register, eigenstate)
+
+        qc.h(unit_register[:])
         qc.barrier()
 
         for i in range(0, self.num_qubits_qft):
             qc.append(
-                self.final_U(i, eigen, phases),
-                [unit[self.num_qubits_qft - 1 - i]] + eigen[:],
+                self.final_U(times=i, eigenstate_register=eigenstate_register),
+                [unit_register[self.num_qubits_qft - 1 - i]] + eigenstate_register[:],
             )
 
         # Inverse QFT
         qc.barrier()
         qft = QFT(
-            num_qubits=len(unit),
+            num_qubits=len(unit_register),
             inverse=True,
             insert_barriers=True,
             do_swaps=False,
             name="Inverse QFT",
         )
-        qc.append(qft, qc.qubits[: len(unit)])
+        qc.append(qft, qc.qubits[: len(unit_register)])
         qc.barrier()
 
         # Measure
-        qc.measure(unit, unit_classical)
+        qc.measure(unit_register, unit_classical_register)
         return qc
 
     def get_all_phases(self):
@@ -257,9 +259,10 @@ class TSP:
         qc.cx(qubits[0], qubits[1])
         qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[0], qubits[2])
 
-    def U(
-        self, times, qc, unit, eigen, phases: list
-    ):  # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4; m_list=[m, n, o, p, q, r, s, t, u, a, b, c, d, e, f, g, h, i, j, k, l]
+    def U(self, qc, unit, eigen):
+
+        phases = self.get_all_phases()
+        # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4; m_list=[m, n, o, p, q, r, s, t, u, a, b, c, d, e, f, g, h, i, j, k, l]
         self.controlled_unitary(qc, [unit[0]] + eigen[0:2], [0] + phases[0:3])
         self.controlled_unitary(
             qc, [unit[0]] + eigen[2:4], [phases[3]] + [0] + phases[4:6]
@@ -269,19 +272,19 @@ class TSP:
         )
         self.controlled_unitary(qc, [unit[0]] + eigen[6:8], phases[9:12] + [0])
 
-    def final_U(self, times, eigen, phases: list):
+    def final_U(self, times: int, eigenstate_register: QuantumRegister):
         unit = QuantumRegister(1, "unit")
-        qc = QuantumCircuit(unit, eigen)
+        qc = QuantumCircuit(unit, eigenstate_register)
         for _ in range(2**times):
-            self.U(times, qc, unit, eigen, phases)
+            self.U(qc, unit, eigenstate_register)
         return qc.to_gate(label="U" + "_" + (str(2**times)))
 
     # Function to place appropriate corresponding gate according to eigenstates
-    def eigenstates(self, qc, eigen, index, eigen_values):
-        for i in range(0, len(eigen)):
-            if eigen_values[index][i] == "1":
-                qc.x(eigen[i])
-            if eigen_values[index][i] == "0":
+    def encode_eigenstate(self, qc, eigen_register, eigenstate):
+        for i in range(0, len(eigen_register)):
+            if eigenstate[i] == "1":
+                qc.x(eigen_register[i])
+            if eigenstate[i] == "0":
                 pass
         qc.barrier()
         return qc
