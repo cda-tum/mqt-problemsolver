@@ -1,26 +1,19 @@
 import numpy as np
+from typing import Union
 from qiskit import QuantumCircuit, QuantumRegister, execute
 
 from mqt import ddsim
 
 
-class Kakuro:
+class CSP:
     def solve(
         self,
-        s0_input: int,
-        s1_input: int,
-        s2_input: int,
-        s3_input: int,
+        constraints:list,
         quantum_algorithm="Grover",
     ):
-        self.s0_input = s0_input
-        self.s1_input = s1_input
-        self.s2_input = s2_input
-        self.s3_input = s3_input
-
         if quantum_algorithm == "Grover":
             qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
-            qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc)
+            qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc, constraints=constraints)
             oracle = self.create_oracle(qc, mct_list, flag, anc_mct)
             for m in (5, 6, 7, 8, 12):
                 qc = self.create_grover(
@@ -29,44 +22,27 @@ class Kakuro:
                 res = self.simulate(qc)
                 if res:
                     break
-
-            self.print(a=str(res[0]), b=str(res[1]), c=str(res[2]), d=str(res[3]))
-            return res
+            if res:
+                return res
+            else:
+                return False
 
         else:
             print("ERROR: Selected quantum algorithm is not implemented.")
             return False
 
-    def print(self, a="a", b="b", c="c", d="d"):
+    def print_kakuro_problem(self, sum_s0:Union[str,int] ="s0", sum_s1:Union[str,int] ="s1",
+                             sum_s2:Union[str,int] ="s2", sum_s3:Union[str,int] ="s3", a:Union[str,int]="a",
+                             b:Union[str,int]="b", c:Union[str,int]="c", d:Union[str,int]="d"):
 
-        if hasattr(self, "s0_input"):
-            s0_input = self.s0_input
-        else:
-            s0_input = "s0"
-
-        if hasattr(self, "s1_input"):
-            s1_input = self.s1_input
-        else:
-            s1_input = "s1"
-
-        if hasattr(self, "s2_input"):
-            s2_input = self.s2_input
-        else:
-            s2_input = "s2"
-
-        if hasattr(self, "s3_input"):
-            s3_input = self.s3_input
-        else:
-            s3_input = "s3"
-
-        print("     | ", s0_input, " | ", s1_input, " |")
+        print("     | ", sum_s0, " | ", sum_s1, " | ")
         print("------------------")
-        print(" ", s2_input, " | ", a, " | ", b, " |")
+        print(" ", sum_s2, " | ", a, " | ", b, " |")
         print("------------------")
-        print(" ", s3_input, " | ", c, " | ", d, " |")
+        print(" ", sum_s3, " | ", c, " | ", d, " |")
         print("------------------\n")
 
-    def check_inequality(self, qc, x, y, res_anc):
+    def check_inequality(self, qc:QuantumCircuit, x:tuple, y:tuple, res_anc:QuantumRegister):
         x_low, x_high = x
         y_low, y_high = y
 
@@ -84,7 +60,7 @@ class Kakuro:
         qc.x(y_high)
         qc.cx(x_high, y_high)
 
-    def check_equality(self, qc, x, s, res_anc):
+    def check_equality(self, qc:QuantumCircuit, x:tuple, s:str, res_anc:QuantumRegister):
         x_low, x_mid, x_high = x
 
         if s[-1] == "0":
@@ -96,7 +72,7 @@ class Kakuro:
 
         qc.rcccx(x_low, x_mid, x_high, res_anc)
 
-    def add_two_numbers(self, qc, x, y, ancs, res_anc_low, res_anc_high, anc_carry):
+    def add_two_numbers(self, qc:QuantumCircuit, x:tuple, y:tuple, ancs:QuantumRegister, res_anc_low:QuantumRegister, res_anc_high:QuantumRegister, anc_carry:QuantumRegister):
         x_low, x_high = x
         y_low, y_high = y
 
@@ -119,50 +95,42 @@ class Kakuro:
 
         return (res_anc_low, res_anc_high, anc_carry)
 
-    def encode_constraints(self, qc: QuantumCircuit, a, b, c, d, anc):
+    def encode_constraints(self, qc: QuantumCircuit, a:QuantumRegister, b:QuantumRegister, c:QuantumRegister, d:QuantumRegister, anc:QuantumRegister, constraints:list):
         mct_list = []
 
-        # Inequalities
-        self.check_inequality(qc, a, b, anc[0])
-        mct_list.append(anc[0])
-        qc.barrier()
-        self.check_inequality(qc, b, d, anc[1])
-        mct_list.append(anc[1])
-        qc.barrier()
-        self.check_inequality(qc, d, c, anc[2])
-        mct_list.append(anc[2])
-        qc.barrier()
-        self.check_inequality(qc, c, a, anc[3])
-        mct_list.append(anc[3])
-        qc.barrier()
+        dict_variable_to_quantumregister={
+            "a":a,
+            "b":b,
+            "c":c,
+            "d":d,
+        }
+        anc_index = 0
+        for constraint in constraints:
+            if constraint.get("type")=="inequality":
+                first_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_one"))
+                second_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_two"))
 
-        # Equalities
-        tmp_1 = self.add_two_numbers(qc, a, b, anc[4:6], anc[6], anc[7], anc[8])
-        qc.barrier()
-        self.check_equality(qc, tmp_1, bin(self.s2_input)[2:].zfill(3), anc[9])
-        mct_list.append(anc[9])
-        qc.barrier()
+                self.check_inequality(qc, first_qreg, second_qreg, anc[anc_index])
+                mct_list.append(anc[anc_index])
+                qc.barrier()
+                anc_index+=1
 
-        tmp_2 = self.add_two_numbers(qc, c, d, anc[10:12], anc[12], anc[13], anc[14])
-        qc.barrier()
-        self.check_equality(qc, tmp_2, bin(self.s3_input)[2:].zfill(3), anc[15])
-        mct_list.append(anc[15])
-        qc.barrier()
-
-        tmp_3 = self.add_two_numbers(qc, b, d, anc[16:18], anc[18], anc[19], anc[20])
-        qc.barrier()
-        self.check_equality(qc, tmp_3, bin(self.s1_input)[2:].zfill(3), anc[21])
-        mct_list.append(anc[21])
-        qc.barrier()
-
-        tmp_4 = self.add_two_numbers(qc, a, c, anc[22:24], anc[24], anc[25], anc[26])
-        qc.barrier()
-        self.check_equality(qc, tmp_4, bin(self.s0_input)[2:].zfill(3), anc[27])
-        mct_list.append(anc[27])
+            elif constraint.get("type")=="addition_equality":
+                first_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_one"))
+                second_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_two"))
+                tmp_1 = self.add_two_numbers(qc, first_qreg,second_qreg, anc[anc_index:anc_index+2], anc[anc_index+2],
+                                             anc[anc_index+3], anc[anc_index+4])
+                qc.barrier()
+                self.check_equality(qc, tmp_1, bin(constraint.get("sum"))[2:].zfill(3), anc[anc_index+5])
+                mct_list.append(anc[anc_index+5])
+                qc.barrier()
+                anc_index+=6
+            else:
+                print("Unexpected constraint type: ", constraint.get("type"))
 
         return (qc, mct_list)
 
-    def create_oracle(self, qc: QuantumCircuit, mct_list, flag, anc_mct):
+    def create_oracle(self, qc: QuantumCircuit, mct_list:list, flag:QuantumRegister, anc_mct:QuantumRegister):
         compute = qc.to_instruction()
 
         # mark solution
@@ -211,7 +179,7 @@ class Kakuro:
         nancilla = anc.size + anc_mct.size
         return (qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d))
 
-    def create_grover(self, oracle, nqubits, nancilla, ninputs, grover_iterations):
+    def create_grover(self, oracle:QuantumCircuit, nqubits:int, nancilla:int, ninputs:int, grover_iterations:int):
         import numpy as np
 
         qc = QuantumCircuit(nqubits + nancilla, ninputs)
@@ -230,7 +198,7 @@ class Kakuro:
 
         return qc
 
-    def simulate(self, qc):
+    def simulate(self, qc:QuantumCircuit):
         backend = ddsim.DDSIMProvider().get_backend("qasm_simulator")
         job = execute(qc, backend, shots=10000)
         counts = job.result().get_counts(qc)
@@ -252,7 +220,71 @@ class Kakuro:
                 if counts.get(entry) > 5 * mean_counts:
                     return (a, b, c, d)
         else:
-            print("Sums are impossible to satisfy. Please try another setup.")
+            print("Simulation was unsuccessful.")
 
     def get_available_quantum_algorithms(self):
         return ["Grover"]
+
+
+    def get_kakuro_constraints(self, sum_s0:int, sum_s1:int, sum_s2:int, sum_s3:int):
+        list_of_constraints = []
+        constraint_1 = {
+            "type": "addition_equality",
+            "operand_one": "a",
+            "operand_two": "c",
+            "sum": sum_s0,
+        }
+        list_of_constraints.append(constraint_1)
+
+        constraint_2 = {
+            "type": "addition_equality",
+            "operand_one": "b",
+            "operand_two": "d",
+            "sum": sum_s1,
+        }
+        list_of_constraints.append(constraint_2)
+
+        constraint_3 = {
+            "type": "addition_equality",
+            "operand_one": "a",
+            "operand_two": "b",
+            "sum": sum_s2,
+        }
+        list_of_constraints.append(constraint_3)
+
+        constraint_4 = {
+            "type": "addition_equality",
+            "operand_one": "c",
+            "operand_two": "d",
+            "sum": sum_s3,
+        }
+        list_of_constraints.append(constraint_4)
+
+        constraint_5 = {
+            "type": "inequality",
+            "operand_one": "a",
+            "operand_two": "c",
+        }
+        list_of_constraints.append(constraint_5)
+
+        constraint_6 = {
+            "type": "inequality",
+            "operand_one": "b",
+            "operand_two": "d",
+        }
+        list_of_constraints.append(constraint_6)
+
+        constraint_7 = {
+            "type": "inequality",
+            "operand_one": "a",
+            "operand_two": "b",
+        }
+        list_of_constraints.append(constraint_7)
+
+        constraint_8 = {
+            "type": "inequality",
+            "operand_one": "c",
+            "operand_two": "d",
+        }
+        list_of_constraints.append(constraint_8)
+        return list_of_constraints
