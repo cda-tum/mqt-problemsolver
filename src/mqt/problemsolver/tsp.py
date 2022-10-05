@@ -142,15 +142,13 @@ class TSP:
             return False
 
     def solve_using_QPE(self):
-        # Assign phase to each edge
         phases = self.get_all_phases()
 
-        # Storing the eigenvalues in a list
         eigen_values = ["11000110", "10001101", "10000111"]
         all_perms = []
         all_costs = []
         for index_eigenstate in range(len(eigen_values)):
-            # Initialization
+
             unit = QuantumRegister(self.num_qubits_qft, "unit")
             eigen = QuantumRegister(8, "eigen")
             unit_classical = ClassicalRegister(self.num_qubits_qft, "unit_classical")
@@ -161,16 +159,11 @@ class TSP:
 
             most_frequent = self.simulate(qc)
 
+            route = self.eigenvalue_to_route(eigen_values[index_eigenstate])
+
             most_frequent_decimal = int(most_frequent, 2)
             phase = most_frequent_decimal / (2**self.num_qubits_qft)
-            route = self.eigenvalue_to_route(eigen_values[index_eigenstate])
             costs = self.phase_to_int(phase)
-            # print("Eigenstate: ", eigen_values[index_eigenstate])
-            # print("Most frequent Binary: ", most_frequent)
-            # print("Most frequent Decimal: ", most_frequent_decimal)
-            # print("Phase: ", phase)
-            # print("Route: ", route)
-            # print("Costs: ", costs)
 
             all_perms.append(route)
             all_costs.append(costs)
