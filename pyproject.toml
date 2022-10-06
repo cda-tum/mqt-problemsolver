@@ -22,6 +22,8 @@ dependencies = [
     "qiskit~=0.36",
     "numpy~=1.23.3",
     "matplotlib~=3.5.1",
+    "mqt.ddsim~=1.11.0",
+    "networkx~=2.8.7",
 ]
 
 classifiers = [
