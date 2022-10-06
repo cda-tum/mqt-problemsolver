@@ -1,3 +1,4 @@
+# Code is adapted from https://arxiv.org/abs/1805.10928 and https://qiskit.org/textbook/ch-paper-implementations/tsp.html
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
