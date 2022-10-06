@@ -7,7 +7,8 @@ MQT ProblemSolver is a framework to utilize quantum computing as a technology fo
 quantum computing knowledge.
 All necessary quantum parts are embedded by domain experts while the interface provided are similar to the ones
 classical solver provide:
-<img src="img/framework.png">
+
+<img src="img/framework.png" height=300px>
 
 When provided with a problem description, MQT ProblemSolver offers a selection of implemented quantum algorithms.
 The user just has to chose one and all further (quantum) calculation steps are encapsulated within MQT ProblemSolver.
