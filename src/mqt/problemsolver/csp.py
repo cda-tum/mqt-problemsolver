@@ -1,3 +1,4 @@
+# Code is adapted from https://arxiv.org/abs/1805.10928 and https://qiskit.org/textbook/ch-paper-implementations/tsp.html
 from __future__ import annotations
 
 import numpy as np
