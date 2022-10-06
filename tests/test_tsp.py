@@ -1,4 +1,4 @@
-from tsp import TSP
+from mqt.problemsolver.tsp import TSP
 
 
 def test_kakuro():
