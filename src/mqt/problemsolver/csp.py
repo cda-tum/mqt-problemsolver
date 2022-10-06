@@ -9,7 +9,7 @@ from mqt import ddsim
 class CSP:
     def solve(
         self,
-        constraints: list,
+        constraints: list[dict],
         quantum_algorithm="Grover",
     ):
         if quantum_algorithm == "Grover":
@@ -127,7 +127,7 @@ class CSP:
         c: QuantumRegister,
         d: QuantumRegister,
         anc: QuantumRegister,
-        constraints: list,
+        constraints: list[dict],
     ):
         mct_list = []
 
@@ -190,7 +190,7 @@ class CSP:
     def create_oracle(
         self,
         qc: QuantumCircuit,
-        mct_list: list,
+        mct_list: list[QuantumRegister],
         flag: QuantumRegister,
         anc_mct: QuantumRegister,
     ):
