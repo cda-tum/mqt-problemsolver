@@ -12,6 +12,15 @@ class CSP:
         constraints: list[dict],
         quantum_algorithm="Grover",
     ):
+        """Method to solve the problem.
+
+        Keyword arguments:
+        constraints -- List of to be satisfied constraints.
+        quantum_algorithm -- Selected quantum algorithm to solve problem.
+
+        Return values:
+        solution -- Solution to the problem if it exists.
+        """
         if quantum_algorithm == "Grover":
             qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
             qc, mct_list = self.encode_constraints(
@@ -22,11 +31,11 @@ class CSP:
                 qc = self.create_grover(
                     oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m
                 )
-                res = self.simulate(qc)
-                if res:
+                solution = self.simulate(qc)
+                if solution:
                     break
-            if res:
-                return res
+            if solution:
+                return solution
             else:
                 return False
 
@@ -45,6 +54,12 @@ class CSP:
         c: str | int = "c",
         d: str | int = "d",
     ):
+        """Method to visualize the problem.
+
+        Keyword arguments:
+        sum_* -- Sums to be satisfied.
+        a to d -- Variable values satisfying the respective sums.
+        """
 
         print("     | ", sum_s0, " | ", sum_s1, " | ")
         print("------------------")
@@ -293,11 +308,13 @@ class CSP:
             print("Simulation was unsuccessful.")
 
     def get_available_quantum_algorithms(self):
+        """Method to get all available quantum algorithms in a list."""
         return ["Grover"]
 
     def get_kakuro_constraints(
         self, sum_s0: int, sum_s1: int, sum_s2: int, sum_s3: int
     ):
+        """Method to get a list of constraints for the inserted sums."""
         list_of_constraints = []
         constraint_1 = {
             "type": "addition_equality",

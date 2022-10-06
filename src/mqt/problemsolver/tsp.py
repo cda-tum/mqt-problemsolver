@@ -11,6 +11,12 @@ from mqt import ddsim
 
 class TSP:
     def print(self, solution: list[int] = None):
+        """Method to visualize the problem.
+
+        Keyword arguments:
+        solution -- If provided, the solution is visualized. Otherwise, the problem without solution is shown.
+
+        """
         G = nx.DiGraph(directed=True)
         G.add_node(1)
         G.add_node(2)
@@ -122,6 +128,17 @@ class TSP:
         quantum_algorithm="QPE",
         num_qubits_qft=8,
     ):
+        """Method to solve the problem.
+
+        Keyword arguments:
+        dist_*_* -- Defining the adjacency matrix by the distances between the vertices.
+        objective_function -- Optimization goal.
+        quantum_algorithm -- Selected quantum algorithm to solve problem.
+        num_qubits_qft -- Number of qubits used for QFT if "QPE" is selected as the algorithm.
+
+        Return values:
+        solution -- Solution to the problem if it exists.
+        """
         if quantum_algorithm == "QPE" and objective_function == "shortest_path":
             self.dist_1_2 = dist_1_2
             self.dist_1_3 = dist_1_3
@@ -172,8 +189,8 @@ class TSP:
             all_perms.append(route)
             all_costs.append(costs)
 
-        sol_perm = all_perms[np.argmin(all_costs)]
-        return sol_perm
+        solution = all_perms[np.argmin(all_costs)]
+        return solution
 
     def create_TSP_qc(
         self,
@@ -353,7 +370,9 @@ class TSP:
         return G
 
     def get_available_quantum_algorithms(self):
+        """Method to get all available quantum algorithms in a list."""
         return ["QPE"]
 
     def show_classical_solution(self):
+        """Method to visualize the solution of a classical solver."""
         self.print(solution=self.get_classical_result())
