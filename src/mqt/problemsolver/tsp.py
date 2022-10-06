@@ -267,36 +267,36 @@ class TSP:
     def controlled_unitary(
         self, qc: QuantumCircuit, qubits: list[QuantumRegister], phases: list[int]
     ):  # x,y,z = Specific Qubit; a,b,c,d = Phases
-        # qc.cp(phases[2] - phases[0], qubits[0], qubits[1])  # controlled-U1(c-a)
-        # qc.p(phases[0], qubits[0])  # U1(a)
-        # qc.cp(phases[1] - phases[0], qubits[0], qubits[2])  # controlled-U1(b-a)
-        #
-        # # controlled controlled U1(d-c+a-b)
-        # qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[1], qubits[2])
-        # qc.cx(qubits[0], qubits[1])
-        # qc.cp(
-        #     -(phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[1], qubits[2]
-        # )
-        # qc.cx(qubits[0], qubits[1])
-        # qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[0], qubits[2])
-        # print(qc.draw())
+        qc.cp(phases[2] - phases[0], qubits[0], qubits[1])  # controlled-U1(c-a)
+        qc.p(phases[0], qubits[0])  # U1(a)
+        qc.cp(phases[1] - phases[0], qubits[0], qubits[2])  # controlled-U1(b-a)
+
+        # controlled controlled U1(d-c+a-b)
+        qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[1], qubits[2])
+        qc.cx(qubits[0], qubits[1])
+        qc.cp(
+            -(phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[1], qubits[2]
+        )
+        qc.cx(qubits[0], qubits[1])
+        qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[0], qubits[2])
+        print(qc.draw())
 
         # Alternative formulation
-        from qiskit.extensions import UnitaryGate
-
-        matrix = [
-            [1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0 + np.exp(0 + phases[0] * 1j), 0, 0, 0],
-            [0, 0, 0, 0, 0, np.exp(phases[1] * 1j), 0, 0],
-            [0, 0, 0, 0, 0, 0, np.exp(phases[2] * 1j), 0],
-            [0, 0, 0, 0, 0, 0, 0, np.exp(phases[3] * 1j)],
-        ]
-
-        gate = UnitaryGate(matrix)
-        qc.append(gate, qubits)
+        # from qiskit.extensions import UnitaryGate
+        #
+        # matrix = [
+        #     [1, 0, 0, 0, 0, 0, 0, 0],
+        #     [0, 1, 0, 0, 0, 0, 0, 0],
+        #     [0, 0, 1, 0, 0, 0, 0, 0],
+        #     [0, 0, 0, 1, 0, 0, 0, 0],
+        #     [0, 0, 0, 0, 0 + np.exp(0 + phases[0] * 1j), 0, 0, 0],
+        #     [0, 0, 0, 0, 0, np.exp(phases[1] * 1j), 0, 0],
+        #     [0, 0, 0, 0, 0, 0, np.exp(phases[2] * 1j), 0],
+        #     [0, 0, 0, 0, 0, 0, 0, np.exp(phases[3] * 1j)],
+        # ]
+        #
+        # gate = UnitaryGate(matrix)
+        # qc.append(gate, qubits)
 
     def U(
         self,
