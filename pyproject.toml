@@ -24,6 +24,7 @@ dependencies = [
     "matplotlib~=3.5.1",
     "mqt.ddsim~=1.11.0",
     "networkx~=2.8.7",
+    "python_tsp~=0.3.1",
 ]
 
 classifiers = [
