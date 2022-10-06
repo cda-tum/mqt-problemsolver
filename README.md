@@ -41,7 +41,7 @@ MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a soluti
 This exemplary implementation can be found in the [TSP_example.ipynb](src/mqt/problemsolver/TSP_example.ipynb).
 Here, the solution to a Travelling Salesman Problem with 4 cities can be solved for arbitrary distances `dist_1_2` to `dist_3_4`between the cities.
 
-<img src="img/tsp.png">
+<img src="img/tsp.png" height=200px>
 MQT ProblemSolver will return the shortest path visiting all cities.
 
 # Repository Structure
