@@ -1,4 +1,4 @@
-from src.mqt.problemsolver.csp import CSP
+from csp import CSP
 
 
 def test_csp():
