@@ -135,7 +135,6 @@ class TSP:
 
             self.num_qubits_qft = num_qubits_qft
             sol_perm = self.solve_using_QPE()
-            self.print(solution=sol_perm)
             return sol_perm
 
         else:
