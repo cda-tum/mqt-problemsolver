@@ -1,4 +1,5 @@
 [![Lint](https://github.com/nquetschlich/MQTProblemSolver/actions/workflows/linter.yml/badge.svg)](https://github.com/nquetschlich/MQTProblemSolver/actions/workflows/linter.yml)
+[![CodeCov](https://github.com/nquetschlich/MQTProblemSolver/actions/workflows/coverage.yml/badge.svg)](https://github.com/nquetschlich/MQTProblemSolver/actions/workflows/coverage.yml)
 
 # MQT ProblemSolver
 
