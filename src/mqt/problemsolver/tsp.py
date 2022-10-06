@@ -9,28 +9,28 @@ from mqt import ddsim
 
 
 class TSP:
-    def print(self, solution=None):
-        self.G = nx.DiGraph(directed=True)
-        self.G.add_node(1)
-        self.G.add_node(2)
-        self.G.add_node(3)
-        self.G.add_node(4)
+    def print(self, solution: list[int] = None):
+        G = nx.DiGraph(directed=True)
+        G.add_node(1)
+        G.add_node(2)
+        G.add_node(3)
+        G.add_node(4)
 
-        self.G.add_edge(1, 2)
-        self.G.add_edge(1, 3)
-        self.G.add_edge(1, 4)
+        G.add_edge(1, 2)
+        G.add_edge(1, 3)
+        G.add_edge(1, 4)
 
-        self.G.add_edge(2, 1)
-        self.G.add_edge(2, 3)
-        self.G.add_edge(2, 4)
+        G.add_edge(2, 1)
+        G.add_edge(2, 3)
+        G.add_edge(2, 4)
 
-        self.G.add_edge(3, 1)
-        self.G.add_edge(3, 2)
-        self.G.add_edge(3, 4)
+        G.add_edge(3, 1)
+        G.add_edge(3, 2)
+        G.add_edge(3, 4)
 
-        self.G.add_edge(4, 1)
-        self.G.add_edge(4, 2)
-        self.G.add_edge(4, 3)
+        G.add_edge(4, 1)
+        G.add_edge(4, 2)
+        G.add_edge(4, 3)
 
         if hasattr(self, "dist_1_2"):
             dist_1_2 = self.dist_1_2
@@ -71,14 +71,14 @@ class TSP:
             (3, 4): dist_3_4,
         }
 
-        self.pos = {1: [0, 1], 2: [0, 0], 3: [1, 1], 4: [1, 0]}
+        pos = {1: [0, 1], 2: [0, 0], 3: [1, 1], 4: [1, 0]}
 
         nx.draw(
-            self.G,
+            G,
             with_labels=True,
             node_color="skyblue",
             edge_cmap=plt.cm.Blues,
-            pos=self.pos,
+            pos=pos,
             node_size=2000,
             font_size=20,
         )
@@ -95,7 +95,7 @@ class TSP:
             ]
             nx.draw(
                 selected_graph_quantum,
-                self.pos,
+                pos,
                 node_color="skyblue",
                 edge_color=colors_quantum,
                 width=weights_quantum,
@@ -104,19 +104,19 @@ class TSP:
             )
 
         nx.draw_networkx_edge_labels(
-            self.G, self.pos, edge_labels=edge_labels, label_pos=0.3, font_size=20
+            G, pos, edge_labels=edge_labels, label_pos=0.3, font_size=20
         )
 
         return
 
     def solve(
         self,
-        dist_1_2,
-        dist_1_3,
-        dist_1_4,
-        dist_2_3,
-        dist_2_4,
-        dist_3_4,
+        dist_1_2: int,
+        dist_1_3: int,
+        dist_1_4: int,
+        dist_2_3: int,
+        dist_2_4: int,
+        dist_3_4: int,
         objective_function="shortest_path",
         quantum_algorithm="QPE",
         num_qubits_qft=8,
@@ -150,15 +150,16 @@ class TSP:
         all_costs = []
         for eigenstate in eigen_values:
 
-            unit_register = QuantumRegister(self.num_qubits_qft, "unit")
+            qft_register = QuantumRegister(self.num_qubits_qft, "qft")
             eigenstate_register = QuantumRegister(8, "eigen")
-            unit_classical_register = ClassicalRegister(
-                self.num_qubits_qft, "unit_classical"
+            qft_register_classical = ClassicalRegister(
+                self.num_qubits_qft, "qft_classical"
             )
 
             qc = self.create_TSP_qc(
-                unit_register, eigenstate_register, unit_classical_register, eigenstate
+                qft_register, eigenstate_register, qft_register_classical, eigenstate
             )
+            print(qc.draw())
 
             most_frequent = self.simulate(qc)
 
@@ -175,35 +176,39 @@ class TSP:
         return sol_perm
 
     def create_TSP_qc(
-        self, unit_register, eigenstate_register, unit_classical_register, eigenstate
+        self,
+        qft_register: QuantumRegister,
+        eigenstate_register: QuantumRegister,
+        qft_classical_register: ClassicalRegister,
+        eigenstate: QuantumRegister,
     ):
-        qc = QuantumCircuit(unit_register, eigenstate_register, unit_classical_register)
+        qc = QuantumCircuit(qft_register, eigenstate_register, qft_classical_register)
 
         self.encode_eigenstate(qc, eigenstate_register, eigenstate)
 
-        qc.h(unit_register[:])
+        qc.h(qft_register[:])
         qc.barrier()
 
         for i in range(0, self.num_qubits_qft):
             qc.append(
                 self.final_U(times=i, eigenstate_register=eigenstate_register),
-                [unit_register[self.num_qubits_qft - 1 - i]] + eigenstate_register[:],
+                [qft_register[self.num_qubits_qft - 1 - i]] + eigenstate_register[:],
             )
 
         # Inverse QFT
         qc.barrier()
         qft = QFT(
-            num_qubits=len(unit_register),
+            num_qubits=len(qft_register),
             inverse=True,
             insert_barriers=True,
             do_swaps=False,
             name="Inverse QFT",
         )
-        qc.append(qft, qc.qubits[: len(unit_register)])
+        qc.append(qft, qc.qubits[: len(qft_register)])
         qc.barrier()
 
         # Measure
-        qc.measure(unit_register, unit_classical_register)
+        qc.measure(qft_register, qft_classical_register)
         return qc
 
     def get_all_phases(self):
@@ -243,7 +248,7 @@ class TSP:
         return (np.array(permutation) + 1).T
 
     def controlled_unitary(
-        self, qc, qubits: list, phases: list
+        self, qc: QuantumCircuit, qubits: list[QuantumRegister], phases: list[int]
     ):  # x,y,z = Specific Qubit; a,b,c,d = Phases
         qc.cp(phases[2] - phases[0], qubits[0], qubits[1])  # controlled-U1(c-a)
         qc.p(phases[0], qubits[0])  # U1(a)
@@ -258,28 +263,45 @@ class TSP:
         qc.cx(qubits[0], qubits[1])
         qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[0], qubits[2])
 
-    def U(self, qc, unit, eigen):
+    def U(
+        self,
+        qc: QuantumCircuit,
+        control_qreg: QuantumRegister,
+        eigenstate_register: QuantumRegister,
+    ):
 
         phases = self.get_all_phases()
-        # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4; m_list=[m, n, o, p, q, r, s, t, u, a, b, c, d, e, f, g, h, i, j, k, l]
-        self.controlled_unitary(qc, [unit[0]] + eigen[0:2], [0] + phases[0:3])
+        # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4;
         self.controlled_unitary(
-            qc, [unit[0]] + eigen[2:4], [phases[3]] + [0] + phases[4:6]
+            qc, [control_qreg[0]] + eigenstate_register[0:2], [0] + phases[0:3]
         )
         self.controlled_unitary(
-            qc, [unit[0]] + eigen[4:6], phases[6:8] + [0] + [phases[8]]
+            qc,
+            [control_qreg[0]] + eigenstate_register[2:4],
+            [phases[3]] + [0] + phases[4:6],
         )
-        self.controlled_unitary(qc, [unit[0]] + eigen[6:8], phases[9:12] + [0])
+        self.controlled_unitary(
+            qc,
+            [control_qreg[0]] + eigenstate_register[4:6],
+            phases[6:8] + [0] + [phases[8]],
+        )
+        self.controlled_unitary(
+            qc, [control_qreg[0]] + eigenstate_register[6:8], phases[9:12] + [0]
+        )
 
     def final_U(self, times: int, eigenstate_register: QuantumRegister):
-        unit = QuantumRegister(1, "unit")
-        qc = QuantumCircuit(unit, eigenstate_register)
+        control_qreg = QuantumRegister(1, "control")
+        qc = QuantumCircuit(control_qreg, eigenstate_register)
         for _ in range(2**times):
-            self.U(qc, unit, eigenstate_register)
+            self.U(qc, control_qreg, eigenstate_register)
         return qc.to_gate(label="U" + "_" + (str(2**times)))
 
-    # Function to place appropriate corresponding gate according to eigenstates
-    def encode_eigenstate(self, qc, eigen_register, eigenstate):
+    def encode_eigenstate(
+        self,
+        qc: QuantumCircuit,
+        eigen_register: QuantumRegister,
+        eigenstate: QuantumRegister,
+    ):
         for i in range(0, len(eigen_register)):
             if eigenstate[i] == "1":
                 qc.x(eigen_register[i])
@@ -288,11 +310,11 @@ class TSP:
         qc.barrier()
         return qc
 
-    def int_to_phase(self, distance):
+    def int_to_phase(self, distance: int):
         phase = distance / self.distances_sum * 2 * np.pi
         return phase
 
-    def phase_to_int(self, phase):
+    def phase_to_int(self, phase: float):
         return phase * self.distances_sum
 
     def eigenvalue_to_route(self, eigenvalue: str):
@@ -302,7 +324,7 @@ class TSP:
         d = int(eigenvalue[6:8], 2) + 1
         return [a, b, c, d]
 
-    def extract_selected_graph(self, solution):
+    def extract_selected_graph(self, solution: list[int]):
         G = nx.Graph()
         for i in range(len(solution)):
             if i == len(solution) - 1:
