@@ -160,7 +160,6 @@ class TSP:
             qc = self.create_TSP_qc(
                 qft_register, eigenstate_register, qft_register_classical, eigenstate
             )
-            print(qc.draw())
 
             most_frequent = self.simulate(qc)
 
