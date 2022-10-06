@@ -279,7 +279,6 @@ class TSP:
         )
         qc.cx(qubits[0], qubits[1])
         qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[0], qubits[2])
-        print(qc.draw())
 
         # Alternative formulation
         # from qiskit.extensions import UnitaryGate
