@@ -18,6 +18,8 @@ jobs:
           python-version: "3.9"
       - name: Install pytest
         run: pip install pytest
+      - name: Install coverage
+        run: pip install coverage
       - name: Generate Report
         run: pytest -v --cov=./ --cov-report=xml
 #    - name: Upload coverage to Codecov
