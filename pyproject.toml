@@ -1,0 +1,58 @@
+[build-system]
+requires = [
+    "setuptools>=61",
+    "setuptools_scm[toml]>=6.4"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mqt.problemsolver"
+description = "MQT ProblemSolver - A MQT tool for solving problems using quantum computing"
+readme = "README.md"
+authors = [
+    { name = "Nils Quetschlich", email = "nils.quetschlich@tum.de" },
+    { name = "Lukas Burgholzer", email = "lukas.burgholzer@jku.at"},
+]
+keywords = ["MQT",  "quantum computing"]
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+dynamic = ["version"]
+
+dependencies = [
+    "qiskit~=0.36",
+    "numpy~=1.23.3",
+    "matplotlib~=3.5.1",
+    "mqt.ddsim~=1.11.0",
+    "networkx~=2.8.7",
+    "python_tsp~=0.3.1",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+coverage = ["mqt.problemsolver[test]", "coverage[toml]~=6.5.0", "pytest-cov~=4.0.0"]
+dev = ["mqt.problemsolver[coverage]"]
+
+[project.urls]
+Homepage = "https://github.com/cda-tum/mqtproblemsolver"
+"Bug Tracker" = "https://github.com/cda-tum/mqtproblemsolver/issues"
+Discussions = "https://github.com/cda-tum/mqtproblemsolver/discussions"
+Research = "https://www.cda.cit.tum.de/research/quantum/"
+
+[tool.setuptools_scm]

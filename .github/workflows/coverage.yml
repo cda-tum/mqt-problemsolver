@@ -1,0 +1,26 @@
+name: CodeCov
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install MQT ProblemSolver
+        run: pip install .[coverage]
+      - name: Generate Report
+        run: pytest -v --cov=./ --cov-report=xml
+#    - name: Upload coverage to Codecov
+#      uses: codecov/codecov-action@v3
+#      with:
+#        fail_ci_if_error: true
