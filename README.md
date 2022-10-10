@@ -8,7 +8,7 @@ quantum computing knowledge.
 All necessary quantum parts are embedded by domain experts while the interface provided are similar to the ones
 classical solver provide:
 
-<img src="img/framework.png" height=300px>
+<img src="img/framework.png" align="middle" height=300px>
 
 When provided with a problem description, MQT ProblemSolver offers a selection of implemented quantum algorithms.
 The user just has to chose one and all further (quantum) calculation steps are encapsulated within MQT ProblemSolver.
@@ -41,7 +41,8 @@ MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a soluti
 This exemplary implementation can be found in the [TSP_example.ipynb](src/mqt/problemsolver/TSP_example.ipynb).
 Here, the solution to a Travelling Salesman Problem with 4 cities can be solved for arbitrary distances `dist_1_2` to `dist_3_4`between the cities.
 
-<img src="img/tsp.png" height=200px>
+<img src="img/tsp.png" align="middle" height=200px>
+
 MQT ProblemSolver will return the shortest path visiting all cities.
 
 # Repository Structure
