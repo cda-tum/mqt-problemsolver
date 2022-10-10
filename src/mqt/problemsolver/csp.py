@@ -43,7 +43,7 @@ class CSP:
             print("ERROR: Selected quantum algorithm is not implemented.")
             return False
 
-    def print_kakuro_problem(
+    def print(
         self,
         sum_s0: str | int = "s0",
         sum_s1: str | int = "s1",
