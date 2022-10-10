@@ -28,7 +28,7 @@ This exemplary implementation can be found in the [CSP_example.ipynb](src/mqt/pr
 Here, the solution to a Kakuro riddle with a 2x2 can be solved for arbitrary sums `s0` to `s3`:
 
 <p align="center">
-<img src="img/kakuro.png" height=200px>
+<img src="img/kakuro.png" height=100px>
 </p>
 
 MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a solution exists.
