@@ -24,7 +24,7 @@ In the current implementation, two case studies are conducted:
 
 # A SAT Problem: Constraint Satisfaction Problem
 
-This exemplary implementation can be found in the [CSP_example.ipynb](src/mqt/problemsolver/CSP_example.ipynb).
+This exemplary implementation can be found in the [CSP_example.ipynb](src/mqt/problemsolver/csp_example.ipynb).
 Here, the solution to a Kakuro riddle with a 2x2 can be solved for arbitrary sums `s0` to `s3`:
 
 <p align="center">
@@ -35,7 +35,7 @@ MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a soluti
 
 # A Graph-based Optimization Problem: Travelling Salesman Problem
 
-This exemplary implementation can be found in the [TSP_example.ipynb](src/mqt/problemsolver/TSP_example.ipynb).
+This exemplary implementation can be found in the [TSP_example.ipynb](src/mqt/problemsolver/tsp_example.ipynb).
 Here, the solution to a Travelling Salesman Problem with 4 cities can be solved for arbitrary distances `dist_1_2` to `dist_3_4`between the cities.
 
 <p align="center">
@@ -51,10 +51,10 @@ MQT ProblemSolver will return the shortest path visiting all cities.
 ├── src
 │ └── mqt
 │     └── problemsolver
-│        └── sat.py
-│        └── sat_example.ipynb
-│        └── graph.py
-│        └── graph.ipynb
+│        └── csp.py
+│        └── csp_example.ipynb
+│        └── tsp.py
+│        └── tsp_example.ipynb
 └── tests
     └── ...
 ```
