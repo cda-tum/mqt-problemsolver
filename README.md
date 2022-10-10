@@ -5,7 +5,7 @@
 
 MQT ProblemSolver is a framework to utilize quantum computing as a technology for users with little to no
 quantum computing knowledge.
-All necessary quantum parts are embedded by domain experts while the interface provided are similar to the ones
+All necessary quantum parts are embedded by domain experts while the interfaces provided are similar to the ones
 classical solver provide:
 
 <p align="center">
@@ -24,8 +24,8 @@ In the current implementation, two case studies are conducted:
 
 # A SAT Problem: Constraint Satisfaction Problem
 
-This exemplary implementation can be found in the [CSP_example.ipynb](src/mqt/problemsolver/csp_example.ipynb).
-Here, the solution to a Kakuro riddle with a 2x2 can be solved for arbitrary sums `s0` to `s3`:
+This exemplary implementation can be found in the [CSP_example.ipynb](src/mqt/problemsolver/csp_example.ipynb) Jupyter notebook.
+Here, the solution to a Kakuro riddle with a 2x2 grid can be solved for arbitrary sums `s0` to `s3`:
 
 <p align="center">
 <img src="img/kakuro.png" height=100px>
@@ -35,7 +35,7 @@ MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a soluti
 
 # A Graph-based Optimization Problem: Travelling Salesman Problem
 
-This exemplary implementation can be found in the [TSP_example.ipynb](src/mqt/problemsolver/tsp_example.ipynb).
+This exemplary implementation can be found in the [TSP_example.ipynb](src/mqt/problemsolver/tsp_example.ipynb) Jupyter notebook.
 Here, the solution to a Travelling Salesman Problem with 4 cities can be solved for arbitrary distances `dist_1_2` to `dist_3_4`between the cities.
 
 <p align="center">
