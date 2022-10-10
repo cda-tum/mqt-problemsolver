@@ -58,15 +58,3 @@ MQT ProblemSolver will return the shortest path visiting all cities.
 └── tests
     └── ...
 ```
-
-# Reference
-
-In case you are using MQT ProblemSolver in your work, we would be thankful if you referred to it by citing the following publication:
-
-```bibtex
-@misc{xxx,
-  title={xxx},
-  author={Quetschlich, Nils and Burgholzer, Lukas and Wille, Robert},
-  year={2022},
-}
-```
