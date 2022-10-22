@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqt.problemsolver"
-description = "MQT ProblemSolver - A MQT tool for solving problems using quantum computing"
+description = "MQT ProblemSolver - A MQT tool for Solving Problems Using Quantum Computing"
 readme = "README.md"
 authors = [
     { name = "Nils Quetschlich", email = "nils.quetschlich@tum.de" },
