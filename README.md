@@ -43,7 +43,7 @@ Here, the solution to a Travelling Salesman Problem with 4 cities can be solved 
 <img src="img/tsp.png" height=200px>
 </p>
 
-MQT ProblemSolver will return the shortest path visiting all cities.
+MQT ProblemSolver will return the shortest path visiting all cities as a list.
 
 # Repository Structure
 
