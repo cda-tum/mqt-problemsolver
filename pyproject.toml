@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqt.problemsolver"
-description = "MQT ProblemSolver - A MQT tool for solving problems using quantum computing"
+description = "MQT ProblemSolver - A MQT tool for Solving Problems Using Quantum Computing"
 readme = "README.md"
 authors = [
     { name = "Nils Quetschlich", email = "nils.quetschlich@tum.de" },
@@ -23,7 +23,7 @@ dependencies = [
     "numpy~=1.23.3",
     "matplotlib~=3.5.1",
     "mqt.ddsim~=1.11.0",
-    "networkx~=2.8.7",
+    "networkx~=2.8.6",
     "python_tsp~=0.3.1",
 ]
 
