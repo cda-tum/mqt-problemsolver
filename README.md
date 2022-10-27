@@ -45,6 +45,14 @@ Here, the solution to a Travelling Salesman Problem with 4 cities can be solved 
 
 MQT ProblemSolver will return the shortest path visiting all cities as a list.
 
+# Usage
+
+MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemsolver/):
+
+```console
+(venv) $ pip install mqt.problemsolver
+```
+
 # Repository Structure
 
 ```
