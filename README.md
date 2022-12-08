@@ -2,6 +2,13 @@
 [![CodeCov](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/coverage.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/coverage.yml)
 [![Deploy to PyPI](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml)
 
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/MQTProblemSolver/main/img/mqt_light.png" width="60%">
+  <img src="https://raw.githubusercontent.com/cda-tum/MQTProblemSolver/main/img/mqt_dark.png" width="60%">
+</picture>
+</p>
+
 # MQT ProblemSolver
 
 MQT ProblemSolver is a framework to utilize quantum computing as a technology for users with little to no
@@ -66,4 +73,19 @@ MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemso
 │        └── tsp_example.ipynb
 └── tests
     └── ...
+```
+
+# References
+
+In case you are using MQT ProblemSolver in your work, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@misc{quetschlich2022mqtproblemsolver,
+  title={Towards an Automated Framework for Realizing Quantum Computing Solutions},
+  author={Quetschlich, Nils and Burgholzer, Lukas and Wille, Robert},
+  year={2022},
+  eprint = {2210.14928},
+  eprinttype = {arxiv},
+  publisher = {arXiv},
+}
 ```
