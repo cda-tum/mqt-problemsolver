@@ -1,4 +1,3 @@
-[![Lint](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/linter.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/linter.yml)
 [![CodeCov](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/coverage.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/coverage.yml)
 [![Deploy to PyPI](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml)
 
