@@ -292,7 +292,6 @@ class CSP:
 
         found_sol = False
         for entry in counts.keys():
-
             if counts.get(entry) > 5 * mean_counts:
                 found_sol = True
                 break
