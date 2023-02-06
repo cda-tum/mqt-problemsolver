@@ -162,12 +162,10 @@ class TSP:
             return False
 
     def solve_using_QPE(self):
-
         eigen_values = ["11000110", "10001101", "10000111"]
         all_perms = []
         all_costs = []
         for eigenstate in eigen_values:
-
             qft_register = QuantumRegister(self.num_qubits_qft, "qft")
             eigenstate_register = QuantumRegister(8, "eigen")
             qft_register_classical = ClassicalRegister(
@@ -244,7 +242,6 @@ class TSP:
         return [a, b, c, d, e, f, g, h, i, j, k, m]
 
     def simulate(self, qc: QuantumCircuit):
-
         backend = ddsim.DDSIMProvider().get_backend("qasm_simulator")
         job = execute(qc, backend, shots=1000)
         count = job.result().get_counts()
@@ -303,7 +300,6 @@ class TSP:
         control_qreg: QuantumRegister,
         eigenstate_register: QuantumRegister,
     ):
-
         phases = self.get_all_phases()
         # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4;
         self.controlled_unitary(
