@@ -91,4 +91,3 @@ repos:
           - numpy
           - python_tsp
           - networkx
-          - mqt.ddsim
