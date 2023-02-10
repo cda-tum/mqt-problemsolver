@@ -6,7 +6,6 @@ import numpy as np
 from mqt import ddsim
 from qiskit import QuantumCircuit, QuantumRegister, execute
 
-
 if TYPE_CHECKING:
     from qiskit.circuit import Instruction
 
@@ -20,7 +19,6 @@ class Constraint(TypedDict, total=False):
     operand_one: str
     operand_two: str
     to_be_satisfied_sum: int
-
 
 
 class CSP:
@@ -110,7 +108,6 @@ class CSP:
         s: str,
         res_anc: QuantumRegister,
     ) -> None:
-
         x_low, x_mid, x_high = x
 
         if s[-1] == "0":
@@ -182,12 +179,10 @@ class CSP:
                 first_qreg = dict_variable_to_quantumregister[constraint["operand_one"]]
                 second_qreg = dict_variable_to_quantumregister[constraint["operand_two"]]
 
-
                 self.check_inequality(qc, first_qreg, second_qreg, anc[anc_index])
                 mct_list.append(anc[anc_index])
                 qc.barrier()
                 anc_index += anc_needed_per_constraint[constraint["constraint_type"]]
-
 
             elif constraint.get("constraint_type") == "addition_equality":
                 first_qreg = dict_variable_to_quantumregister[constraint["operand_one"]]
@@ -343,9 +338,7 @@ class CSP:
         """Method to get all available quantum algorithms in a list."""
         return ["Grover"]
 
-
     def get_kakuro_constraints(self, sum_s0: int, sum_s1: int, sum_s2: int, sum_s3: int) -> list[Constraint]:
-
         """Method to get a list of constraints for the inserted sums."""
         list_of_constraints = []
         constraint_1: Constraint = {
