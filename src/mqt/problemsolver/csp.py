@@ -1,16 +1,32 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, TypedDict
+
 import numpy as np
 from mqt import ddsim
 from qiskit import QuantumCircuit, QuantumRegister, execute
+
+if TYPE_CHECKING:
+    from qiskit.circuit import Instruction
+
+
+class Constraint(TypedDict, total=False):
+    """
+    Class to store the properties of a single constraint.
+    """
+
+    constraint_type: str
+    operand_one: str
+    operand_two: str
+    to_be_satisfied_sum: int
 
 
 class CSP:
     def solve(
         self,
-        constraints: list[dict],
-        quantum_algorithm="Grover",
-    ):
+        constraints: list[Constraint],
+        quantum_algorithm: str = "Grover",
+    ) -> tuple[int, int, int, int] | bool:
         """Method to solve the problem.
 
         Keyword arguments:
@@ -46,7 +62,7 @@ class CSP:
         b: str | int = "b",
         c: str | int = "c",
         d: str | int = "d",
-    ):
+    ) -> None:
         """Method to visualize the problem.
 
         Keyword arguments:
@@ -61,7 +77,13 @@ class CSP:
         print(" ", sum_s3, " | ", c, " | ", d, " |")
         print("------------------\n")
 
-    def check_inequality(self, qc: QuantumCircuit, x: tuple, y: tuple, res_anc: QuantumRegister):
+    def check_inequality(
+        self,
+        qc: QuantumCircuit,
+        x: tuple[QuantumRegister, QuantumRegister],
+        y: tuple[QuantumRegister, QuantumRegister],
+        res_anc: QuantumRegister,
+    ) -> None:
         x_low, x_high = x
         y_low, y_high = y
 
@@ -79,7 +101,13 @@ class CSP:
         qc.x(y_high)
         qc.cx(x_high, y_high)
 
-    def check_equality(self, qc: QuantumCircuit, x: tuple, s: str, res_anc: QuantumRegister):
+    def check_equality(
+        self,
+        qc: QuantumCircuit,
+        x: tuple[QuantumRegister, QuantumRegister, QuantumRegister],
+        s: str,
+        res_anc: QuantumRegister,
+    ) -> None:
         x_low, x_mid, x_high = x
 
         if s[-1] == "0":
@@ -94,13 +122,13 @@ class CSP:
     def add_two_numbers(
         self,
         qc: QuantumCircuit,
-        x: tuple,
-        y: tuple,
+        x: tuple[QuantumRegister, QuantumRegister],
+        y: tuple[QuantumRegister, QuantumRegister],
         ancs: QuantumRegister,
         res_anc_low: QuantumRegister,
         res_anc_high: QuantumRegister,
         anc_carry: QuantumRegister,
-    ):
+    ) -> tuple[QuantumRegister, QuantumRegister, QuantumRegister]:
         x_low, x_high = x
         y_low, y_high = y
 
@@ -131,8 +159,8 @@ class CSP:
         c: QuantumRegister,
         d: QuantumRegister,
         anc: QuantumRegister,
-        constraints: list[dict],
-    ):
+        constraints: list[Constraint],
+    ) -> tuple[QuantumCircuit, list[QuantumRegister]]:
         mct_list = []
 
         dict_variable_to_quantumregister = {
@@ -147,18 +175,18 @@ class CSP:
         }
         anc_index = 0
         for constraint in constraints:
-            if constraint.get("type") == "inequality":
-                first_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_one"))
-                second_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_two"))
+            if constraint.get("constraint_type") == "inequality":
+                first_qreg = dict_variable_to_quantumregister[constraint["operand_one"]]
+                second_qreg = dict_variable_to_quantumregister[constraint["operand_two"]]
 
                 self.check_inequality(qc, first_qreg, second_qreg, anc[anc_index])
                 mct_list.append(anc[anc_index])
                 qc.barrier()
-                anc_index += anc_needed_per_constraint.get(constraint.get("type"))
+                anc_index += anc_needed_per_constraint[constraint["constraint_type"]]
 
-            elif constraint.get("type") == "addition_equality":
-                first_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_one"))
-                second_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_two"))
+            elif constraint.get("constraint_type") == "addition_equality":
+                first_qreg = dict_variable_to_quantumregister[constraint["operand_one"]]
+                second_qreg = dict_variable_to_quantumregister[constraint["operand_two"]]
                 tmp_1 = self.add_two_numbers(
                     qc,
                     first_qreg,
@@ -172,14 +200,14 @@ class CSP:
                 self.check_equality(
                     qc,
                     tmp_1,
-                    bin(constraint.get("sum"))[2:].zfill(3),
+                    bin(constraint["to_be_satisfied_sum"])[2:].zfill(3),
                     anc[anc_index + 5],
                 )
                 mct_list.append(anc[anc_index + 5])
                 qc.barrier()
-                anc_index += anc_needed_per_constraint.get(constraint.get("type"))
+                anc_index += anc_needed_per_constraint[constraint["constraint_type"]]
             else:
-                print("Unexpected constraint type: ", constraint.get("type"))
+                print("Unexpected constraint type: ", constraint["constraint_type"])
 
         return (qc, mct_list)
 
@@ -189,7 +217,7 @@ class CSP:
         mct_list: list[QuantumRegister],
         flag: QuantumRegister,
         anc_mct: QuantumRegister,
-    ):
+    ) -> Instruction:
         compute = qc.to_instruction()
 
         # mark solution
@@ -202,7 +230,22 @@ class CSP:
 
         return qc.to_instruction(label="oracle")
 
-    def init_qc(self):
+    def init_qc(
+        self,
+    ) -> tuple[
+        QuantumCircuit,
+        QuantumRegister,
+        QuantumRegister,
+        QuantumRegister,
+        int,
+        int,
+        tuple[
+            tuple[QuantumRegister, QuantumRegister],
+            tuple[QuantumRegister, QuantumRegister],
+            tuple[QuantumRegister, QuantumRegister],
+            tuple[QuantumRegister, QuantumRegister],
+        ],
+    ]:
         a_low = QuantumRegister(1, "a_low")
         a_high = QuantumRegister(1, "a_high")
         a = (a_low, a_high)
@@ -244,7 +287,7 @@ class CSP:
         nancilla: int,
         ninputs: int,
         grover_iterations: int,
-    ):
+    ) -> QuantumCircuit:
         import numpy as np
 
         qc = QuantumCircuit(nqubits + nancilla, ninputs)
@@ -263,7 +306,7 @@ class CSP:
 
         return qc
 
-    def simulate(self, qc: QuantumCircuit):
+    def simulate(self, qc: QuantumCircuit) -> tuple[int, int, int, int] | None:
         backend = ddsim.DDSIMProvider().get_backend("qasm_simulator")
         job = execute(qc, backend, shots=10000)
         counts = job.result().get_counts(qc)
@@ -287,68 +330,68 @@ class CSP:
         print("Simulation was unsuccessful.")
         return None
 
-    def get_available_quantum_algorithms(self):
+    def get_available_quantum_algorithms(self) -> list[str]:
         """Method to get all available quantum algorithms in a list."""
         return ["Grover"]
 
-    def get_kakuro_constraints(self, sum_s0: int, sum_s1: int, sum_s2: int, sum_s3: int):
+    def get_kakuro_constraints(self, sum_s0: int, sum_s1: int, sum_s2: int, sum_s3: int) -> list[Constraint]:
         """Method to get a list of constraints for the inserted sums."""
         list_of_constraints = []
-        constraint_1 = {
-            "type": "addition_equality",
+        constraint_1: Constraint = {
+            "constraint_type": "addition_equality",
             "operand_one": "a",
             "operand_two": "c",
-            "sum": sum_s0,
+            "to_be_satisfied_sum": sum_s0,
         }
         list_of_constraints.append(constraint_1)
 
-        constraint_2 = {
-            "type": "addition_equality",
+        constraint_2: Constraint = {
+            "constraint_type": "addition_equality",
             "operand_one": "b",
             "operand_two": "d",
-            "sum": sum_s1,
+            "to_be_satisfied_sum": sum_s1,
         }
         list_of_constraints.append(constraint_2)
 
-        constraint_3 = {
-            "type": "addition_equality",
+        constraint_3: Constraint = {
+            "constraint_type": "addition_equality",
             "operand_one": "a",
             "operand_two": "b",
-            "sum": sum_s2,
+            "to_be_satisfied_sum": sum_s2,
         }
         list_of_constraints.append(constraint_3)
 
-        constraint_4 = {
-            "type": "addition_equality",
+        constraint_4: Constraint = {
+            "constraint_type": "addition_equality",
             "operand_one": "c",
             "operand_two": "d",
-            "sum": sum_s3,
+            "to_be_satisfied_sum": sum_s3,
         }
         list_of_constraints.append(constraint_4)
 
-        constraint_5 = {
-            "type": "inequality",
+        constraint_5: Constraint = {
+            "constraint_type": "inequality",
             "operand_one": "a",
             "operand_two": "c",
         }
         list_of_constraints.append(constraint_5)
 
-        constraint_6 = {
-            "type": "inequality",
+        constraint_6: Constraint = {
+            "constraint_type": "inequality",
             "operand_one": "b",
             "operand_two": "d",
         }
         list_of_constraints.append(constraint_6)
 
-        constraint_7 = {
-            "type": "inequality",
+        constraint_7: Constraint = {
+            "constraint_type": "inequality",
             "operand_one": "a",
             "operand_two": "b",
         }
         list_of_constraints.append(constraint_7)
 
-        constraint_8 = {
-            "type": "inequality",
+        constraint_8: Constraint = {
+            "constraint_type": "inequality",
             "operand_one": "c",
             "operand_two": "d",
         }
