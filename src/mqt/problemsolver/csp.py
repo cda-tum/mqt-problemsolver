@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, execute
-
 from mqt import ddsim
+from qiskit import QuantumCircuit, QuantumRegister, execute
 
 
 class CSP:
@@ -23,27 +22,21 @@ class CSP:
         """
         if quantum_algorithm == "Grover":
             qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
-            qc, mct_list = self.encode_constraints(
-                qc, a, b, c, d, anc, constraints=constraints
-            )
+            qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc, constraints=constraints)
             oracle = self.create_oracle(qc, mct_list, flag, anc_mct)
             for m in (5, 6, 7, 8, 12):
-                qc = self.create_grover(
-                    oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m
-                )
+                qc = self.create_grover(oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m)
                 solution = self.simulate(qc)
                 if solution:
                     break
             if solution:
                 return solution
-            else:
-                return False
-
-        else:
-            print("ERROR: Selected quantum algorithm is not implemented.")
             return False
 
-    def print(
+        print("ERROR: Selected quantum algorithm is not implemented.")
+        return False
+
+    def print_problem(
         self,
         sum_s0: str | int = "s0",
         sum_s1: str | int = "s1",
@@ -68,9 +61,7 @@ class CSP:
         print(" ", sum_s3, " | ", c, " | ", d, " |")
         print("------------------\n")
 
-    def check_inequality(
-        self, qc: QuantumCircuit, x: tuple, y: tuple, res_anc: QuantumRegister
-    ):
+    def check_inequality(self, qc: QuantumCircuit, x: tuple, y: tuple, res_anc: QuantumRegister):
         x_low, x_high = x
         y_low, y_high = y
 
@@ -88,9 +79,7 @@ class CSP:
         qc.x(y_high)
         qc.cx(x_high, y_high)
 
-    def check_equality(
-        self, qc: QuantumCircuit, x: tuple, s: str, res_anc: QuantumRegister
-    ):
+    def check_equality(self, qc: QuantumCircuit, x: tuple, s: str, res_anc: QuantumRegister):
         x_low, x_mid, x_high = x
 
         if s[-1] == "0":
@@ -159,12 +148,8 @@ class CSP:
         anc_index = 0
         for constraint in constraints:
             if constraint.get("type") == "inequality":
-                first_qreg = dict_variable_to_quantumregister.get(
-                    constraint.get("operand_one")
-                )
-                second_qreg = dict_variable_to_quantumregister.get(
-                    constraint.get("operand_two")
-                )
+                first_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_one"))
+                second_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_two"))
 
                 self.check_inequality(qc, first_qreg, second_qreg, anc[anc_index])
                 mct_list.append(anc[anc_index])
@@ -172,12 +157,8 @@ class CSP:
                 anc_index += anc_needed_per_constraint.get(constraint.get("type"))
 
             elif constraint.get("type") == "addition_equality":
-                first_qreg = dict_variable_to_quantumregister.get(
-                    constraint.get("operand_one")
-                )
-                second_qreg = dict_variable_to_quantumregister.get(
-                    constraint.get("operand_two")
-                )
+                first_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_one"))
+                second_qreg = dict_variable_to_quantumregister.get(constraint.get("operand_two"))
                 tmp_1 = self.add_two_numbers(
                     qc,
                     first_qreg,
@@ -219,8 +200,7 @@ class CSP:
         uncompute.name = "uncompute"
         qc.append(uncompute, range(qc.num_qubits))
 
-        oracle = qc.to_instruction(label="oracle")
-        return oracle
+        return qc.to_instruction(label="oracle")
 
     def init_qc(self):
         a_low = QuantumRegister(1, "a_low")
@@ -291,28 +271,27 @@ class CSP:
         mean_counts = np.mean(list(counts.values()))
 
         found_sol = False
-        for entry in counts.keys():
+        for entry in counts:
             if counts.get(entry) > 5 * mean_counts:
                 found_sol = True
                 break
         if found_sol:
-            for entry in counts.keys():
+            for entry in counts:
                 d = int(entry[0:2], 2)
                 c = int(entry[2:4], 2)
                 b = int(entry[4:6], 2)
                 a = int(entry[6:8], 2)
                 if counts.get(entry) > 5 * mean_counts:
                     return (a, b, c, d)
-        else:
-            print("Simulation was unsuccessful.")
+
+        print("Simulation was unsuccessful.")
+        return None
 
     def get_available_quantum_algorithms(self):
         """Method to get all available quantum algorithms in a list."""
         return ["Grover"]
 
-    def get_kakuro_constraints(
-        self, sum_s0: int, sum_s1: int, sum_s2: int, sum_s3: int
-    ):
+    def get_kakuro_constraints(self, sum_s0: int, sum_s1: int, sum_s2: int, sum_s3: int):
         """Method to get a list of constraints for the inserted sums."""
         list_of_constraints = []
         constraint_1 = {
