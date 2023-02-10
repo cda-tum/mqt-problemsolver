@@ -153,7 +153,7 @@ class TSP:
 
             most_frequent_decimal = int(most_frequent, 2)
             phase = most_frequent_decimal / (2**self.num_qubits_qft)
-            costs = self.phase_to_int(phase)
+            costs = self.phase_to_float(phase)
 
             all_perms.append(route)
             all_costs.append(costs)
@@ -309,7 +309,7 @@ class TSP:
     def int_to_phase(self, distance: int) -> float:
         return distance / self.distances_sum * 2 * np.pi
 
-    def phase_to_int(self, phase: float) -> float:
+    def phase_to_float(self, phase: float) -> float:
         return phase * self.distances_sum
 
     def eigenvalue_to_route(self, eigenvalue: str) -> list[int]:
