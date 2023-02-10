@@ -2,15 +2,14 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+from mqt import ddsim
 from python_tsp.exact import solve_tsp_dynamic_programming
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, execute
 from qiskit.circuit.library import QFT
 
-from mqt import ddsim
-
 
 class TSP:
-    def print(self, solution: list[int] = None):
+    def print_problem(self, solution: list[int] = None):
         """Method to visualize the problem.
 
         Keyword arguments:
@@ -39,35 +38,17 @@ class TSP:
         G.add_edge(4, 2)
         G.add_edge(4, 3)
 
-        if hasattr(self, "dist_1_2"):
-            dist_1_2 = self.dist_1_2
-        else:
-            dist_1_2 = "dist_1_2"
+        dist_1_2 = self.dist_1_2 if hasattr(self, "dist_1_2") else "dist_1_2"
 
-        if hasattr(self, "dist_1_3"):
-            dist_1_3 = self.dist_1_3
-        else:
-            dist_1_3 = "dist_1_3"
+        dist_1_3 = self.dist_1_3 if hasattr(self, "dist_1_3") else "dist_1_3"
 
-        if hasattr(self, "dist_1_4"):
-            dist_1_4 = self.dist_1_4
-        else:
-            dist_1_4 = "dist_1_4"
+        dist_1_4 = self.dist_1_4 if hasattr(self, "dist_1_4") else "dist_1_4"
 
-        if hasattr(self, "dist_2_3"):
-            dist_2_3 = self.dist_2_3
-        else:
-            dist_2_3 = "dist_2_3"
+        dist_2_3 = self.dist_2_3 if hasattr(self, "dist_2_3") else "dist_2_3"
 
-        if hasattr(self, "dist_2_4"):
-            dist_2_4 = self.dist_2_4
-        else:
-            dist_2_4 = "dist_2_4"
+        dist_2_4 = self.dist_2_4 if hasattr(self, "dist_2_4") else "dist_2_4"
 
-        if hasattr(self, "dist_3_4"):
-            dist_3_4 = self.dist_3_4
-        else:
-            dist_3_4 = "dist_3_4"
+        dist_3_4 = self.dist_3_4 if hasattr(self, "dist_3_4") else "dist_3_4"
 
         edge_labels = {
             (1, 2): dist_1_2,
@@ -94,12 +75,8 @@ class TSP:
             selected_graph_quantum = self.extract_selected_graph(solution)
 
             edges_quantum = selected_graph_quantum.edges()
-            colors_quantum = [
-                selected_graph_quantum[u][v]["color"] for u, v in edges_quantum
-            ]
-            weights_quantum = [
-                selected_graph_quantum[u][v]["weight"] for u, v in edges_quantum
-            ]
+            colors_quantum = [selected_graph_quantum[u][v]["color"] for u, v in edges_quantum]
+            weights_quantum = [selected_graph_quantum[u][v]["weight"] for u, v in edges_quantum]
             nx.draw(
                 selected_graph_quantum,
                 pos,
@@ -110,9 +87,7 @@ class TSP:
                 font_size=20,
             )
 
-        nx.draw_networkx_edge_labels(
-            G, pos, edge_labels=edge_labels, label_pos=0.3, font_size=20
-        )
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, label_pos=0.3, font_size=20)
 
         return
 
@@ -147,19 +122,14 @@ class TSP:
             self.dist_2_4 = dist_2_4
             self.dist_3_4 = dist_3_4
 
-            self.distances_sum = sum(
-                [dist_1_2, dist_1_3, dist_1_4, dist_2_3, dist_2_4, dist_3_4]
-            )
+            self.distances_sum = sum([dist_1_2, dist_1_3, dist_1_4, dist_2_3, dist_2_4, dist_3_4])
 
             self.num_qubits_qft = num_qubits_qft
             sol_perm = self.solve_using_QPE()
             return sol_perm
 
-        else:
-            print(
-                "ERROR: Combination of objective function quantum algorithm is not implemented."
-            )
-            return False
+        print("ERROR: Combination of objective function quantum algorithm is not implemented.")
+        return False
 
     def solve_using_QPE(self):
         eigen_values = ["11000110", "10001101", "10000111"]
@@ -168,13 +138,9 @@ class TSP:
         for eigenstate in eigen_values:
             qft_register = QuantumRegister(self.num_qubits_qft, "qft")
             eigenstate_register = QuantumRegister(8, "eigen")
-            qft_register_classical = ClassicalRegister(
-                self.num_qubits_qft, "qft_classical"
-            )
+            qft_register_classical = ClassicalRegister(self.num_qubits_qft, "qft_classical")
 
-            qc = self.create_TSP_qc(
-                qft_register, eigenstate_register, qft_register_classical, eigenstate
-            )
+            qc = self.create_TSP_qc(qft_register, eigenstate_register, qft_register_classical, eigenstate)
 
             most_frequent = self.simulate(qc)
 
@@ -187,8 +153,7 @@ class TSP:
             all_perms.append(route)
             all_costs.append(costs)
 
-        solution = all_perms[np.argmin(all_costs)]
-        return solution
+        return all_perms[np.argmin(all_costs)]
 
     def create_TSP_qc(
         self,
@@ -271,9 +236,7 @@ class TSP:
         # controlled controlled U1(d-c+a-b)
         qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[1], qubits[2])
         qc.cx(qubits[0], qubits[1])
-        qc.cp(
-            -(phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[1], qubits[2]
-        )
+        qc.cp(-(phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[1], qubits[2])
         qc.cx(qubits[0], qubits[1])
         qc.cp((phases[3] - phases[2] + phases[0] - phases[1]) / 2, qubits[0], qubits[2])
 
@@ -302,9 +265,7 @@ class TSP:
     ):
         phases = self.get_all_phases()
         # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4;
-        self.controlled_unitary(
-            qc, [control_qreg[0]] + eigenstate_register[0:2], [0] + phases[0:3]
-        )
+        self.controlled_unitary(qc, [control_qreg[0]] + eigenstate_register[0:2], [0] + phases[0:3])
         self.controlled_unitary(
             qc,
             [control_qreg[0]] + eigenstate_register[2:4],
@@ -315,16 +276,14 @@ class TSP:
             [control_qreg[0]] + eigenstate_register[4:6],
             phases[6:8] + [0] + [phases[8]],
         )
-        self.controlled_unitary(
-            qc, [control_qreg[0]] + eigenstate_register[6:8], phases[9:12] + [0]
-        )
+        self.controlled_unitary(qc, [control_qreg[0]] + eigenstate_register[6:8], phases[9:12] + [0])
 
     def final_U(self, times: int, eigenstate_register: QuantumRegister):
         control_qreg = QuantumRegister(1, "control")
         qc = QuantumCircuit(control_qreg, eigenstate_register)
         for _ in range(2**times):
             self.U(qc, control_qreg, eigenstate_register)
-        return qc.to_gate(label="U" + "_" + (str(2**times)))
+        return qc.to_gate(label="U_" + (str(2**times)))
 
     def encode_eigenstate(
         self,
@@ -341,8 +300,7 @@ class TSP:
         return qc
 
     def int_to_phase(self, distance: int):
-        phase = distance / self.distances_sum * 2 * np.pi
-        return phase
+        return distance / self.distances_sum * 2 * np.pi
 
     def phase_to_int(self, phase: float):
         return phase * self.distances_sum
@@ -370,4 +328,4 @@ class TSP:
 
     def show_classical_solution(self):
         """Method to visualize the solution of a classical solver."""
-        self.print(solution=self.get_classical_result())
+        self.print_problem(solution=self.get_classical_result())
