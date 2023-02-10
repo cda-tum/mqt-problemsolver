@@ -79,12 +79,10 @@ MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemso
 In case you are using MQT ProblemSolver in your work, we would be thankful if you referred to it by citing the following publication:
 
 ```bibtex
-@misc{quetschlich2022mqtproblemsolver,
-  title={Towards an Automated Framework for Realizing Quantum Computing Solutions},
-  author={Quetschlich, Nils and Burgholzer, Lukas and Wille, Robert},
-  year={2022},
-  eprint = {2210.14928},
-  eprinttype = {arxiv},
-  publisher = {arXiv},
+@INPROCEEDINGS{quetschlich2023mqtproblemsolver,
+    author    = {N. Quetschlich and L. Burgholzer and R. Wille},
+    title     = {{Towards an Automated Framework for Realizing Quantum Computing Solutions}},
+    booktitle = {International Symposium on Multiple-Valued Logic (ISMVL)},
+    year      = {2023},
 }
 ```
