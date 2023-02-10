@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, cast
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from mqt import ddsim
+from mqt.ddsim import DDSIMProvider
 from python_tsp.exact import solve_tsp_dynamic_programming
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, execute
 from qiskit.circuit.library import QFT
@@ -212,7 +212,7 @@ class TSP:
         return [a, b, c, d, e, f, g, h, i, j, k, m]
 
     def simulate(self, qc: QuantumCircuit) -> str:
-        backend = ddsim.DDSIMProvider().get_backend("qasm_simulator")
+        backend = DDSIMProvider().get_backend("qasm_simulator")
         job = execute(qc, backend, shots=1000)
         count = job.result().get_counts()
 

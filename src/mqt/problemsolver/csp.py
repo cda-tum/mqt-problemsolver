@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
-from mqt import ddsim
+from mqt.ddsim import DDSIMProvider
 from qiskit import QuantumCircuit, QuantumRegister, execute
 
 if TYPE_CHECKING:
@@ -308,7 +308,7 @@ class CSP:
         return qc
 
     def simulate(self, qc: QuantumCircuit) -> tuple[int, int, int, int] | None:
-        backend = ddsim.DDSIMProvider().get_backend("qasm_simulator")
+        backend = DDSIMProvider().get_backend("qasm_simulator")
         job = execute(qc, backend, shots=10000)
         counts = job.result().get_counts(qc)
 
