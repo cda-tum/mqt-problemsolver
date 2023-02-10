@@ -114,3 +114,18 @@ exclude = [
 ]
 
 line-length = 120
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+files = ["src", "tests", "setup.py"]
+python_version = "3.9"
+strict = true
+show_error_codes = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+warn_unreachable = true
+explicit_package_bases = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*"]
+ignore_missing_imports = true

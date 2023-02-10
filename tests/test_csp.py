@@ -1,7 +1,7 @@
 from mqt.problemsolver.csp import CSP
 
 
-def test_csp():
+def test_csp() -> None:
     csp = CSP()
     sum_s0 = 1
     sum_s1 = 3
