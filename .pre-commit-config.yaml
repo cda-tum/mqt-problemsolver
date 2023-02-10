@@ -89,7 +89,6 @@ repos:
         args: []
         additional_dependencies:
           - types-setuptools
-          - numpy
           - python_tsp
           - networkx
           - mqt.ddsim
