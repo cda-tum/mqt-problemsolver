@@ -11,14 +11,12 @@ from python_tsp.exact import solve_tsp_dynamic_programming
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, execute
 from qiskit.circuit.library import QFT
 
-
 if TYPE_CHECKING:
     from qiskit.circuit import Gate
 
 
 class TSP:
     def print_problem(self, solution: list[int] | None = None) -> None:
-
         """Method to visualize the problem.
 
         Keyword arguments:
@@ -97,7 +95,6 @@ class TSP:
             )
 
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, label_pos=0.3, font_size=20)
-
 
     def solve(
         self,
@@ -309,9 +306,7 @@ class TSP:
         qc.barrier()
         return qc
 
-
     def int_to_phase(self, distance: int) -> float:
-
         return distance / self.distances_sum * 2 * np.pi
 
     def phase_to_int(self, phase: float) -> float:

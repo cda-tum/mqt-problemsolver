@@ -79,7 +79,7 @@ repos:
     rev: "2.4.0"
     hooks:
       - id: nb-clean
-      
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.991
     hooks:

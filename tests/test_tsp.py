@@ -9,4 +9,3 @@ def test_kakuro() -> None:
     res = tsp.solve(6, 9, 2, 1, 8, 4, quantum_algorithm="QPE", objective_function="shortest_path")
     assert res is not None
     assert res == [4, 1, 2, 3]
-
