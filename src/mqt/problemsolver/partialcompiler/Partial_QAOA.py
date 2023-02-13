@@ -1,7 +1,7 @@
 import numpy as np
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit import Parameter
-from qiskit.providers.fake_provider import FakeManila, FakeMontreal
+from qiskit.providers.fake_provider import FakeManila, FakeMontreal, FakeWashington
 
 P_SAMPLE_TWO_QUBIT_GATE = 0.5
 IBM_GATES = ["cx", "sx", "x", "rz"]
@@ -22,15 +22,18 @@ class Partial_QAOA_Instance:
 
         manila_config = FakeManila().configuration()
         montreal_config = FakeMontreal().configuration()
+        washington_config = FakeWashington().configuration()
         if num_qubits <= manila_config.n_qubits:
             self.coupling_map = manila_config.coupling_map
         elif num_qubits <= montreal_config.n_qubits:
             self.coupling_map = montreal_config.coupling_map
+        elif num_qubits <= washington_config.n_qubits:
+            self.coupling_map = washington_config.coupling_map
 
     def get_online_time_vertices(self) -> list[tuple[int, int]]:
         return self.online_time_vertices
 
-    def get_qaoa_uncompiled(
+    def get_uncompiled_circuit_without_online_vertices(
         self, include_online_vertices: bool = False
     ) -> tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]]:
         qc_prep = QuantumCircuit(self.num_qubits)
@@ -60,7 +63,7 @@ class Partial_QAOA_Instance:
 
         return qc_prep, qcs_problem, qcs_mix
 
-    def get_mapping(self, qc: QuantumCircuit) -> list[int]:
+    def determine_mapping(self, qc: QuantumCircuit) -> list[int]:
         offline_mapped_qc = transpile(qc, coupling_map=self.coupling_map, basis_gates=IBM_GATES, optimization_level=3)
 
         layout = offline_mapped_qc._layout.initial_layout
@@ -72,14 +75,16 @@ class Partial_QAOA_Instance:
                 mapping.append(layout.get_virtual_bits()[elem])
         return mapping
 
-    def get_qaoa_partially_compiled(self) -> tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]]:
-        qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.get_qaoa_uncompiled()
+    def get_partially_compiled_circuit_without_online_vertices(
+        self,
+    ) -> tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]]:
+        qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.get_uncompiled_circuit_without_online_vertices()
         assert len(qcs_problem_uncompiled) == len(qcs_mix_uncompiled)
         qc_composed = qc_prep.copy()
         for i in range(len(qcs_problem_uncompiled)):
             qc_composed.compose(qcs_problem_uncompiled[i], inplace=True)
             qc_composed.compose(qcs_mix_uncompiled[i], inplace=True)
-        self.mapping = self.get_mapping(qc_composed)
+        self.mapping = self.determine_mapping(qc_composed)
 
         qc_prep_compiled = transpile(
             qc_prep,
@@ -113,8 +118,10 @@ class Partial_QAOA_Instance:
 
         return qc_prep_compiled, qcs_problem_compiled, qcs_mixer_compiled
 
-    def get_full_circuit_without_partial_compilation(self) -> QuantumCircuit:
-        qc_prep, qcs_problem, qcs_mix = self.get_qaoa_uncompiled(include_online_vertices=True)
+    def get_uncompiled_fully_composed_circuit(self) -> QuantumCircuit:
+        qc_prep, qcs_problem, qcs_mix = self.get_uncompiled_circuit_without_online_vertices(
+            include_online_vertices=True
+        )
         qc = qc_prep
         for i in range(len(qcs_problem)):
             qc.compose(qcs_problem[i], inplace=True)
@@ -122,7 +129,7 @@ class Partial_QAOA_Instance:
         return qc
 
     def compile_full_circuit(self) -> QuantumCircuit:
-        qc = self.get_full_circuit_without_partial_compilation()
+        qc = self.get_uncompiled_fully_composed_circuit()
         return transpile(
             qc,
             coupling_map=self.coupling_map,
@@ -130,7 +137,7 @@ class Partial_QAOA_Instance:
             optimization_level=1,
         )
 
-    def get_compiled_online_time_edges(self) -> list[QuantumCircuit]:
+    def get_compiled_online_vertices(self) -> list[QuantumCircuit]:
         assert self.mapping
         qc_online_edges_all_reps = []
         for i in range(self.repetitions):
