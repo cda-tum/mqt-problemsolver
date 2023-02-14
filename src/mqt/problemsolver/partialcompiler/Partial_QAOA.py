@@ -11,7 +11,10 @@ class Partial_QAOA_Instance:
     def __init__(self, num_qubits: int, repetitions: int = 1):
         self.num_qubits = num_qubits
         self.repetitions = repetitions
-        self.offline_time_edges = [(0, 1), (0, 2)]
+        self.offline_time_edges = []
+        for i in range(1, num_qubits):
+            if np.random.random() < P_SAMPLE_TWO_QUBIT_GATE:
+                self.offline_time_edges.append((0, i))
         self.online_time_edges = []
         self.problem_parameters: list[Parameter] = []
         self.mapping: list[int] = []
