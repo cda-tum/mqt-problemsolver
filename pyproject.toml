@@ -127,5 +127,5 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*"]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "qiskit_optimization.*"]
 ignore_missing_imports = true
