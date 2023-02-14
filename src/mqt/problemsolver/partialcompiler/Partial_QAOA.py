@@ -7,22 +7,33 @@ P_SAMPLE_TWO_QUBIT_GATE = 0.5
 IBM_GATES = ["cx", "sx", "x", "rz"]
 
 
-class Partial_QAOA_Instance:
+class Partial_QAOA:
     def __init__(self, num_qubits: int, repetitions: int = 1):
+        """
+        Creates a QAOA problem instance with a random number of known/offline edges and a random number of unknown/online edges.
+
+        :param num_qubits: Number of qubits in the problem instance
+        :param repetitions: Number of repetitions of the problem and mixer unitaries
+        """
         self.num_qubits = num_qubits
         self.repetitions = repetitions
         self.offline_time_edges = []
+
+        # add offline edges
         for i in range(1, num_qubits):
             if np.random.random() < P_SAMPLE_TWO_QUBIT_GATE:
                 self.offline_time_edges.append((0, i))
-        self.online_time_edges = []
         self.problem_parameters: list[Parameter] = []
         self.mapping: list[int] = []
+
+        # add online edges
+        self.online_time_edges = []
         for i in range(1, num_qubits):
             for j in range(i + 1, num_qubits):
                 if np.random.random() < P_SAMPLE_TWO_QUBIT_GATE:
                     self.online_time_edges.append((i, j))
 
+        # determine device
         manila_config = FakeManila().configuration()
         montreal_config = FakeMontreal().configuration()
         washington_config = FakeWashington().configuration()
@@ -36,12 +47,14 @@ class Partial_QAOA_Instance:
             self.coupling_map = washington_config.coupling_map
             self.device_qubits = washington_config.n_qubits
 
-    def get_online_time_edges(self) -> list[tuple[int, int]]:
-        return self.online_time_edges
-
-    def get_uncompiled_circuit_without_online_edges(
+    def get_uncompiled_circuit(
         self, include_online_edges: bool = False
     ) -> tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]]:
+        """Return the state preparation circuit and lists of problem and mixer circuits without any compilation.
+         Online edges are optionally included.
+
+        :param include_online_edges: Include online edges in the problem circuits
+        """
         qc_prep = QuantumCircuit(self.num_qubits)
         qc_prep.h(range(self.num_qubits))
         qc_prep.barrier()
@@ -69,8 +82,18 @@ class Partial_QAOA_Instance:
 
         return qc_prep, qcs_problem, qcs_mix
 
-    def determine_mapping(self, qc: QuantumCircuit) -> list[int]:
-        offline_mapped_qc = transpile(qc, coupling_map=self.coupling_map, basis_gates=IBM_GATES, optimization_level=3)
+    def determine_mapping(self) -> list[int]:
+        """Determines a mapping layout to the selected quantum devices based on the offline edges."""
+        qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.get_uncompiled_circuit()
+        assert len(qcs_problem_uncompiled) == len(qcs_mix_uncompiled)
+        qc_composed = qc_prep.copy()
+        for i in range(len(qcs_problem_uncompiled)):
+            qc_composed.compose(qcs_problem_uncompiled[i], inplace=True)
+            qc_composed.compose(qcs_mix_uncompiled[i], inplace=True)
+
+        offline_mapped_qc = transpile(
+            qc_composed, coupling_map=self.coupling_map, basis_gates=IBM_GATES, optimization_level=3
+        )
 
         layout = offline_mapped_qc._layout.initial_layout
         mapping = []
@@ -82,53 +105,49 @@ class Partial_QAOA_Instance:
         return mapping
 
     def get_partially_compiled_circuit_without_online_edges(
-        self,
+        self, consider_mapping: bool = True
     ) -> tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]]:
-        qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.get_uncompiled_circuit_without_online_edges()
-        assert len(qcs_problem_uncompiled) == len(qcs_mix_uncompiled)
-        qc_composed = qc_prep.copy()
-        for i in range(len(qcs_problem_uncompiled)):
-            qc_composed.compose(qcs_problem_uncompiled[i], inplace=True)
-            qc_composed.compose(qcs_mix_uncompiled[i], inplace=True)
-        self.mapping = self.determine_mapping(qc_composed)
+        """
+        Return the state preparation circuit and lists of problem and mixer circuits with the option to consider
+        the mapping with all returned circuits are compiled to native gates and optionally mapped to the device.
+        """
 
-        qc_prep_compiled = transpile(
-            qc_prep,
+        self.mapping = self.determine_mapping()
+
+        qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.get_uncompiled_circuit()
+
+        mapping_fct = self.compile_with_mapping if consider_mapping else self.compile_without_mapping
+        qc_prep_compiled = mapping_fct(qc_prep)
+        qcs_problem_compiled = []
+        qcs_mixer_compiled = []
+        for i in range(len(qcs_problem_uncompiled)):
+            qcs_problem_compiled.append(mapping_fct(qcs_problem_uncompiled[i]))
+            qcs_mixer_compiled.append(mapping_fct(qcs_mix_uncompiled[i]))
+
+        return qc_prep_compiled, qcs_problem_compiled, qcs_mixer_compiled
+
+    def compile_without_mapping(self, qc: QuantumCircuit, opt_level: int = 3) -> QuantumCircuit:
+        return transpile(
+            qc,
+            basis_gates=IBM_GATES,
+            optimization_level=opt_level,
+        )
+
+    def compile_with_mapping(self, qc: QuantumCircuit, opt_level: int = 3) -> QuantumCircuit:
+        return transpile(
+            qc,
             basis_gates=IBM_GATES,
             initial_layout=self.mapping,
             coupling_map=self.coupling_map,
             layout_method="trivial",
-            optimization_level=3,
+            optimization_level=opt_level,
         )
-        qcs_problem_compiled = []
-        qcs_mixer_compiled = []
-        for i in range(len(qcs_problem_uncompiled)):
-            qcs_problem_compiled.append(
-                transpile(
-                    qcs_problem_uncompiled[i],
-                    basis_gates=IBM_GATES,
-                    initial_layout=self.mapping,
-                    coupling_map=self.coupling_map,
-                    layout_method="trivial",
-                    optimization_level=3,
-                )
-            )
-
-            qcs_mixer_compiled.append(
-                transpile(
-                    qcs_mix_uncompiled[i],
-                    basis_gates=IBM_GATES,
-                    initial_layout=self.mapping,
-                    coupling_map=self.coupling_map,
-                    layout_method="trivial",
-                    optimization_level=3,
-                )
-            )
-
-        return qc_prep_compiled, qcs_problem_compiled, qcs_mixer_compiled
 
     def get_uncompiled_fully_composed_circuit(self) -> QuantumCircuit:
-        qc_prep, qcs_problem, qcs_mix = self.get_uncompiled_circuit_without_online_edges(include_online_edges=True)
+        """
+        Returns the fully composed circuit without any compilation.
+        """
+        qc_prep, qcs_problem, qcs_mix = self.get_uncompiled_circuit(include_online_edges=True)
         qc = qc_prep
         for i in range(len(qcs_problem)):
             qc.compose(qcs_problem[i], inplace=True)
@@ -136,6 +155,9 @@ class Partial_QAOA_Instance:
         return qc
 
     def compile_full_circuit(self) -> QuantumCircuit:
+        """
+        Returns the fully composed circuit compiled to the selected quantum device.
+        """
         qc = self.get_uncompiled_fully_composed_circuit()
         return transpile(
             qc,
@@ -145,6 +167,9 @@ class Partial_QAOA_Instance:
         )
 
     def get_uncompiled_online_edges(self) -> list[QuantumCircuit]:
+        """
+        Returns the online edges uncompiled for all repetitions.
+        """
         qc_online_edges_uncompiled_all_reps = []
         for i in range(self.repetitions):
             qc_online_edges = QuantumCircuit(self.num_qubits)
@@ -155,19 +180,13 @@ class Partial_QAOA_Instance:
         return qc_online_edges_uncompiled_all_reps
 
     def get_compiled_online_edges(self) -> list[QuantumCircuit]:
+        """
+        Returns the online edges compiled for all repetitions.
+        """
         assert self.mapping
         qc_online_edges_compiled_all_reps = []
         qc_online_edges_uncompiled_all_reps = self.get_uncompiled_online_edges()
         for qc in qc_online_edges_uncompiled_all_reps:
-            qc_online_edges_compiled_all_reps.append(
-                transpile(
-                    qc,
-                    basis_gates=IBM_GATES,
-                    initial_layout=self.mapping,
-                    layout_method="trivial",
-                    coupling_map=self.coupling_map,
-                    optimization_level=1,
-                )
-            )
+            qc_online_edges_compiled_all_reps.append(self.compile_with_mapping(qc, opt_level=1))
 
         return qc_online_edges_compiled_all_reps
