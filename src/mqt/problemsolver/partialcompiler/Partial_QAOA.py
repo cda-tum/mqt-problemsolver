@@ -173,12 +173,10 @@ class Partial_QAOA:
         """
         Returns the online edges uncompiled for all repetitions.
         """
-        qc_online_edges_uncompiled_all_reps = []
-        for i in range(self.repetitions):
-            qc_online_edges = QuantumCircuit(self.num_qubits)
-            for elem in self.online_time_edges:
-                qc_online_edges.rzz(self.problem_parameters[i], elem[0], elem[1])
-            qc_online_edges_uncompiled_all_reps.append(qc_online_edges)
+        qc_online_edges_uncompiled_all_reps = [QuantumCircuit(self.num_qubits)] * self.repetitions
+        for i, qc in enumerate(qc_online_edges_uncompiled_all_reps):
+            for q1, q2 in self.online_time_edges:
+                qc.rzz(self.problem_parameters[i], q1, q2)
 
         return qc_online_edges_uncompiled_all_reps
 
