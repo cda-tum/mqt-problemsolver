@@ -76,7 +76,6 @@ def evaluate_QAOA(num_qubits: int = 4, repetitions: int = 3) -> tuple[float, flo
     duration_partial_3 = time() - start
 
     # Comparison to mapping the fully uncompiled circuit
-    QAOA_problem_instance.get_uncompiled_fully_composed_circuit()
     start = time()
     QAOA_problem_instance.compile_full_circuit()
     duration_full = time() - start
