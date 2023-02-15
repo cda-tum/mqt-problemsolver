@@ -78,7 +78,7 @@ class Partial_QAOA:
 
         return qc_prep, qcs_problem, qcs_mix
 
-    def determine_mapping(self) -> list[int]:
+    def determine_mapping(self, return_uncompiled_circuits:bool=False) -> list[int]|tuple[list[int], QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]]:
         """Determines a mapping layout to the selected quantum devices based on the offline edges."""
         qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.get_uncompiled_circuit()
         assert len(qcs_problem_uncompiled) == len(qcs_mix_uncompiled)
@@ -101,7 +101,10 @@ class Partial_QAOA:
                 pass
             else:
                 mapping.append(layout.get_virtual_bits()[elem])
-        return mapping
+        if not return_uncompiled_circuits:
+            return mapping
+        else:
+            return mapping, qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled
 
     def get_partially_compiled_circuit_without_online_edges(
         self, consider_mapping: bool = True
@@ -111,9 +114,7 @@ class Partial_QAOA:
         the mapping with all returned circuits are compiled to native gates and optionally mapped to the device.
         """
 
-        self.mapping = self.determine_mapping()
-
-        qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.get_uncompiled_circuit()
+        self.mapping, qc_prep, qcs_problem_uncompiled, qcs_mix_uncompiled = self.determine_mapping(return_uncompiled_circuits=True  )
 
         mapping_fct = self.compile_with_mapping if consider_mapping else self.compile_without_mapping
         qc_prep_compiled = mapping_fct(qc_prep)
