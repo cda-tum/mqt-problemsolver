@@ -45,16 +45,6 @@ class Partial_QAOA:
         elif num_qubits <= washington_config.n_qubits:
             self.backend = FakeWashington()
 
-    # @overload
-    # def get_uncompiled_circuit(
-    #     self, include_online_edges: bool = False
-    # ) -> tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]]:
-    #     ...
-    #
-    # @overload
-    # def get_uncompiled_circuit(self, return_as_one_circuit: bool = True) -> QuantumCircuit:
-    #     ...
-
     def get_uncompiled_circuit(
         self, include_online_edges: bool = False, return_as_one_circuit: bool = False
     ) -> Union[tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]], QuantumCircuit]:
