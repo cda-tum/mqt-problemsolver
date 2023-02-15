@@ -45,9 +45,11 @@ def evaluate_QAOA(num_qubits: int = 4, repetitions: int = 3) -> tuple[float, flo
     start = time()
     qcs_online_edges = QAOA_problem_instance.get_compiled_online_edges()
     for i in range(QAOA_problem_instance.repetitions):
-        qc_prep_nat_gates.append(qcs_problem_nat_gates[i], range(QAOA_problem_instance.device_qubits))
-        qc_prep_nat_gates.append(qcs_online_edges[i], range(QAOA_problem_instance.device_qubits))
-        qc_prep_nat_gates.append(qcs_mixer_nat_gates[i], range(QAOA_problem_instance.device_qubits))
+        qc_prep_nat_gates.append(
+            qcs_problem_nat_gates[i], range(QAOA_problem_instance.backend.configuration().n_qubits)
+        )
+        qc_prep_nat_gates.append(qcs_online_edges[i], range(QAOA_problem_instance.backend.configuration().n_qubits))
+        qc_prep_nat_gates.append(qcs_mixer_nat_gates[i], range(QAOA_problem_instance.backend.configuration().n_qubits))
     duration_partial_2 = time() - start
 
     """

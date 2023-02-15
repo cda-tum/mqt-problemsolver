@@ -4,7 +4,6 @@ from qiskit.circuit import Parameter
 from qiskit.providers.fake_provider import FakeManila, FakeMontreal, FakeWashington
 
 P_SAMPLE_TWO_QUBIT_GATE = 0.5
-IBM_GATES = ["cx", "sx", "x", "rz"]
 
 
 class Partial_QAOA:
@@ -38,14 +37,11 @@ class Partial_QAOA:
         montreal_config = FakeMontreal().configuration()
         washington_config = FakeWashington().configuration()
         if num_qubits <= manila_config.n_qubits:
-            self.coupling_map = manila_config.coupling_map
-            self.device_qubits = manila_config.n_qubits
+            self.backend = FakeManila()
         elif num_qubits <= montreal_config.n_qubits:
-            self.coupling_map = montreal_config.coupling_map
-            self.device_qubits = montreal_config.n_qubits
+            self.backend = FakeMontreal()
         elif num_qubits <= washington_config.n_qubits:
-            self.coupling_map = washington_config.coupling_map
-            self.device_qubits = washington_config.n_qubits
+            self.backend = FakeWashington()
 
     def get_uncompiled_circuit(
         self, include_online_edges: bool = False
@@ -92,7 +88,10 @@ class Partial_QAOA:
             qc_composed.compose(qcs_mix_uncompiled[i], inplace=True)
 
         offline_mapped_qc = transpile(
-            qc_composed, coupling_map=self.coupling_map, basis_gates=IBM_GATES, optimization_level=3
+            qc_composed,
+            coupling_map=self.backend.configuration().coupling_map,
+            basis_gates=self.backend.configuration().basis_gates,
+            optimization_level=3,
         )
 
         layout = offline_mapped_qc._layout.initial_layout
@@ -129,16 +128,16 @@ class Partial_QAOA:
     def compile_without_mapping(self, qc: QuantumCircuit, opt_level: int = 3) -> QuantumCircuit:
         return transpile(
             qc,
-            basis_gates=IBM_GATES,
+            basis_gates=self.backend.configuration().basis_gates,
             optimization_level=opt_level,
         )
 
     def compile_with_mapping(self, qc: QuantumCircuit, opt_level: int = 3) -> QuantumCircuit:
         return transpile(
             qc,
-            basis_gates=IBM_GATES,
+            basis_gates=self.backend.configuration().basis_gates,
             initial_layout=self.mapping,
-            coupling_map=self.coupling_map,
+            coupling_map=self.backend.configuration().coupling_map,
             layout_method="trivial",
             optimization_level=opt_level,
         )
@@ -161,8 +160,8 @@ class Partial_QAOA:
         qc = self.get_uncompiled_fully_composed_circuit()
         return transpile(
             qc,
-            coupling_map=self.coupling_map,
-            basis_gates=IBM_GATES,
+            coupling_map=self.backend.configuration().coupling_map,
+            basis_gates=self.backend.configuration().basis_gates,
             optimization_level=1,
         )
 
