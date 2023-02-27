@@ -138,6 +138,14 @@ class Partial_QAOA:
         qcs_problem_compiled = [mapping_fct(qc) for qc in qcs_problem_uncompiled]
         qcs_mixer_compiled = [mapping_fct(qc) for qc in qcs_mix_uncompiled]
 
+        if consider_mapping:
+            problem_compiled_final_layout = qcs_problem_compiled[0]._layout.final_layout
+            if problem_compiled_final_layout is not None:
+                lut = problem_compiled_final_layout.get_physical_bits()
+                for elem in self.mapping:
+                    if elem != lut[elem].index:
+                        print(elem, "->", lut[elem].index)
+
         return qc_prep_compiled, qcs_problem_compiled, qcs_mixer_compiled
 
     def compile_without_mapping(self, qc: QuantumCircuit, opt_level: int = 3) -> QuantumCircuit:
@@ -147,13 +155,15 @@ class Partial_QAOA:
             optimization_level=opt_level,
         )
 
-    def compile_with_mapping(self, qc: QuantumCircuit, opt_level: int = 3) -> QuantumCircuit:
+    def compile_with_mapping(
+        self, qc: QuantumCircuit, opt_level: int = 0, layout_method: str | None = None
+    ) -> QuantumCircuit:
         return transpile(
             qc,
             basis_gates=self.backend.configuration().basis_gates,
             initial_layout=self.mapping,
             coupling_map=self.backend.configuration().coupling_map,
-            layout_method="trivial",
+            layout_method=layout_method,
             optimization_level=opt_level,
         )
 
@@ -187,4 +197,7 @@ class Partial_QAOA:
         assert self.mapping
         qc_online_edges_uncompiled_all_reps = self.get_uncompiled_online_edges()
 
-        return [self.compile_with_mapping(qc, opt_level=1) for qc in qc_online_edges_uncompiled_all_reps]
+        return [
+            self.compile_with_mapping(qc, opt_level=1, layout_method="trivial")
+            for qc in qc_online_edges_uncompiled_all_reps
+        ]
