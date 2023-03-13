@@ -1,4 +1,6 @@
-from typing import Literal, Union, overload
+from __future__ import annotations
+
+from typing import Literal, overload
 
 import numpy as np
 from qiskit import QuantumCircuit, transpile
@@ -63,7 +65,7 @@ class Partial_QAOA:
 
     def get_uncompiled_circuit(
         self, return_as_one_circuit: bool = False, include_online_edges: bool = False
-    ) -> Union[tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]], QuantumCircuit]:
+    ) -> tuple[QuantumCircuit, list[QuantumCircuit], list[QuantumCircuit]] | QuantumCircuit:
         """Return the state preparation circuit and lists of problem and mixer circuits without any compilation.
          Online edges are optionally included.
 
@@ -133,10 +135,15 @@ class Partial_QAOA:
         assert isinstance(qcs_problem_uncompiled, list)
         assert isinstance(qcs_mix_uncompiled, list)
 
-        mapping_fct = self.compile_with_mapping if consider_mapping else self.compile_without_mapping
-        qc_prep_compiled = mapping_fct(qc_prep)
-        qcs_problem_compiled = [mapping_fct(qc) for qc in qcs_problem_uncompiled]
-        qcs_mixer_compiled = [mapping_fct(qc) for qc in qcs_mix_uncompiled]
+        # mapping_fct = self.compile_with_mapping if consider_mapping else self.compile_without_mapping
+        if consider_mapping:
+            qc_prep_compiled = self.compile_with_mapping(qc_prep)
+            qcs_problem_compiled = [self.compile_with_mapping(qc) for qc in qcs_problem_uncompiled]
+            qcs_mixer_compiled = [self.compile_with_mapping(qc) for qc in qcs_mix_uncompiled]
+        else:
+            qc_prep_compiled = self.compile_without_mapping(qc_prep)
+            qcs_problem_compiled = [self.compile_without_mapping(qc) for qc in qcs_problem_uncompiled]
+            qcs_mixer_compiled = [self.compile_without_mapping(qc) for qc in qcs_mix_uncompiled]
 
         if consider_mapping:
             problem_compiled_final_layout = qcs_problem_compiled[0]._layout.final_layout
