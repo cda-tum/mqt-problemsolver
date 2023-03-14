@@ -162,15 +162,12 @@ class Partial_QAOA:
             optimization_level=opt_level,
         )
 
-    def compile_with_mapping(
-        self, qc: QuantumCircuit, opt_level: int = 0, layout_method: str | None = None
-    ) -> QuantumCircuit:
+    def compile_with_mapping(self, qc: QuantumCircuit, opt_level: int = 0) -> QuantumCircuit:
         return transpile(
             qc,
             basis_gates=self.backend.configuration().basis_gates,
             initial_layout=self.mapping,
             coupling_map=self.backend.configuration().coupling_map,
-            layout_method=layout_method,
             optimization_level=opt_level,
         )
 
