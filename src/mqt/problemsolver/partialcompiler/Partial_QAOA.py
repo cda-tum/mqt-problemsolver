@@ -27,7 +27,6 @@ class Partial_QAOA:
             if np.random.random() < P_SAMPLE_TWO_QUBIT_GATE:
                 self.offline_time_edges.append((0, i))
         self.problem_parameters: list[Parameter] = []
-        self.mapping: list[int] = []
 
         # add online edges
         self.online_time_edges = []
@@ -145,13 +144,13 @@ class Partial_QAOA:
             qcs_problem_compiled = [self.compile_without_mapping(qc) for qc in qcs_problem_uncompiled]
             qcs_mixer_compiled = [self.compile_without_mapping(qc) for qc in qcs_mix_uncompiled]
 
-        if consider_mapping:
-            problem_compiled_final_layout = qcs_problem_compiled[0]._layout.final_layout
-            if problem_compiled_final_layout is not None:
-                lut = problem_compiled_final_layout.get_physical_bits()
-                for elem in self.mapping:
-                    if elem != lut[elem].index:
-                        print(elem, "->", lut[elem].index)
+        # if consider_mapping:
+        #     problem_compiled_final_layout = qcs_problem_compiled[0]._layout.final_layout
+        #     if problem_compiled_final_layout is not None:
+        #         lut = problem_compiled_final_layout.get_physical_bits()
+        #         for elem in self.mapping:
+        #             if elem != lut[elem].index:
+        #                 print(elem, "->", lut[elem].index)
 
         return qc_prep_compiled, qcs_problem_compiled, qcs_mixer_compiled
 
@@ -198,10 +197,6 @@ class Partial_QAOA:
         """
         Returns the online edges compiled for all repetitions.
         """
-        assert self.mapping
-        qc_online_edges_uncompiled_all_reps = self.get_uncompiled_online_edges()
 
-        return [
-            self.compile_with_mapping(qc, opt_level=1, layout_method="trivial")
-            for qc in qc_online_edges_uncompiled_all_reps
-        ]
+        qc_online_edges_uncompiled_all_reps = self.get_uncompiled_online_edges()
+        return [self.compile_with_mapping(qc, opt_level=1) for qc in qc_online_edges_uncompiled_all_reps]
