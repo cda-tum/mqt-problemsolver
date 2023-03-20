@@ -40,8 +40,8 @@ class QAOA:
         qc, qc_baseline = self.get_uncompiled_circuits()
         self.qc = qc
         self.qc_baseline = qc_baseline
-        self.qc_compiled = self.compile_qc(baseline=False, opt_level=3)
-        self.to_be_checked_gates = self.get_to_be_checked_gates()
+        self.qc_compiled = self.compile_qc(baseline=False, opt_level=2)
+        self.to_be_checked_gates_indices = self.get_to_be_checked_gates()
 
     def get_uncompiled_circuits(self) -> tuple[QuantumCircuit, QuantumCircuit]:
         qc = QuantumCircuit(self.num_qubits)
@@ -76,9 +76,13 @@ class QAOA:
     def get_to_be_checked_gates(self) -> list[int]:
         indices = []
         for i, gate in enumerate(self.qc_compiled._data):
-            if gate.operation.name == "rz" and isinstance(gate.operation.params[0], Parameter):
+            if (
+                gate.operation.name == "rz"
+                and isinstance(gate.operation.params[0], Parameter)
+                and gate.operation.params[0].name.startswith("a_")
+            ):
                 indices.append(i)
-        return [self.qc_compiled._data[i] for i in indices]
+        return indices
 
 
 def reduce_swaps(qc: QuantumCircuit) -> QuantumCircuit:
@@ -92,11 +96,13 @@ def reduce_swaps(qc: QuantumCircuit) -> QuantumCircuit:
     return PassManager(transpile_passes).run(qc).decompose()
 
 
-def check_gates(qc: QuantumCircuit, remove_gates: list[bool], to_be_checked_gates: list[Any]) -> QuantumCircuit:
-    assert len(to_be_checked_gates) == len(remove_gates)
+def check_gates(qc: QuantumCircuit, remove_gates: list[bool], to_be_checked_gates_indices: list[Any]) -> QuantumCircuit:
+    # assert len(to_be_checked_gates_indices) == len(remove_gates)
+    offset = 0
     for i in range(len(remove_gates)):
-        assert to_be_checked_gates[i].operation.name == "rz"
-        assert isinstance(to_be_checked_gates[i].operation.params[0], Parameter)
+        # assert isinstance(to_be_checked_gates_indices[i].operation.params[0], Parameter)
         if remove_gates[i]:
-            qc._data.remove(to_be_checked_gates[i])
+            del qc._data[to_be_checked_gates_indices[i - offset]]
+            offset += 1
+        # qc._data.remove(to_be_checked_gates_indices[i])
     return qc
