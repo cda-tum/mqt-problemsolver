@@ -1,17 +1,23 @@
 from __future__ import annotations
 
-from typing import Literal, overload
+from typing import Any
 
 import numpy as np
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit import Parameter
 from qiskit.providers.fake_provider import FakeManila, FakeMontreal, FakeWashington
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import (
+    Collect2qBlocks,
+    CommutativeCancellation,
+    CommutativeInverseCancellation,
+    ConsolidateBlocks,
+    CXCancellation,
+)
 
-P_SAMPLE_TWO_QUBIT_GATE = 0.5
 
-
-class Partial_QAOA:
-    def __init__(self, num_qubits: int, repetitions: int = 1):
+class QAOA:
+    def __init__(self, num_qubits: int, repetitions: int = 1, sample_probability: float = 0.5):
         """
         Creates a QAOA problem instance with a random number of known/offline edges and a random number of unknown/online edges.
         :param num_qubits: Number of qubits in the problem instance
@@ -19,7 +25,8 @@ class Partial_QAOA:
         """
         self.num_qubits = num_qubits
         self.repetitions = repetitions
-
+        self.sample_probability = sample_probability
+        np.random.seed(42)
         manila_config = FakeManila().configuration()
         montreal_config = FakeMontreal().configuration()
         washington_config = FakeWashington().configuration()
@@ -30,38 +37,66 @@ class Partial_QAOA:
         elif num_qubits <= washington_config.n_qubits:
             self.backend = FakeWashington()
 
+        qc, qc_baseline = self.get_uncompiled_circuits()
+        self.qc = qc
+        self.qc_baseline = qc_baseline
+        self.qc_compiled = self.compile_qc(baseline=False, opt_level=3)
+        self.to_be_checked_gates = self.get_to_be_checked_gates()
 
     def get_uncompiled_circuits(self) -> tuple[QuantumCircuit, QuantumCircuit]:
-
         qc = QuantumCircuit(self.num_qubits)
         qc_baseline = QuantumCircuit(self.num_qubits)
         qc.h(range(self.num_qubits))
         qc_baseline.h(range(self.num_qubits))
-        qc.barrier()
-        qc_baseline.barrier()
-        self.problem_parameters = []
-        self.remove_gates = []
 
-        for i in range(self.repetitions):
-            p = Parameter(f"a_{i}")
-            self.problem_parameters.append(p)
+        self.remove_gates = []
+        for k in range(self.repetitions):
+            p = Parameter(f"a_{k}")
             for i in range(self.num_qubits):
                 for j in range(i + 1, min(self.num_qubits, i + 3)):
                     qc.rzz(p, i, j)
-                    if np.random.random() < P_SAMPLE_TWO_QUBIT_GATE:
+                    if np.random.random() < self.sample_probability:
                         self.remove_gates.append(True)
                     else:
                         self.remove_gates.append(False)
                         qc_baseline.rzz(p, i, j)
 
-            m = Parameter(f"b_{i}")
-            qc.barrier()
-            qc_baseline.barrier()
+            m = Parameter(f"b_{k}")
+
             qc.rx(2 * m, range(self.num_qubits))
             qc_baseline.rx(2 * m, range(self.num_qubits))
-            qc.barrier()
-            qc_baseline.barrier()
 
         return qc, qc_baseline
 
+    def compile_qc(self, baseline: bool = False, opt_level: int = 2) -> QuantumCircuit:
+        if baseline:
+            return transpile(self.qc_baseline, backend=self.backend, optimization_level=opt_level, seed_transpiler=42)
+        return transpile(self.qc, backend=self.backend, optimization_level=opt_level, seed_transpiler=42)
 
+    def get_to_be_checked_gates(self) -> list[int]:
+        indices = []
+        for i, gate in enumerate(self.qc_compiled._data):
+            if gate.operation.name == "rz" and isinstance(gate.operation.params[0], Parameter):
+                indices.append(i)
+        return [self.qc_compiled._data[i] for i in indices]
+
+
+def reduce_swaps(qc: QuantumCircuit) -> QuantumCircuit:
+    transpile_passes = [
+        CommutativeCancellation(),
+        CommutativeInverseCancellation(),
+        CXCancellation(),
+        Collect2qBlocks(),
+        ConsolidateBlocks(),
+    ]
+    return PassManager(transpile_passes).run(qc).decompose()
+
+
+def check_gates(qc: QuantumCircuit, remove_gates: list[bool], to_be_checked_gates: list[Any]) -> QuantumCircuit:
+    assert len(to_be_checked_gates) == len(remove_gates)
+    for i in range(len(remove_gates)):
+        assert to_be_checked_gates[i].operation.name == "rz"
+        assert isinstance(to_be_checked_gates[i].operation.params[0], Parameter)
+        if remove_gates[i]:
+            qc._data.remove(to_be_checked_gates[i])
+    return qc
