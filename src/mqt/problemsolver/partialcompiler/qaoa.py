@@ -66,6 +66,9 @@ class QAOA:
             qc.rx(2 * m, range(self.num_qubits))
             qc_baseline.rx(2 * m, range(self.num_qubits))
 
+            qc.measure_all()
+            qc_baseline.measure_all()
+
         return qc, qc_baseline
 
     def compile_qc(self, baseline: bool = False, opt_level: int = 2) -> QuantumCircuit:
