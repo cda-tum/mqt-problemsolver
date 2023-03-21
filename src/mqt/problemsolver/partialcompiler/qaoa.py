@@ -45,17 +45,19 @@ class QAOA:
         qc_baseline.h(range(self.num_qubits))
 
         remove_gates = []
+        parameter_counter = 0
         for k in range(self.repetitions):
-            p = Parameter(f"a_{k}")
             for i in range(self.num_qubits):
                 for j in range(i + 1, min(self.num_qubits, i + 3)):
+                    p = Parameter(f"a_{parameter_counter}")
                     qc.rzz(p, i, j)
                     if np.random.random() < self.sample_probability:
-                        remove_gates.append(True)
+                        remove_gates.append(p.name)
                     else:
                         remove_gates.append(False)
                         qc_baseline.rzz(p, i, j)
-            qc.barrier()
+                    parameter_counter += 1
+
             m = Parameter(f"b_{k}")
             qc.rx(2 * m, range(self.num_qubits))
             qc_baseline.rx(2 * m, range(self.num_qubits))
@@ -81,14 +83,25 @@ class QAOA:
                 indices_parameterized_gates.append(i)
 
         assert len(indices_parameterized_gates) == len(self.remove_gates)
-        return [indices_parameterized_gates[i] for i in range(len(indices_parameterized_gates)) if self.remove_gates[i]]
+        indices_to_be_removed_parameterized_gates = []
+        for i in range(len(indices_parameterized_gates)):
+            if self.qc_compiled._data[indices_parameterized_gates[i]].operation.params[0].name in self.remove_gates:
+                indices_to_be_removed_parameterized_gates.append(indices_parameterized_gates[i])
+
+        assert len(set(indices_to_be_removed_parameterized_gates)) == len({elem for elem in self.remove_gates if elem})
+        return indices_to_be_removed_parameterized_gates
 
     def check_gates(self, qc: QuantumCircuit, optimize_swaps: bool = True) -> QuantumCircuit:
         offset = 0
+        counter = 0
         for i in self.to_be_checked_gates_indices:
-            del qc._parameter_table[qc._data[i - offset].operation.params[0]]._instance_ids[
-                (id(qc._data[i - offset].operation), 0)
-            ]
+            # Remove the gate from the ParameterTable
+            # del qc._parameter_table[qc._data[i - offset].operation.params[0]]._instance_ids[
+            #     (id(qc._data[i - offset].operation), 0)
+            # ]
+            del qc._parameter_table[
+                qc._data[i - offset].operation.params[0]
+            ]  # remove the Parameter from the ParameterTable for the specific parameter. The table just contains one entry
             if (
                 optimize_swaps
                 and qc._data[i - offset - 1].operation.name == "cx"
@@ -102,6 +115,7 @@ class QAOA:
             else:
                 del qc._data[i - offset]
                 offset += 1
+            counter += 1
 
         return qc
 
