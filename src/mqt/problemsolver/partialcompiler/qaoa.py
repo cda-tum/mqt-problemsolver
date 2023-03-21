@@ -18,11 +18,6 @@ from qiskit.transpiler.passes import (
 
 class QAOA:
     def __init__(self, num_qubits: int, repetitions: int = 1, sample_probability: float = 0.5):
-        """
-        Creates a QAOA problem instance with a random number of known/offline edges and a random number of unknown/online edges.
-        :param num_qubits: Number of qubits in the problem instance
-        :param repetitions: Number of repetitions of the problem and mixer unitaries
-        """
         self.num_qubits = num_qubits
         self.repetitions = repetitions
         self.sample_probability = sample_probability
@@ -62,12 +57,11 @@ class QAOA:
                         qc_baseline.rzz(p, i, j)
 
             m = Parameter(f"b_{k}")
-
             qc.rx(2 * m, range(self.num_qubits))
             qc_baseline.rx(2 * m, range(self.num_qubits))
 
-            qc.measure_all()
-            qc_baseline.measure_all()
+        qc.measure_all()
+        qc_baseline.measure_all()
 
         return qc, qc_baseline
 
@@ -99,13 +93,27 @@ def reduce_swaps(qc: QuantumCircuit) -> QuantumCircuit:
     return PassManager(transpile_passes).run(qc).decompose()
 
 
-def check_gates(qc: QuantumCircuit, remove_gates: list[bool], to_be_checked_gates_indices: list[Any]) -> QuantumCircuit:
+def check_gates(
+    qc: QuantumCircuit, remove_gates: list[bool], to_be_checked_gates_indices: list[Any], optimize_swaps: bool = True
+) -> QuantumCircuit:
     # assert len(to_be_checked_gates_indices) == len(remove_gates)
     offset = 0
+
     for i in range(len(remove_gates)):
         # assert isinstance(to_be_checked_gates_indices[i].operation.params[0], Parameter)
         if remove_gates[i]:
-            del qc._data[to_be_checked_gates_indices[i - offset]]
-            offset += 1
-        # qc._data.remove(to_be_checked_gates_indices[i])
+            to_be_checked_index = to_be_checked_gates_indices[i]
+            if (
+                optimize_swaps
+                and qc._data[to_be_checked_index - offset - 1].operation.name == "cx"
+                and qc._data[to_be_checked_index - offset - 1] == qc._data[to_be_checked_index - offset + 1]
+            ):
+                del qc._data[to_be_checked_index - offset - 1]
+                del qc._data[to_be_checked_index - offset - 1]
+                del qc._data[to_be_checked_index - offset - 1]
+                offset += 3
+            else:
+                del qc._data[to_be_checked_index - offset]
+                offset += 1
+
     return qc
