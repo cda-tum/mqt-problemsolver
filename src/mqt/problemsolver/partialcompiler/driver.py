@@ -5,8 +5,8 @@ from mqt.problemsolver.partialcompiler.evaluator import Result, evaluate_QAOA
 
 def eval_all_instances() -> None:
     res_csv = []
-    results = Parallel(n_jobs=-1, verbose=3, backend="threading")(
-        delayed(eval_single_instance)(i, 3, j, 2) for i in range(3, 80, 10) for j in [0.3, 0.5, 0.7]
+    results = Parallel(n_jobs=1, verbose=3, backend="threading")(
+        delayed(eval_single_instance)(i, 3, j, 2) for i in range(5, 50, 5) for j in [0.3, 0.5, 0.7]
     )
 
     res_csv.append(list(results[0].keys()))
@@ -30,3 +30,4 @@ def eval_single_instance(num_qubits: int, num_reps: int, sample_probability: flo
 
 
 eval_all_instances()
+# eval_single_instance(5,3,0.5,2)

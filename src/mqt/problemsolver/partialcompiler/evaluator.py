@@ -57,9 +57,12 @@ def evaluate_QAOA(
     cx_count_ratio_with_swap_opt = compiled_qc_with_swap_opt.count_ops()["cx"] / qc_baseline_compiled.count_ops()["cx"]
 
     # try:
-    #     print("QCEC:", verify(compiled_qc, qc_baseline_compiled))
-    # except:
-    #     print("QCEC: False")
+    #     print("num_qubits:", num_qubits, "repetitions:", repetitions, "sample_probability:", sample_probability)
+    #     res = verify(compiled_qc_with_swap_opt, qc_baseline_compiled)
+    #     print("QCEC:", res.equivalence)
+    # except Exception as e:
+    #     print("QCEC: Exception", e)
+
     return Result(
         num_qubits=num_qubits,
         num_repetitions=repetitions,
