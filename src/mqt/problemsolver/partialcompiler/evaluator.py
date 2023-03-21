@@ -12,8 +12,10 @@ class Result(TypedDict):
     cx_count_ratio: float
     num_qubits: int
     num_repetitions: int
+    sample_probability: float
     time_new_scheme: float
     time_baseline: float
+    opt_level_baseline: int
 
 
 def evaluate_QAOA(
@@ -25,9 +27,10 @@ def evaluate_QAOA(
 ) -> Result:
     q = QAOA(num_qubits=num_qubits, repetitions=repetitions, sample_probability=sample_probability)
 
+    qc_compiled_with_all_gates = q.qc_compiled.copy()
     start = time()
     compiled_qc = check_gates(
-        qc=q.qc_compiled,
+        qc=qc_compiled_with_all_gates,
         remove_gates=q.remove_gates,
         to_be_checked_gates_indices=q.to_be_checked_gates_indices,
         optimize_swaps=optimize_swaps,
@@ -52,6 +55,8 @@ def evaluate_QAOA(
         cx_count_ratio=cx_count_ratio,
         num_qubits=num_qubits,
         num_repetitions=repetitions,
+        sample_probability=sample_probability,
         time_new_scheme=time_new_scheme,
         time_baseline=time_baseline,
+        opt_level_baseline=opt_level_baseline,
     )
