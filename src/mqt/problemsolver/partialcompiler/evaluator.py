@@ -1,7 +1,19 @@
 from time import time
 
-import numpy as np
-from mqt.problemsolver.partialcompiler.qaoa import QAOA, check_gates, reduce_swaps
+# from mqt.qcec import verify
+from typing import TypedDict
+
+from mqt.problemsolver.partialcompiler.qaoa import QAOA, check_gates
+
+
+# @dataclass
+class Result(TypedDict):
+    time_ratio: float
+    cx_count_ratio: float
+    num_qubits: int
+    num_repetitions: int
+    time_new_scheme: float
+    time_baseline: float
 
 
 def evaluate_QAOA(
@@ -10,15 +22,18 @@ def evaluate_QAOA(
     sample_probability: float = 0.5,
     optimize_swaps: bool = False,
     opt_level_baseline: int = 2,
-) -> tuple[float, float]:
+) -> Result:
     q = QAOA(num_qubits=num_qubits, repetitions=repetitions, sample_probability=sample_probability)
 
     start = time()
     compiled_qc = check_gates(
-        qc=q.qc_compiled, remove_gates=q.remove_gates, to_be_checked_gates_indices=q.to_be_checked_gates_indices
+        qc=q.qc_compiled,
+        remove_gates=q.remove_gates,
+        to_be_checked_gates_indices=q.to_be_checked_gates_indices,
+        optimize_swaps=optimize_swaps,
     )
-    if optimize_swaps:
-        compiled_qc = reduce_swaps(qc=q.qc_compiled)
+    # if optimize_swaps:
+    #     compiled_qc = reduce_swaps(qc=q.qc_compiled)
     time_new_scheme = time() - start
     # add a print function which prints the average processing time per element in q.remove_gates
 
@@ -28,5 +43,15 @@ def evaluate_QAOA(
 
     time_ratio = time_new_scheme / time_baseline
     cx_count_ratio = compiled_qc.count_ops()["cx"] / qc_baseline_compiled.count_ops()["cx"]
-    # print("QCEC:", verify(q.qc_baseline, qc_baseline_compiled))
-    return (np.round(time_ratio, 5), np.round(cx_count_ratio, 3))
+    # try:
+    #     print("QCEC:", verify(compiled_qc, qc_baseline_compiled))
+    # except:
+    #     print("QCEC: False")
+    return Result(
+        time_ratio=time_ratio,
+        cx_count_ratio=cx_count_ratio,
+        num_qubits=num_qubits,
+        num_repetitions=repetitions,
+        time_new_scheme=time_new_scheme,
+        time_baseline=time_baseline,
+    )
