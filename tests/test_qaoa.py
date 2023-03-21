@@ -1,4 +1,4 @@
-from mqt.problemsolver.partialcompiler.qaoa import QAOA, check_gates
+from mqt.problemsolver.partialcompiler.qaoa import QAOA
 from qiskit import QuantumCircuit
 
 
@@ -20,16 +20,14 @@ def test_compile_qc() -> None:
 
 def test_get_to_be_checked_gates() -> None:
     q = QAOA(num_qubits=4, repetitions=3, sample_probability=0.5)
-    indices = q.get_to_be_checked_gates()
+    indices = q.get_to_be_removed_gate_indices()
     assert isinstance(indices, list)
 
 
 def test_check_gates() -> None:
     q = QAOA(num_qubits=2, repetitions=1, sample_probability=1.0)
-    compiled_qc = check_gates(
+    compiled_qc = q.check_gates(
         qc=q.qc_compiled.copy(),
-        remove_gates=q.remove_gates,
-        to_be_checked_gates_indices=q.to_be_checked_gates_indices,
         optimize_swaps=False,
     )
     assert isinstance(compiled_qc, QuantumCircuit)
