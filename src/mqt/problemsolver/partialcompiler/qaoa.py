@@ -21,12 +21,13 @@ class QAOA:
         assert 0 <= sample_probability <= 1
         self.sample_probability = sample_probability
         np.random.seed(42)
-        manila_config = FakeManila().configuration()
+        FakeManila().configuration()
         montreal_config = FakeMontreal().configuration()
         washington_config = FakeWashington().configuration()
-        if num_qubits <= manila_config.n_qubits:
-            self.backend = FakeManila()
-        elif num_qubits <= montreal_config.n_qubits:
+        # if num_qubits <= manila_config.n_qubits:
+        #     self.backend = FakeManila()
+        # el
+        if num_qubits <= montreal_config.n_qubits:
             self.backend = FakeMontreal()
         elif num_qubits <= washington_config.n_qubits:
             self.backend = FakeWashington()
