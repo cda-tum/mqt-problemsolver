@@ -3,6 +3,7 @@ from time import time
 # from mqt.qcec import verify
 from typing import TypedDict
 
+from mqt.predictor.reward import expected_fidelity
 from mqt.problemsolver.partialcompiler.qaoa import QAOA
 
 
@@ -19,6 +20,9 @@ class Result(TypedDict):
     cx_count_ratio_without_swap_opt: float
     cx_count_ratio_with_swap_opt: float
     opt_level_baseline: int
+    expected_fidelity_new_scheme_without_swap_opt: float
+    expected_fidelity_new_scheme_with_swap_opt: float
+    expected_fidelity_baseline: float
 
 
 def evaluate_QAOA(
@@ -36,6 +40,9 @@ def evaluate_QAOA(
         optimize_swaps=False,
     )
     time_new_scheme_without_swap_opt = time() - start
+    expected_fidelity_new_scheme_without_swap_opt = expected_fidelity(
+        compiled_qc_without_swap_opt, device=q.backend.name().replace("fake", "ibm")
+    )
 
     qc_compiled_with_all_gates = q.qc_compiled.copy()
     start = time()
@@ -44,10 +51,14 @@ def evaluate_QAOA(
         optimize_swaps=True,
     )
     time_new_scheme_with_swap_opt = time() - start
+    expected_fidelity_new_scheme_with_swap_opt = expected_fidelity(
+        compiled_qc_with_swap_opt, device=q.backend.name().replace("fake", "ibm")
+    )
 
     start = time()
     qc_baseline_compiled = q.compile_qc(baseline=True, opt_level=opt_level_baseline)
     time_baseline = time() - start
+    expected_fidelity_baseline = expected_fidelity(qc_baseline_compiled, device=q.backend.name().replace("fake", "ibm"))
 
     time_ratio_without_swap_opt = time_new_scheme_without_swap_opt / time_baseline
     cx_count_ratio_without_swap_opt = (
@@ -75,4 +86,7 @@ def evaluate_QAOA(
         cx_count_ratio_without_swap_opt=cx_count_ratio_without_swap_opt,
         cx_count_ratio_with_swap_opt=cx_count_ratio_with_swap_opt,
         opt_level_baseline=opt_level_baseline,
+        expected_fidelity_new_scheme_without_swap_opt=expected_fidelity_new_scheme_without_swap_opt,
+        expected_fidelity_new_scheme_with_swap_opt=expected_fidelity_new_scheme_with_swap_opt,
+        expected_fidelity_baseline=expected_fidelity_baseline,
     )
