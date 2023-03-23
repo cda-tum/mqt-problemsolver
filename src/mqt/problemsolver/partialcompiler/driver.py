@@ -31,5 +31,5 @@ def eval_single_instance(num_qubits: int, num_reps: int, sample_probability: flo
     )
 
 
-eval_all_instances(3, 80, 5)
+eval_all_instances(3, 20, 5)
 # eval_single_instance(5,3,0.5,2)
