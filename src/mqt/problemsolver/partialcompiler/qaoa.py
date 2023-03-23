@@ -30,6 +30,7 @@ class QAOA:
         FakeManila().configuration()
         montreal_config = FakeMontreal().configuration()
         washington_config = FakeWashington().configuration()
+        FakeManila().configuration()
         # if num_qubits <= manila_config.n_qubits:
         #     self.backend = FakeManila()
         # el
@@ -38,27 +39,44 @@ class QAOA:
         elif num_qubits <= washington_config.n_qubits:
             self.backend = FakeWashington()
 
-        qc, qc_baseline, remove_gates = self.get_uncompiled_circuits()
+        qc, qc_baseline, remove_gates = self.get_uncompiled_circuits(considered_following_qubits)
         self.qc = qc  # QC with all gates
         self.qc_baseline = qc_baseline  # QC with only the sampled gates
         self.remove_gates = remove_gates  # List of booleans indicating whether a gate should be removed
         self.qc_compiled = self.compile_qc(baseline=False, opt_level=2)  # Compiled QC with all gates
         self.to_be_checked_gates_indices = self.get_to_be_removed_gate_indices()  # Indices of the gates to be checked
 
-    def get_uncompiled_circuits(self) -> tuple[QuantumCircuit, QuantumCircuit, list[bool]]:
+    def get_uncompiled_circuits(
+        self, considered_following_qubits: int
+    ) -> tuple[QuantumCircuit, QuantumCircuit, list[bool | str]]:
         qc = QuantumCircuit(self.num_qubits)
         qc_baseline = QuantumCircuit(self.num_qubits)
         qc.h(range(self.num_qubits))
         qc_baseline.h(range(self.num_qubits))
 
-        remove_gates = []
+        remove_gates: list[bool | str] = []
         parameter_counter = 0
+        tmp_len = -1
         for k in range(self.repetitions):
+            if k == 1:
+                tmp_len = len(remove_gates)
             for i in range(self.num_qubits):
-                for j in range(i + 1, min(self.num_qubits, i + 3)):
+                for j in range(
+                    i + 1, i + 1 + considered_following_qubits
+                ):  # i + 1 + considered_following_qubits): #min(self.num_qubits, )
+                    if j >= self.num_qubits:
+                        break
                     p = Parameter(f"a_{parameter_counter}")
                     qc.rzz(p, i, j)
-                    if np.random.random() < self.sample_probability:
+                    if k == 0:
+                        if np.random.random() < self.sample_probability:
+                            remove_gates.append(p.name)
+                        else:
+                            remove_gates.append(False)
+                            qc_baseline.rzz(p, i, j)
+                    elif remove_gates[
+                        parameter_counter - k * tmp_len
+                    ]:  # parameter_counter%(self.num_qubits * (self.num_qubits - 1)//2)
                         remove_gates.append(p.name)
                     else:
                         remove_gates.append(False)
@@ -88,7 +106,6 @@ class QAOA:
                 and gate.operation.params[0].name.startswith("a_")
             ):
                 indices_parameterized_gates.append(i)
-
         assert len(indices_parameterized_gates) == len(self.remove_gates)
         indices_to_be_removed_parameterized_gates = []
         for i in range(len(indices_parameterized_gates)):
@@ -100,7 +117,6 @@ class QAOA:
 
     def check_gates(self, qc: QuantumCircuit, optimize_swaps: bool = True) -> QuantumCircuit:
         offset = 0
-        counter = 0
         for i in self.to_be_checked_gates_indices:
             # Remove the gate from the ParameterTable
             # del qc._parameter_table[qc._data[i - offset].operation.params[0]]._instance_ids[
@@ -122,7 +138,6 @@ class QAOA:
             else:
                 del qc._data[i - offset]
                 offset += 1
-            counter += 1
 
         return qc
 
