@@ -15,11 +15,17 @@ from qiskit.transpiler.passes import (
 
 
 class QAOA:
-    def __init__(self, num_qubits: int, repetitions: int = 1, sample_probability: float = 0.5):
+    def __init__(
+        self,
+        num_qubits: int,
+        repetitions: int = 1,
+        remove_probability: float = 0.5,
+        considered_following_qubits: int = 3,
+    ):
         self.num_qubits = num_qubits
         self.repetitions = repetitions
-        assert 0 <= sample_probability <= 1
-        self.sample_probability = sample_probability
+        assert 0 <= remove_probability <= 1
+        self.sample_probability = remove_probability
         np.random.seed(42)
         FakeManila().configuration()
         montreal_config = FakeMontreal().configuration()
