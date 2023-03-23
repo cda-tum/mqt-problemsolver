@@ -31,7 +31,7 @@ def evaluate_QAOA(
     sample_probability: float = 0.5,
     opt_level_baseline: int = 2,
 ) -> Result:
-    q = QAOA(num_qubits=num_qubits, repetitions=repetitions, sample_probability=sample_probability)
+    q = QAOA(num_qubits=num_qubits, repetitions=repetitions, remove_probability=sample_probability)
 
     qc_compiled_with_all_gates = q.qc_compiled.copy()
     start = time()
@@ -61,11 +61,17 @@ def evaluate_QAOA(
     expected_fidelity_baseline = expected_fidelity(qc_baseline_compiled, device=q.backend.name().replace("fake", "ibm"))
 
     time_ratio_without_swap_opt = time_new_scheme_without_swap_opt / time_baseline
-    cx_count_ratio_without_swap_opt = (
-        compiled_qc_without_swap_opt.count_ops()["cx"] / qc_baseline_compiled.count_ops()["cx"]
-    )
+    if qc_baseline_compiled.count_ops().get("cx"):
+        cx_count_ratio_without_swap_opt = (
+            compiled_qc_without_swap_opt.count_ops()["cx"] / qc_baseline_compiled.count_ops()["cx"]
+        )
+        cx_count_ratio_with_swap_opt = (
+            compiled_qc_with_swap_opt.count_ops()["cx"] / qc_baseline_compiled.count_ops()["cx"]
+        )
+    else:
+        cx_count_ratio_without_swap_opt = 0
+        cx_count_ratio_with_swap_opt = 0
     time_ratio_with_swap_opt = time_new_scheme_with_swap_opt / time_baseline
-    cx_count_ratio_with_swap_opt = compiled_qc_with_swap_opt.count_ops()["cx"] / qc_baseline_compiled.count_ops()["cx"]
 
     # try:
     #     print("num_qubits:", num_qubits, "repetitions:", repetitions, "sample_probability:", sample_probability)
