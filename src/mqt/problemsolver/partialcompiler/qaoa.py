@@ -130,9 +130,7 @@ class QAOA:
                 and qc._data[i - offset - 1].operation.name == "cx"
                 and qc._data[i - offset - 1] == qc._data[i - offset + 1]
             ):
-                del qc._data[i - offset - 1]
-                del qc._data[i - offset - 1]
-                del qc._data[i - offset - 1]
+                del qc._data[i - offset - 1 : i - offset + 2]
 
                 offset += 3
             else:
