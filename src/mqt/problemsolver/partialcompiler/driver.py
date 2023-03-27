@@ -9,7 +9,7 @@ def eval_all_instances(min_qubits: int = 3, max_qubits: int = 80, stepsize: int 
         delayed(eval_single_instance)(i, 3, j, k)
         for i in range(min_qubits, max_qubits, stepsize)
         for j in [0.3, 0.7]
-        for k in [1, 100]
+        for k in [1, 1000]
     )
 
     res_csv.append(list(results[0].keys()))
@@ -34,5 +34,5 @@ def eval_single_instance(
     )
 
 
-eval_all_instances(3, 25, 10)
+eval_all_instances(5, 127, 10)
 # eval_single_instance(5,3,0.5,2)

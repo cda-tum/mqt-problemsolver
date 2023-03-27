@@ -30,11 +30,11 @@ class QAOA:
         FakeManila().configuration()
         montreal_config = FakeMontreal().configuration()
         washington_config = FakeWashington().configuration()
+        manila_config = FakeManila().configuration()
         FakeManila().configuration()
-        # if num_qubits <= manila_config.n_qubits:
-        #     self.backend = FakeManila()
-        # el
-        if num_qubits <= montreal_config.n_qubits:
+        if num_qubits <= manila_config.n_qubits:
+            self.backend = FakeManila()
+        elif num_qubits <= montreal_config.n_qubits:
             self.backend = FakeMontreal()
         elif num_qubits <= washington_config.n_qubits:
             self.backend = FakeWashington()
