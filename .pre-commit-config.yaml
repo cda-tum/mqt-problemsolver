@@ -92,4 +92,3 @@ repos:
           - python_tsp
           - networkx
           - mqt.ddsim
-          - mqt.predictor
