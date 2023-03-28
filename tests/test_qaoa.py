@@ -7,7 +7,7 @@ def test_qaoa_init() -> None:
     assert isinstance(q.qc, QuantumCircuit)
     assert isinstance(q.qc_baseline, QuantumCircuit)
     assert isinstance(q.qc_compiled, QuantumCircuit)
-    assert isinstance(q.to_be_checked_gates_indices, list)
+    assert isinstance(q.to_be_removed_gates_indices, list)
 
 
 def test_compile_qc() -> None:
