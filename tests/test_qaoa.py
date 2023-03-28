@@ -26,7 +26,7 @@ def test_get_to_be_checked_gates() -> None:
 
 def test_check_gates() -> None:
     q = QAOA(num_qubits=2, repetitions=1, remove_probability=1.0)
-    compiled_qc = q.check_gates(
+    compiled_qc = q.remove_unnecessary_gates(
         qc=q.qc_compiled.copy(),
         optimize_swaps=False,
     )
