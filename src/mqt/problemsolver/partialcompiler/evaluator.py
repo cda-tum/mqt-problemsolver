@@ -34,7 +34,7 @@ def evaluate_QAOA(
 
     qc_compiled_with_all_gates = q.qc_compiled.copy()
     start = time()
-    compiled_qc_without_opt = q.check_gates(
+    compiled_qc_without_opt = q.remove_unnecessary_gates(
         qc=qc_compiled_with_all_gates,
         optimize_swaps=False,
     )
@@ -43,7 +43,7 @@ def evaluate_QAOA(
 
     qc_compiled_with_all_gates = q.qc_compiled.copy()
     start = time()
-    compiled_qc_with_opt = q.check_gates(
+    compiled_qc_with_opt = q.remove_unnecessary_gates(
         qc=qc_compiled_with_all_gates,
         optimize_swaps=True,
     )
