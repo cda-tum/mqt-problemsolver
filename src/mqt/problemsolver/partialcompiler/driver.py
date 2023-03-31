@@ -21,7 +21,3 @@ def eval_all_instances(min_qubits: int = 3, max_qubits: int = 80, stepsize: int 
         delimiter=",",
         fmt="%s",
     )
-
-
-eval_all_instances(5, 110, 5)
-# eval_single_instance(5,3,0.5,2)
