@@ -128,7 +128,6 @@ class QAOA:
 
 
 def get_backend(num_qubits: int) -> FakeBackend:
-    
     manila = FakeManila()
     if num_qubits <= manila.configuration().n_qubits:
         return manila
@@ -136,9 +135,9 @@ def get_backend(num_qubits: int) -> FakeBackend:
     montreal = FakeMontreal()
     if num_qubits <= montreal.configuration().n_qubits:
         return montreal
-        
+
     washington = FakeWashington()
     if num_qubits <= washington.configuration().n_qubits:
         return washington
-    
+
     return None
