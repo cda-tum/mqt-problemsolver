@@ -4,7 +4,6 @@ from typing import TypedDict
 from mqt.problemsolver.partialcompiler.qaoa import QAOA
 
 
-# @dataclass
 class Result(TypedDict):
     num_qubits: int
     sample_probability: float
