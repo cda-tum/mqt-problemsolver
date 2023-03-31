@@ -111,7 +111,7 @@ class QAOA:
 
     def remove_unnecessary_gates(self, qc: QuantumCircuit, optimize_swaps: bool = True) -> QuantumCircuit:
         """Removes the gates to be checked from the circuit at online time"""
-        indices = {}
+        indices = set()
 
         # Iterate over all gates to be removed
         for i in self.to_be_removed_gates_indices:
