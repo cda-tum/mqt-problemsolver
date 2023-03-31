@@ -20,7 +20,7 @@ dynamic = ["version"]
 
 dependencies = [
     "qiskit>=0.36.0,<0.42.0",
-    "numpy>=1.23.3,<1.24.0",
+    "numpy",
     "matplotlib~=3.5.1",
     "mqt.ddsim>=1.11.0,<1.18.0",
     "networkx~=2.8.6",
