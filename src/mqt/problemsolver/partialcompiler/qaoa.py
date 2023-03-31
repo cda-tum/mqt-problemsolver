@@ -86,11 +86,8 @@ class QAOA:
 
     def compile_qc(self, baseline: bool = False, opt_level: int = 3) -> QuantumCircuit:
         """Compiles the circuit"""
-        if baseline:
-            circ = self.qc_baseline
-        else:
-            circ = self.qc
-        
+        circ = self.qc_baseline if baseline else self.qc
+
         return transpile(circ, backend=self.backend, optimization_level=opt_level, seed_transpiler=42)
 
     def get_to_be_removed_gate_indices(self) -> list[int]:
