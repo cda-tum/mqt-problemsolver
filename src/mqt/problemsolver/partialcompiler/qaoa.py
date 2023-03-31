@@ -25,7 +25,7 @@ class QAOA:
         qc, qc_baseline, remove_gates = self.get_uncompiled_circuits(considered_following_qubits)
         self.qc = qc  # QC with all gates
         self.qc_baseline = qc_baseline  # QC with only the sampled gates
-        self.remove_gates = remove_gates  # List of length number of parameterized gates, contains either False (if it shall not be removed) or the index of the gate to be removed
+        self.remove_gates = remove_gates  # List of length number of parameterized gates, contains either False (if it shall not be removed) or the parameter name of the gate to be removed
         self.qc_compiled = self.compile_qc(baseline=False, opt_level=3)  # Compiled QC with all gates
         self.to_be_removed_gates_indices = self.get_to_be_removed_gate_indices()  # Indices of the gates to be checked
 
