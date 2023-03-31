@@ -119,8 +119,8 @@ class QAOA:
             del qc._parameter_table[qc._data[i].operation.params[0]]
             indices.add(i)
             if optimize_swaps and qc._data[i - 1].operation.name == "cx" and qc._data[i - 1] == qc._data[i + 1]:
-                indices.add(i-1)
-                indices.add(i+1)
+                indices.add(i - 1)
+                indices.add(i + 1)
 
         qc._data = [v for i, v in enumerate(qc._data) if i not in indices]
 
