@@ -111,21 +111,18 @@ class QAOA:
 
     def remove_unnecessary_gates(self, qc: QuantumCircuit, optimize_swaps: bool = True) -> QuantumCircuit:
         """Removes the gates to be checked from the circuit at online time"""
-        to_be_deleted_indices = []
+        indices = {}
 
         # Iterate over all gates to be removed
         for i in self.to_be_removed_gates_indices:
-            # Remove the gate from the ParameterTable (was needed for QCEC to work)
-            del qc._parameter_table[
-                qc._data[i].operation.params[0]
-            ]  # remove the Parameter from the ParameterTable for the specific parameter. The table just contains one entry
+            # Remove the Parameter from the ParameterTable for the specific parameter.
+            del qc._parameter_table[qc._data[i].operation.params[0]]
+            indices.add(i)
             if optimize_swaps and qc._data[i - 1].operation.name == "cx" and qc._data[i - 1] == qc._data[i + 1]:
-                to_be_deleted_indices.extend([i - 1, i, i + 1])
-            else:
-                to_be_deleted_indices.append(i)
+                indices.add(i-1)
+                indices.add(i+1)
 
-        for index in sorted(to_be_deleted_indices, reverse=True):
-            del qc._data[index]
+        qc._data = [v for i, v in enumerate(qc._data) if i not in indices]
 
         return qc
 
