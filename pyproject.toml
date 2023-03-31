@@ -23,8 +23,8 @@ dependencies = [
     "numpy",
     "matplotlib",
     "mqt.ddsim",
-    "networkx~=2.8.6",
-    "python_tsp~=0.3.1",
+    "networkx",
+    "python_tsp",
 ]
 
 classifiers = [
