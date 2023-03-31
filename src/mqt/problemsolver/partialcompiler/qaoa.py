@@ -19,7 +19,6 @@ class QAOA:
 
         assert 0 <= remove_probability <= 1
         self.sample_probability = remove_probability
-        np.random.seed(42)
 
         self.backend = get_backend(num_qubits)
 
@@ -44,6 +43,7 @@ class QAOA:
         remove_gates: list[bool | str] = []
         parameter_counter = 0
         tmp_len = -1
+        rng = np.random.default_rng(seed=42)
 
         # Iterate over all QAOA layers
         for k in range(self.repetitions):
@@ -60,7 +60,7 @@ class QAOA:
                     qc.rzz(p, i, j)
                     # Sample whether the gate should be removed for the first layer
                     if k == 0:
-                        if np.random.random() < self.sample_probability:
+                        if rng.random() < self.sample_probability:
                             remove_gates.append(p.name)
                         else:
                             remove_gates.append(False)
