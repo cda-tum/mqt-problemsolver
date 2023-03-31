@@ -92,19 +92,14 @@ class QAOA:
 
     def get_to_be_removed_gate_indices(self) -> list[int]:
         """Returns the indices of the gates to be removed"""
-        indices_parameterized_gates = []
+        indices_to_be_removed_parameterized_gates = []
         for i, gate in enumerate(self.qc_compiled._data):
             if (
                 gate.operation.name == "rz"
                 and isinstance(gate.operation.params[0], Parameter)
                 and gate.operation.params[0].name.startswith("a_")
-            ):
-                indices_parameterized_gates.append(i)
-        assert len(indices_parameterized_gates) == len(self.remove_gates)
-        indices_to_be_removed_parameterized_gates = []
-        for i in range(len(indices_parameterized_gates)):
-            if self.qc_compiled._data[indices_parameterized_gates[i]].operation.params[0].name in self.remove_gates:
-                indices_to_be_removed_parameterized_gates.append(indices_parameterized_gates[i])
+            ) and gate.operation.params[0].name in self.remove_gates:
+                indices_to_be_removed_parameterized_gates.append(i)
 
         assert len(set(indices_to_be_removed_parameterized_gates)) == len({elem for elem in self.remove_gates if elem})
         return indices_to_be_removed_parameterized_gates
