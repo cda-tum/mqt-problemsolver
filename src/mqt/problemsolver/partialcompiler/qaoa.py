@@ -31,7 +31,7 @@ class QAOA:
         qc, qc_baseline, remove_gates, remove_pairs = self.get_uncompiled_circuits(considered_following_qubits)
         self.qc = qc  # QC with all gates
         self.qc_baseline = qc_baseline  # QC with only the sampled gates
-        self.remove_pairs = remove_pairs
+        self.remove_pairs = remove_pairs  # List of all the to be removed ZZ gates between qubit pairs
         self.remove_gates = remove_gates  # List of length number of parameterized gates, contains either False (if it shall not be removed) or the parameter name of the gate to be removed
         self.qc_compiled = self.compile_qc(baseline=False, opt_level=3)  # Compiled QC with all gates
         self.to_be_removed_gates_indices = self.get_to_be_removed_gate_indices()  # Indices of the gates to be checked
@@ -56,6 +56,7 @@ class QAOA:
         remove_pairs = []
         # Iterate over all QAOA layers
         for k in range(self.repetitions):
+            # for the satellite use case, rz gates are added which represent the location image value. These factors are set later on when all interactions are known.
             if self.satellite_use_case:
                 for i in range(self.num_qubits):
                     p_qubit = Parameter(f"qubit_{i}_rep_{k}")
@@ -143,13 +144,16 @@ class QAOA:
         return qc
 
     def apply_factors_to_qc(self, qc: QuantumCircuit) -> QuantumCircuit:
-        # create model
+        """Applies factors to each qubit representing the location image value and the dependencies to other image locations."""
+        # create QUBO formulation based on interactions of between qubits
         qubo = QuadraticProgramToQubo().convert(from_docplex_mp(self.create_model_from_pair_list()))
+        # extract the factors: one for each qubit/image location, one factor for all ZZ interactions, one factor for all mixer layers
         coeffs = np.array(qubo.to_ising()[0].primitive.coeffs, dtype=float)
         coeffs_qubits = coeffs[: self.num_qubits]
         coeffs_interactions = coeffs[self.num_qubits + 1]
         coeff_mixer = qubo.to_ising()[1]
 
+        # apply the factors
         for param in qc.parameters:
             if "a_" in param.name:
                 qc.assign_parameters({param: coeffs_interactions * param * 2}, inplace=True)
@@ -161,6 +165,7 @@ class QAOA:
         return qc
 
     def create_model_from_pair_list(self) -> Model:
+        """Creates a model from the interaction pairs"""
         mdl = Model("satellite model")
         locations = mdl.binary_var_list(self.num_qubits, name="locations")
         for i, j in self.remove_pairs:
