@@ -25,10 +25,24 @@ def test_get_to_be_checked_gates() -> None:
 
 
 def test_check_gates() -> None:
-    q = QAOA(num_qubits=2, repetitions=1, sample_probability=1.0)
+    q = QAOA(num_qubits=2, repetitions=1, sample_probability=0.0)
     compiled_qc = q.remove_unnecessary_gates(
         qc=q.qc_compiled.copy(),
         optimize_swaps=False,
     )
     assert isinstance(compiled_qc, QuantumCircuit)
     assert len(compiled_qc._data) == len(q.qc_compiled._data) - 1
+
+
+def test_qaoa_init_satellite() -> None:
+    s = QAOA(num_qubits=4, repetitions=3, sample_probability=0.5, satellite_use_case=True)
+    assert isinstance(s.qc, QuantumCircuit)
+    assert isinstance(s.qc_baseline, QuantumCircuit)
+    assert isinstance(s.qc_compiled, QuantumCircuit)
+    assert isinstance(s.to_be_removed_gates_indices, list)
+    assert isinstance(s.remove_pairs, list)
+
+
+def test_create_model_from_pair_list() -> None:
+    s = QAOA(num_qubits=2, repetitions=1, sample_probability=1.0, satellite_use_case=True)
+    assert s.create_model_from_pair_list() is not None
