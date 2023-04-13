@@ -26,6 +26,7 @@ dependencies = [
     "mqt.ddsim",
     "networkx",
     "python_tsp",
+    "docplex"
 ]
 
 classifiers = [
