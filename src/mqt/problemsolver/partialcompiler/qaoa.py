@@ -153,7 +153,7 @@ class QAOA:
         coeffs_interactions = coeffs[self.num_qubits + 1]
         coeff_mixer = qubo.to_ising()[1]
 
-        # apply the factors
+        # apply the factors, i.e. multiply the parameters with the factors and with the factor 2 as this is how it is done in Qiskit's QAOA
         for param in qc.parameters:
             if "a_" in param.name:
                 qc.assign_parameters({param: coeffs_interactions * param * 2}, inplace=True)
