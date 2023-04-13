@@ -11,14 +11,14 @@ class QAOA:
         self,
         num_qubits: int,
         repetitions: int = 1,
-        remove_probability: float = 0.5,
+        sample_probability: float = 0.5,
         considered_following_qubits: int = 3,
     ):
         self.num_qubits = num_qubits
         self.repetitions = repetitions
 
-        assert 0 <= remove_probability <= 1
-        self.sample_probability = remove_probability
+        assert 0 <= sample_probability <= 1
+        self.sample_probability = sample_probability
 
         self.backend = get_backend(num_qubits)
 
@@ -60,7 +60,7 @@ class QAOA:
                     qc.rzz(p, i, j)
                     # Sample whether the gate should be removed for the first layer
                     if k == 0:
-                        if rng.random() < self.sample_probability:
+                        if rng.random() < (1 - self.sample_probability):
                             remove_gates.append(p.name)
                         else:
                             remove_gates.append(False)
