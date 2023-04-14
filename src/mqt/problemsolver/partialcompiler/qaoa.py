@@ -4,7 +4,7 @@ import numpy as np
 from docplex.mp.model import Model
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit import Parameter
-from qiskit.providers.fake_provider import FakeBackend, FakeManila, FakeMontreal, FakeWashington
+from qiskit.providers.fake_provider import FakeBackend, FakeMontreal, FakeQuito, FakeWashington
 from qiskit_optimization.converters.quadratic_program_to_qubo import (
     QuadraticProgramToQubo,
 )
@@ -176,9 +176,9 @@ class QAOA:
 
 
 def get_backend(num_qubits: int) -> FakeBackend:
-    manila = FakeManila()
-    if num_qubits <= manila.configuration().n_qubits:
-        return manila
+    quito = FakeQuito()
+    if num_qubits <= quito.configuration().n_qubits:
+        return quito
 
     montreal = FakeMontreal()
     if num_qubits <= montreal.configuration().n_qubits:
