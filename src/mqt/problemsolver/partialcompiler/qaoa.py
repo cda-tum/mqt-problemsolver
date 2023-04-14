@@ -148,10 +148,11 @@ class QAOA:
         # create QUBO formulation based on interactions of between qubits
         qubo = QuadraticProgramToQubo().convert(from_docplex_mp(self.create_model_from_pair_list()))
         # extract the factors: one for each qubit/image location, one factor for all ZZ interactions, one factor for all mixer layers
-        coeffs = np.array(qubo.to_ising()[0].primitive.coeffs, dtype=float)
+        ising = qubo.to_ising()
+        coeffs = np.array(ising[0].primitive.coeffs, dtype=float)
         coeffs_qubits = coeffs[: self.num_qubits]
         coeffs_interactions = coeffs[self.num_qubits + 1]
-        coeff_mixer = qubo.to_ising()[1]
+        coeff_mixer = ising[1]
 
         # apply the factors, i.e. multiply the parameters with the factors and with the factor 2 as this is how it is done in Qiskit's QAOA
         for param in qc.parameters:
