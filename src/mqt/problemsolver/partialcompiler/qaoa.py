@@ -151,7 +151,6 @@ class QAOA:
         coeffs = np.array(ising[0].primitive.coeffs, dtype=float)
         coeffs_qubits = coeffs[: self.num_qubits]
         coeffs_interactions = coeffs[self.num_qubits + 1]
-        coeff_mixer = ising[1]
 
         # apply the factors, i.e. multiply the parameters with the factors
         for param in qc.parameters:
@@ -160,8 +159,6 @@ class QAOA:
                 # (in comparison to the mixer layer), because otherwise the removal of the gates would be more complicated
                 # since the gates would have ParameterExpression and not Parameter objects
                 qc.assign_parameters({param: coeffs_interactions * param * 2}, inplace=True)
-            elif "b_" in param.name:
-                qc.assign_parameters({param: coeff_mixer * param}, inplace=True)
             elif "qubit_" in param.name:
                 qc.assign_parameters({param: coeffs_qubits[int(param.name.split("_")[1])] * param}, inplace=True)
 
