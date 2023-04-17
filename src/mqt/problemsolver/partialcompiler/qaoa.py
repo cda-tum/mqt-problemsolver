@@ -60,7 +60,7 @@ class QAOA:
             if self.satellite_use_case:
                 for i in range(self.num_qubits):
                     p_qubit = Parameter(f"qubit_{i}_rep_{k}")
-                    qc.rz(p_qubit, i)
+                    qc.rz(2 * p_qubit, i)
                     qc_baseline.rz(p_qubit, i)
             if k == 1:
                 tmp_len = len(remove_gates)  # Number of parameterized gates in the first layer
@@ -119,7 +119,6 @@ class QAOA:
                 and gate.operation.params[0].name.startswith("a_")
             ) and gate.operation.params[0].name in self.remove_gates:
                 indices_to_be_removed_parameterized_gates.append(i)
-
         assert len(set(indices_to_be_removed_parameterized_gates)) == len({elem for elem in self.remove_gates if elem})
         return indices_to_be_removed_parameterized_gates
 
@@ -154,14 +153,17 @@ class QAOA:
         coeffs_interactions = coeffs[self.num_qubits + 1]
         coeff_mixer = ising[1]
 
-        # apply the factors, i.e. multiply the parameters with the factors and with the factor 2 as this is how it is done in Qiskit's QAOA
+        # apply the factors, i.e. multiply the parameters with the factors
         for param in qc.parameters:
             if "a_" in param.name:
+                # factor of 2 is applied to the problem layer gates since this was not done at initialization
+                # (in comparison to the mixer layer), because otherwise the removal of the gates would be more complicated
+                # since the gates would have ParameterExpression and not Parameter objects
                 qc.assign_parameters({param: coeffs_interactions * param * 2}, inplace=True)
             elif "b_" in param.name:
-                qc.assign_parameters({param: coeff_mixer * param * 2}, inplace=True)
+                qc.assign_parameters({param: coeff_mixer * param}, inplace=True)
             elif "qubit_" in param.name:
-                qc.assign_parameters({param: coeffs_qubits[int(param.name.split("_")[1])] * param * 2}, inplace=True)
+                qc.assign_parameters({param: coeffs_qubits[int(param.name.split("_")[1])] * param}, inplace=True)
 
         return qc
 
