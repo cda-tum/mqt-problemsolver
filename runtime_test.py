@@ -1,7 +1,8 @@
-from qiskit import IBMQ
-
+import numpy as np
 from mqt.problemsolver.satellitesolver import utils
-
+from qiskit import IBMQ
+from qiskit.algorithms.optimizers import SPSA
+from qiskit.tools import job_monitor
 
 IBMQ.load_account()
 
@@ -11,17 +12,13 @@ qaoa_program = provider.runtime.program(program_id)
 print(f"Program name: {qaoa_program.name}, Program id: {qaoa_program.program_id}")
 print(qaoa_program.parameters())
 
-import numpy as np
-
-from qiskit.tools import job_monitor
-from qiskit.algorithms.optimizers import SPSA
 
 optimizer = SPSA(maxiter=100)
 reps = 2
 initial_point = np.random.random(2 * reps)
 options = {"backend_name": "ibmq_qasm_simulator"}
 
-num_acs=5
+num_acs = 5
 ac_reqs = utils.init_random_acquisition_requests(num_acs)
 mdl = utils.create_satellite_doxplex(ac_reqs)
 converter, qubo = utils.convert_docplex_to_qubo(mdl)
