@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-import matplotlib.pyplot as plt
-import numpy as np
 from docplex.mp.model import Model
-from mqt.problemsolver.AcquisitionRequest import (
+from mqt.problemsolver.satellitesolver.ImagingLocation import (
     ORBIT_DURATION,
     R_E,
     R_S,
     ROTATION_SPEED_SATELLITE,
-    AcquisitionRequest,
+    LocationRequest,
 )
 from qiskit import Aer, QuantumCircuit
 from qiskit.algorithms import QAOA as qiskitQAOA
@@ -18,6 +16,9 @@ from qiskit.algorithms import QAOA as qiskitQAOA
 if TYPE_CHECKING:
     from qiskit.algorithms import MinimumEigensolverResult
     from qiskit_optimization import QuadraticProgram
+import matplotlib.pyplot as plt
+import numpy as np
+from qiskit import Aer
 from qiskit.algorithms.optimizers import L_BFGS_B
 from qiskit_optimization.algorithms import CobylaOptimizer, WarmStartQAOAOptimizer
 from qiskit_optimization.converters.quadratic_program_to_qubo import (
@@ -26,11 +27,11 @@ from qiskit_optimization.converters.quadratic_program_to_qubo import (
 from qiskit_optimization.translators import from_docplex_mp
 
 
-def init_random_acquisition_requests(n: int) -> list[AcquisitionRequest]:
+def init_random_acquisition_requests(n: int) -> list[LocationRequest]:
     """Returns list of n random acquisition requests"""
     acquisition_requests = []
     for _ in range(n):
-        acquisition_requests.append(AcquisitionRequest(create_acquisition_position(), 1, np.random.randint(1, 3)))
+        acquisition_requests.append(LocationRequest(create_acquisition_position(), 1, np.random.randint(1, 3)))
 
     return sort_acquisition_requests(acquisition_requests)
 
@@ -68,7 +69,7 @@ def create_acquisition_position(
 
 
 def calc_needed_time_between_acquisition_attempts(
-    first_acq: AcquisitionRequest, second_acq: AcquisitionRequest
+    first_acq: LocationRequest, second_acq: LocationRequest
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     # Calculates the time needed for the satellite to change its focus from one acquisition
     # (first_acq) to the other (second_acq)
@@ -80,7 +81,7 @@ def calc_needed_time_between_acquisition_attempts(
     return theta / (ROTATION_SPEED_SATELLITE * 2 * np.pi)
 
 
-def transition_possible(acq_1: AcquisitionRequest, acq_2: AcquisitionRequest) -> bool:
+def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:
     """Returns True if transition between acq_1 and acq_2 is possible, False otherwise"""
     t_maneuver = cast(float, calc_needed_time_between_acquisition_attempts(acq_1, acq_2))
     t1 = cast(float, np.mean(acq_1.get_imaging_attempts()))
@@ -94,7 +95,7 @@ def transition_possible(acq_1: AcquisitionRequest, acq_2: AcquisitionRequest) ->
     return False
 
 
-def get_transition_possibility_matrix(acqs: list[AcquisitionRequest]) -> np.ndarray[Any, np.dtype[np.float64]]:
+def get_transition_possibility_matrix(acqs: list[LocationRequest]) -> np.ndarray[Any, np.dtype[np.float64]]:
     # Returns a matrix with boolean entries if a transition between two acquisitions is possible for
     # all possible combinations of acquisitions
     possibility_matrix = np.zeros((len(acqs), len(acqs)))
@@ -105,7 +106,7 @@ def get_transition_possibility_matrix(acqs: list[AcquisitionRequest]) -> np.ndar
     return possibility_matrix
 
 
-def sort_acquisition_requests(acqs: list[AcquisitionRequest]) -> list[AcquisitionRequest]:
+def sort_acquisition_requests(acqs: list[LocationRequest]) -> list[LocationRequest]:
     # Sorts acquisition requests in order of ascending longitudes
     longitudes = np.zeros(len(acqs))
     acqs_sorted = []
@@ -118,7 +119,7 @@ def sort_acquisition_requests(acqs: list[AcquisitionRequest]) -> list[Acquisitio
     return acqs_sorted
 
 
-def plot_acqisition_requests(acqs: list[AcquisitionRequest]) -> None:
+def plot_acqisition_requests(acqs: list[LocationRequest]) -> None:
     # Plots all acquisition requests on a sphere
     phi, theta = np.mgrid[0 : np.pi : 100j, 0 : 2 * np.pi : 100j]  # type: ignore[misc]
     x = R_E * np.sin(phi) * np.cos(theta)
@@ -143,7 +144,7 @@ def plot_acqisition_requests(acqs: list[AcquisitionRequest]) -> None:
     plt.show()
 
 
-def create_satellite_doxplex(all_acqs: list[AcquisitionRequest]) -> Model:
+def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
     """Returns a doxplex model for the satellite problem"""
     mdl = Model("satellite model")
     # Create binary variables for each acquisition request
@@ -178,7 +179,7 @@ def get_longitude(vector: np.ndarray[Any, np.dtype[np.float64]]) -> float:
     return cast(float, np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))
 
 
-def check_solution(ac_reqs: list[AcquisitionRequest], solution_vector: list[int]) -> bool:
+def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -> bool:
     """Checks if the determined solution is valid and does not violate any constraints."""
     for i in range(len(ac_reqs) - 1):
         for j in range(i + 1, len(ac_reqs)):
@@ -187,7 +188,7 @@ def check_solution(ac_reqs: list[AcquisitionRequest], solution_vector: list[int]
     return True
 
 
-def calc_sol_value(ac_reqs: list[AcquisitionRequest], solution_vector: list[int]) -> float:
+def calc_sol_value(ac_reqs: list[LocationRequest], solution_vector: list[int]) -> float:
     """Calculates the value of the solution vector"""
     value = 0.0
     for i in range(len(ac_reqs)):

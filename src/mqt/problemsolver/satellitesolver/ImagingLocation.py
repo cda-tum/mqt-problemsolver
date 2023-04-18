@@ -11,7 +11,7 @@ R_E: float = 6371.0  # Earth radius in km
 R_S: float = 7371.0  # Satellite orbit radius in km
 
 
-class AcquisitionRequest:
+class LocationRequest:
     def __init__(
         self,
         position: np.ndarray[Any, np.dtype[np.float64]],
