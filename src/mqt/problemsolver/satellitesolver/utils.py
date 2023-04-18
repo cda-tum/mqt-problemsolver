@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from qiskit_optimization import QuadraticProgram
 import matplotlib.pyplot as plt
 import numpy as np
-from qiskit import Aer
 from qiskit.algorithms.optimizers import L_BFGS_B
 from qiskit_optimization.algorithms import CobylaOptimizer, WarmStartQAOAOptimizer
 from qiskit_optimization.converters.quadratic_program_to_qubo import (
