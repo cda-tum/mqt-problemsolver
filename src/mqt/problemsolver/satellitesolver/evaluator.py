@@ -1,20 +1,20 @@
+from __future__ import annotations
+
 from time import time
-from typing import TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
-from mqt import ddsim
-
-from mqt.problemsolver.satellitesolver import utils
-from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
-
-from qiskit import execute
-
-from qiskit.algorithms.optimizers import SPSA
-
-import time
-from qiskit_optimization.problems import QuadraticProgram
+if TYPE_CHECKING:
+    from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
+    from qiskit.algorithms import MinimumEigensolverResult
+    from qiskit_optimization.problems import QuadraticProgram
 
 import numpy as np
 from joblib import Parallel, delayed
+from mqt import ddsim
+from mqt.problemsolver.satellitesolver import utils
+from qiskit import execute
+from qiskit.algorithms.optimizers import SPSA
+
 
 class SatelliteResult(TypedDict):
     num_qubits: int
@@ -23,13 +23,14 @@ class SatelliteResult(TypedDict):
     success_rate_qaoa: float
     success_rate_wqaoa: float
 
-def solve_using_w_qaoa(qubo:QuadraticProgram) -> bool:
+
+def solve_using_w_qaoa(qubo: QuadraticProgram) -> MinimumEigensolverResult:
     wqaoa = utils.W_QAOA()
     qc_wqaoa, res_wqaoa = wqaoa.get_solution(qubo)
     return res_wqaoa
 
 
-def solve_using_qaoa(qubo:QuadraticProgram) -> bool:
+def solve_using_qaoa(qubo: QuadraticProgram) -> Any:
     qaoa = utils.QAOA(QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100)})
     qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
 
@@ -39,48 +40,47 @@ def solve_using_qaoa(qubo:QuadraticProgram) -> bool:
     return job.result().get_counts(qc_qaoa)
 
 
-def post_process_qaoa_results(qaoa_counts, ac_reqs:list[LocationRequest], qubo:QuadraticProgram) -> tuple[bool, float]|bool :
+def post_process_qaoa_results(
+    qaoa_counts: Any, ac_reqs: list[LocationRequest], qubo: QuadraticProgram
+) -> tuple[list[int], float] | bool:
     probs = {}
     for key in qaoa_counts:
         bin_val = bin(int(key, 2))[2:].zfill(len(qubo.variables))
         probs[bin_val] = qaoa_counts[key]
 
     most_likely_eigenstate_qaoa = utils.sample_most_likely(probs)
-    most_likely_eigenstate_qaoa = np.array([int(s) for s in most_likely_eigenstate_qaoa], dtype=float)
+    most_likely_eigenstate_qaoa_postprocessed = [int(s) for s in most_likely_eigenstate_qaoa]
 
-    if utils.check_solution(ac_reqs, most_likely_eigenstate_qaoa):
-        solution = most_likely_eigenstate_qaoa
-        value = utils.calc_sol_value(ac_reqs, most_likely_eigenstate_qaoa)
+    if utils.check_solution(ac_reqs, most_likely_eigenstate_qaoa_postprocessed):
+        solution = most_likely_eigenstate_qaoa_postprocessed
+        value = utils.calc_sol_value(ac_reqs, most_likely_eigenstate_qaoa_postprocessed)
         return solution, value
-    else:
-        return False
+    return False
 
 
-def evaluate_Satellite_Solver(
-        num_locations: int = 5, num_runs:int=10
-) -> SatelliteResult:
+def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 10) -> SatelliteResult:
     ac_reqs = utils.init_random_acquisition_requests(num_locations)
     mdl = utils.create_satellite_doxplex(ac_reqs)
     converter, qubo = utils.convert_docplex_to_qubo(mdl)
 
     res_qaoa_times = []
     successes_qaoa = 0
-    for j in range(num_runs):
-        start_time = time.time()
+    for _j in range(num_runs):
+        start_time = time()
         qaoa_res_raw = solve_using_qaoa(qubo)
-        qaoa_res_postprocessed=post_process_qaoa_results(qaoa_res_raw, ac_reqs, qubo)
+        qaoa_res_postprocessed = post_process_qaoa_results(qaoa_res_raw, ac_reqs, qubo)
         if qaoa_res_postprocessed:
             successes_qaoa += 1
-        res_qaoa_times.append(time.time() - start_time)
+        res_qaoa_times.append(time() - start_time)
 
     res_wqaoa_times = []
     successes_wqaoa = 0
-    for j in range(num_runs):
-        start_time = time.time()
+    for _j in range(num_runs):
+        start_time = time()
         res_w_qaoa = solve_using_w_qaoa(qubo)
         if res_w_qaoa.status.value == 0:
             successes_wqaoa += 1
-        res_wqaoa_times.append(time.time() - start_time)
+        res_wqaoa_times.append(time() - start_time)
 
     return SatelliteResult(
         num_qubits=num_locations,
@@ -89,6 +89,7 @@ def evaluate_Satellite_Solver(
         success_rate_qaoa=successes_qaoa / num_runs,
         success_rate_wqaoa=successes_wqaoa / num_runs,
     )
+
 
 def eval_all_instances_Satellite_Solver(min_qubits: int = 3, max_qubits: int = 80, stepsize: int = 10) -> None:
     res_csv = []
