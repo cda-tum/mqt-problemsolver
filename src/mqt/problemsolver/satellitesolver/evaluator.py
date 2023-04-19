@@ -31,7 +31,7 @@ def solve_using_w_qaoa(qubo: QuadraticProgram) -> MinimumEigensolverResult:
 
 
 def solve_using_qaoa(qubo: QuadraticProgram) -> Any:
-    qaoa = utils.QAOA(QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=1000)})
+    qaoa = utils.QAOA(QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100)})
     qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
 
     num_shots = 1000
@@ -58,14 +58,14 @@ def post_process_qaoa_results(
     return False
 
 
-def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 10) -> SatelliteResult:
+def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 5) -> SatelliteResult:
     ac_reqs = utils.init_random_acquisition_requests(num_locations)
     mdl = utils.create_satellite_doxplex(ac_reqs)
     converter, qubo = utils.convert_docplex_to_qubo(mdl)
 
     res_qaoa_times = []
     successes_qaoa = 0
-    for _j in range(num_runs):
+    for _ in range(num_runs):
         start_time = time()
         qaoa_res_raw = solve_using_qaoa(qubo)
         qaoa_res_postprocessed = post_process_qaoa_results(qaoa_res_raw, ac_reqs, qubo)
@@ -75,25 +75,28 @@ def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 10) -> Sat
 
     res_wqaoa_times = []
     successes_wqaoa = 0
-    for _j in range(num_runs):
+    for _ in range(num_runs):
         start_time = time()
         res_w_qaoa = solve_using_w_qaoa(qubo)
         if res_w_qaoa.status.value == 0:
             successes_wqaoa += 1
         res_wqaoa_times.append(time() - start_time)
 
-    return SatelliteResult(
+    res = SatelliteResult(
         num_qubits=num_locations,
         calculation_time_qaoa=sum(res_qaoa_times) / num_runs,
         calculation_time_wqaoa=sum(res_wqaoa_times) / num_runs,
         success_rate_qaoa=successes_qaoa / num_runs,
         success_rate_wqaoa=successes_wqaoa / num_runs,
     )
+    print(res)
+
+    return res
 
 
 def eval_all_instances_Satellite_Solver(min_qubits: int = 3, max_qubits: int = 80, stepsize: int = 10) -> None:
     res_csv = []
-    results = Parallel(n_jobs=-1, verbose=3)(
+    results = Parallel(n_jobs=10, verbose=3)(
         delayed(evaluate_Satellite_Solver)(i) for i in range(min_qubits, max_qubits, stepsize)
     )
 
