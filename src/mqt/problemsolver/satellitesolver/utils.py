@@ -83,8 +83,8 @@ def calc_needed_time_between_acquisition_attempts(
 def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:
     """Returns True if transition between acq_1 and acq_2 is possible, False otherwise"""
     t_maneuver = cast(float, calc_needed_time_between_acquisition_attempts(acq_1, acq_2))
-    t1 = cast(float, np.mean(acq_1.get_imaging_attempts()))
-    t2 = cast(float, np.mean(acq_2.get_imaging_attempts()))
+    t1 = acq_1.imaging_attempt
+    t2 = acq_2.imaging_attempt
     if t1 < t2:
         return (t2 - t1) > (t_maneuver + acq_1.duration)
     if t2 < t1:
@@ -201,7 +201,6 @@ class QAOA(qiskitQAOA):  # type: ignore[misc]
         if QAOA_params is None or type(QAOA_params) is not dict:
             QAOA_params = {}
         if QAOA_params.get("optimizer") is None:
-            print("Optimizer not specified, using L-BFGS-B.")
             QAOA_params["optimizer"] = L_BFGS_B(maxiter=10000)
         if QAOA_params.get("reps") is None:
             QAOA_params["reps"] = 5

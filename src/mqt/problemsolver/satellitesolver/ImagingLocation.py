@@ -19,23 +19,19 @@ class LocationRequest:
         duration: float,
     ):
         self.position = position
-        self.imaging_attempts = self.get_imaging_attempts()
+        self.imaging_attempt = self.get_imaging_attempt()
         self.imaging_attempt_score = imaging_attempt_score
         self.duration = duration
 
-    def get_imaging_attempts(self) -> list[float]:
+    def get_imaging_attempt(self) -> int:
         # Returns the 5 time steps in which the satellite is closest to the location
         orbit_position = self.position * np.array([1, 1, 0])
         orbit_position /= np.linalg.norm(orbit_position)
         t = np.arccos(orbit_position[0]) * ORBIT_DURATION / (2 * np.pi)
-
-        return list(np.arange(np.rint(t / TIME_STEP) - 2, np.rint(t / TIME_STEP) + 3) * TIME_STEP)
+        return int(t)
 
     def get_average_satellite_position(self) -> np.ndarray[Any, np.dtype[np.float64]]:
-        # Return average average satellite position during imaging attempts
-        t = np.mean(self.imaging_attempts)
-        longitude = 2 * np.pi / ORBIT_DURATION * t
-
+        longitude = 2 * np.pi / ORBIT_DURATION * self.imaging_attempt
         return cast(np.ndarray[Any, np.dtype[np.float64]], R_S * np.array([np.cos(longitude), np.sin(longitude), 0]))
 
     def get_longitude_angle(self) -> float:
