@@ -31,10 +31,10 @@ def solve_using_w_qaoa(qubo: QuadraticProgram) -> MinimumEigensolverResult:
 
 
 def solve_using_qaoa(qubo: QuadraticProgram) -> Any:
-    qaoa = utils.QAOA(QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100)})
+    qaoa = utils.QAOA(QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=1000)})
     qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
 
-    num_shots = 10000
+    num_shots = 1000
     backend = ddsim.DDSIMProvider().get_backend("qasm_simulator")
     job = execute(qc_qaoa, backend, shots=num_shots)
     return job.result().get_counts(qc_qaoa)
