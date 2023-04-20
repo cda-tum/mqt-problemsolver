@@ -15,6 +15,7 @@ from mqt import ddsim
 from mqt.problemsolver.satellitesolver import utils
 from qiskit.algorithms.minimum_eigensolvers import NumPyMinimumEigensolver
 from qiskit.algorithms.optimizers import COBYLA, SPSA
+from qiskit.primitives import BackendSampler
 from qiskit.providers.fake_provider import FakeMumbai
 
 
@@ -30,13 +31,15 @@ class SatelliteResult(TypedDict):
 
 def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> MinimumEigensolverResult:
     if noisy_flag:
-        wqaoa = utils.W_QAOA(QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100), "quantum_instance": FakeMumbai()})
+        wqaoa = utils.W_QAOA(
+            QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100), "sampler": BackendSampler(FakeMumbai())}
+        )
     else:
         wqaoa = utils.W_QAOA(
             QAOA_params={
                 "reps": 3,
                 "optimizer": COBYLA(maxiter=100),
-                "quantum_instance": ddsim.DDSIMProvider().get_backend("qasm_simulator"),
+                "sampler": BackendSampler(ddsim.DDSIMProvider().get_backend("qasm_simulator")),
             }
         )
     qc_wqaoa, res_wqaoa = wqaoa.get_solution(qubo)
@@ -45,13 +48,15 @@ def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Mini
 
 def solve_using_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
     if noisy_flag:
-        qaoa = utils.QAOA(QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100), "quantum_instance": FakeMumbai()})
+        qaoa = utils.QAOA(
+            QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100), "sampler": BackendSampler(FakeMumbai())}
+        )
     else:
         qaoa = utils.QAOA(
             QAOA_params={
                 "reps": 3,
                 "optimizer": COBYLA(maxiter=100),
-                "quantum_instance": ddsim.DDSIMProvider().get_backend("qasm_simulator"),
+                "sampler": BackendSampler(ddsim.DDSIMProvider().get_backend("qasm_simulator")),
             }
         )
     qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
@@ -60,12 +65,12 @@ def solve_using_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
 
 def solve_using_vqe(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
     if noisy_flag:
-        vqe = utils.VQE(VQE_params={"optimizer": SPSA(maxiter=100), "quantum_instance": FakeMumbai()})
+        vqe = utils.VQE(VQE_params={"optimizer": SPSA(maxiter=100), "sampler": BackendSampler(FakeMumbai())})
     else:
         vqe = utils.VQE(
             VQE_params={
                 "optimizer": COBYLA(maxiter=100),
-                "quantum_instance": ddsim.DDSIMProvider().get_backend("qasm_simulator"),
+                "sampler": BackendSampler(ddsim.DDSIMProvider().get_backend("qasm_simulator")),
             }
         )
     qc_vqe, res_vqe = vqe.get_solution(qubo)

@@ -3,7 +3,7 @@ import pytest
 from mqt.problemsolver.satellitesolver import evaluator, utils
 from mqt.problemsolver.satellitesolver.evaluator import eval_all_instances_Satellite_Solver
 from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
-from qiskit.optimization import QuadraticProgram
+from qiskit_optimization import QuadraticProgram
 
 
 @pytest.fixture()
