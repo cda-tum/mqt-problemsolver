@@ -12,6 +12,7 @@ from mqt.problemsolver.satellitesolver.ImagingLocation import (
 )
 from qiskit import Aer, QuantumCircuit
 from qiskit.algorithms import QAOA as qiskitQAOA
+from qiskit.algorithms import VQE as qiskitVQE
 
 if TYPE_CHECKING:
     from qiskit.algorithms import MinimumEigensolverResult
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 import matplotlib.pyplot as plt
 import numpy as np
 from qiskit.algorithms.optimizers import L_BFGS_B
-from qiskit_optimization.algorithms import CobylaOptimizer, WarmStartQAOAOptimizer
+from qiskit_optimization.algorithms import CobylaOptimizer, MinimumEigenOptimizer, WarmStartQAOAOptimizer
 from qiskit_optimization.converters.quadratic_program_to_qubo import (
     QuadraticProgramToQubo,
 )
@@ -30,15 +31,11 @@ def init_random_acquisition_requests(n: int) -> list[LocationRequest]:
     """Returns list of n random acquisition requests"""
     acquisition_requests = []
     for _ in range(n):
-        acquisition_requests.append(LocationRequest(create_acquisition_position(), 1, np.random.randint(1, 3)))
+        acquisition_requests.append(
+            LocationRequest(position=create_acquisition_position(), imaging_attempt_score=np.random.randint(1, 3))
+        )
 
     return sort_acquisition_requests(acquisition_requests)
-
-
-def sample_most_likely(state_vector: dict[str, int]) -> str:
-    values = list(state_vector.values())
-    k = np.argmax(np.abs(values))
-    return list(state_vector.keys())[k]
 
 
 def get_satellite_position(t: int) -> np.ndarray[Any, np.dtype[np.float64]]:
@@ -86,23 +83,12 @@ def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:
     t1 = acq_1.imaging_attempt
     t2 = acq_2.imaging_attempt
     if t1 < t2:
-        return (t2 - t1) > (t_maneuver + acq_1.duration)
+        return (t2 - t1) > t_maneuver
     if t2 < t1:
-        return (t1 - t2) > (t_maneuver + acq_2.duration)
+        return (t1 - t2) > t_maneuver
     if t1 == t2:
         return False
     return False
-
-
-def get_transition_possibility_matrix(acqs: list[LocationRequest]) -> np.ndarray[Any, np.dtype[np.float64]]:
-    # Returns a matrix with boolean entries if a transition between two acquisitions is possible for
-    # all possible combinations of acquisitions
-    possibility_matrix = np.zeros((len(acqs), len(acqs)))
-    for i in range(len(acqs)):
-        for j in range(len(acqs) - i):
-            possibility_matrix[i, j + i] += float(transition_possible(acqs[i], acqs[i + j]))
-
-    return possibility_matrix
 
 
 def sort_acquisition_requests(acqs: list[LocationRequest]) -> list[LocationRequest]:
@@ -178,21 +164,23 @@ def get_longitude(vector: np.ndarray[Any, np.dtype[np.float64]]) -> float:
     return cast(float, np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))
 
 
-def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -> bool:
-    """Checks if the determined solution is valid and does not violate any constraints."""
-    for i in range(len(ac_reqs) - 1):
-        for j in range(i + 1, len(ac_reqs)):
-            if (solution_vector[i] + solution_vector[j] == 2) and not transition_possible(ac_reqs[i], ac_reqs[j]):
-                return False
-    return True
+class VQE(qiskitVQE):  # type: ignore[misc]
+    def __init__(self, VQE_params: dict[str, Any] | None = None) -> None:
+        """Function which initializes the QAOA class."""
+        if VQE_params is None or type(VQE_params) is not dict:
+            VQE_params = {}
+        if VQE_params.get("optimizer") is None:
+            VQE_params["optimizer"] = L_BFGS_B(maxiter=10000)
+        if VQE_params.get("quantum_instance") is None:
+            VQE_params["quantum_instance"] = Aer.get_backend("qasm_simulator")
 
+        super().__init__(**VQE_params)
 
-def calc_sol_value(ac_reqs: list[LocationRequest], solution_vector: list[int]) -> float:
-    """Calculates the value of the solution vector"""
-    value = 0.0
-    for i in range(len(ac_reqs)):
-        value += solution_vector[i] * ac_reqs[i].imaging_attempt_score
-    return value
+    def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
+        """Function which returns the quantum circuit of the QAOA algorithm and the resulting solution."""
+        vqe_result = MinimumEigenOptimizer(self).solve(qubo)
+        qc = self.ansatz
+        return qc, vqe_result
 
 
 class QAOA(qiskitQAOA):  # type: ignore[misc]
@@ -209,13 +197,10 @@ class QAOA(qiskitQAOA):  # type: ignore[misc]
 
         super().__init__(**QAOA_params)
 
-    def get_solution(
-        self, qubo: QuadraticProgram, aux_operators: Any = None
-    ) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
+    def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
         """Function which returns the quantum circuit of the QAOA algorithm and the resulting solution."""
-        operator, offset = qubo.to_ising()
-        qaoa_result = self.compute_minimum_eigenvalue(operator, aux_operators=aux_operators)
-        qc = self.ansatz.bind_parameters(qaoa_result.optimal_point)
+        qaoa_result = MinimumEigenOptimizer(self).solve(qubo)
+        qc = self.ansatz
         return qc, qaoa_result
 
 
@@ -230,9 +215,9 @@ class W_QAOA:
             W_QAOA_params["relax_for_pre_solver"] = True
         if W_QAOA_params.get("qaoa") is None:
             if type(QAOA_params) is not dict:
-                W_QAOA_params["qaoa"] = QAOA()
+                W_QAOA_params["qaoa"] = qiskitQAOA()
             else:
-                W_QAOA_params["qaoa"] = QAOA(**QAOA_params)
+                W_QAOA_params["qaoa"] = qiskitQAOA(**QAOA_params)
 
         self.W_QAOA_params = W_QAOA_params
         self.qaoa = W_QAOA_params["qaoa"]

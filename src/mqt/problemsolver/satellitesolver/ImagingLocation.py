@@ -16,12 +16,10 @@ class LocationRequest:
         self,
         position: np.ndarray[Any, np.dtype[np.float64]],
         imaging_attempt_score: float,
-        duration: float,
     ):
         self.position = position
         self.imaging_attempt = self.get_imaging_attempt()
         self.imaging_attempt_score = imaging_attempt_score
-        self.duration = duration
 
     def get_imaging_attempt(self) -> int:
         # Returns the 5 time steps in which the satellite is closest to the location
