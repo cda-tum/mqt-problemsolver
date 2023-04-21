@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, cast
 
 from docplex.mp.model import Model
 from mqt.problemsolver.satellitesolver.ImagingLocation import (
-    ORBIT_DURATION,
     R_E,
     R_S,
     ROTATION_SPEED_SATELLITE,
@@ -61,13 +60,6 @@ def get_success_ratio(ac_reqs: list[LocationRequest], qubo: QuadraticProgram, so
             / exact_result
         ),
     )
-
-
-def get_satellite_position(t: int) -> np.ndarray[Any, np.dtype[np.float64]]:
-    # Return position of the satellite as a vector
-    longitude = 2 * np.pi / ORBIT_DURATION * t
-    res = R_S * np.array([np.cos(longitude), np.sin(longitude), 0])
-    return cast(np.ndarray[Any, np.dtype[np.float64]], res)
 
 
 def create_acquisition_position(

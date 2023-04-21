@@ -6,7 +6,6 @@ import numpy as np
 
 ORBIT_DURATION = 6000  # ~100 min
 ROTATION_SPEED_SATELLITE = 0.00008 * np.pi
-TIME_STEP = ORBIT_DURATION / 1000  # Time step duration
 R_E: float = 6371.0  # Earth radius in km
 R_S: float = 7371.0  # Satellite orbit radius in km
 
@@ -22,7 +21,6 @@ class LocationRequest:
         self.imaging_attempt_score = imaging_attempt_score
 
     def get_imaging_attempt(self) -> int:
-        # Returns the 5 time steps in which the satellite is closest to the location
         orbit_position = self.position * np.array([1, 1, 0])
         orbit_position /= np.linalg.norm(orbit_position)
         t = np.arccos(orbit_position[0]) * ORBIT_DURATION / (2 * np.pi)
