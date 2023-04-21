@@ -5,7 +5,7 @@ from typing import Any, cast
 import numpy as np
 
 ORBIT_DURATION = 6000  # ~100 min
-ROTATION_SPEED_SATELLITE = 0.00008 * np.pi  # ~10s for full rotation around itself
+ROTATION_SPEED_SATELLITE = 0.00008 * np.pi
 TIME_STEP = ORBIT_DURATION / 1000  # Time step duration
 R_E: float = 6371.0  # Earth radius in km
 R_S: float = 7371.0  # Satellite orbit radius in km
