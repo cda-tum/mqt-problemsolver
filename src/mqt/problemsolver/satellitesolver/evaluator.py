@@ -11,13 +11,12 @@ if TYPE_CHECKING:
 
 import numpy as np
 from joblib import Parallel, delayed
-from mqt import ddsim
 from mqt.problemsolver.satellitesolver import utils
 from qiskit import IBMQ
 from qiskit.algorithms.minimum_eigensolvers import NumPyMinimumEigensolver
 from qiskit.algorithms.optimizers import COBYLA, SPSA
 from qiskit.circuit.library import RealAmplitudes
-from qiskit.primitives import BackendSampler
+from qiskit.primitives import BackendSampler, Sampler
 from qiskit.providers.fake_provider import FakeManila
 
 
@@ -51,7 +50,7 @@ def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Mini
             QAOA_params={
                 "reps": 3,
                 "optimizer": COBYLA(maxiter=100),
-                "sampler": BackendSampler(ddsim.DDSIMProvider().get_backend("qasm_simulator")),
+                "sampler": Sampler(),
             }
         )
     qc_wqaoa, res_wqaoa = wqaoa.get_solution(qubo)
@@ -68,7 +67,7 @@ def solve_using_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
             QAOA_params={
                 "reps": 3,
                 "optimizer": COBYLA(maxiter=100),
-                "sampler": BackendSampler(ddsim.DDSIMProvider().get_backend("qasm_simulator")),
+                "sampler": Sampler(),
             }
         )
     qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
@@ -82,7 +81,7 @@ def solve_using_vqe(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
         vqe = utils.VQE(
             VQE_params={
                 "optimizer": COBYLA(maxiter=100),
-                "sampler": BackendSampler(ddsim.DDSIMProvider().get_backend("qasm_simulator")),
+                "sampler": Sampler(),
                 "ansatz": RealAmplitudes(num_qubits=qubo.get_num_binary_vars(), reps=3),
             }
         )
