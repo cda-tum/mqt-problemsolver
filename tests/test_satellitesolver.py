@@ -30,7 +30,7 @@ def test_solve_using_vqe(qubo: QuadraticProgram) -> None:
 
 
 def test_eval_all_instances_Satellite_Solver() -> None:
-    eval_all_instances_Satellite_Solver(min_qubits=3, max_qubits=4, stepsize=1, num_runs=1, noisy_flag=False)
+    eval_all_instances_Satellite_Solver(min_qubits=3, max_qubits=4, stepsize=1, num_runs=1)
 
 
 def test_init_random_acquisition_requests() -> None:
