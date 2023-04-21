@@ -41,6 +41,28 @@ def init_random_acquisition_requests(n: int) -> list[LocationRequest]:
     return sort_acquisition_requests(acquisition_requests)
 
 
+def get_success_ratio(ac_reqs: list[LocationRequest], qubo: QuadraticProgram, solution_vector: list[int]) -> float:
+    from qiskit.algorithms.minimum_eigensolvers import NumPyMinimumEigensolver
+
+    exact_mes = NumPyMinimumEigensolver()
+    exact_result = MinimumEigenOptimizer(exact_mes).solve(qubo).fval
+    # sum over all LocationRequests and sum over their imaging_attempt_score if the respective indicator in sol[index] is 1
+    solution_vector = solution_vector[::-1]
+    return cast(
+        float,
+        (
+            sum(
+                [
+                    -ac_req.imaging_attempt_score
+                    for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
+                    if solution_vector[index] == 1
+                ]
+            )
+            / exact_result
+        ),
+    )
+
+
 def get_satellite_position(t: int) -> np.ndarray[Any, np.dtype[np.float64]]:
     # Return position of the satellite as a vector
     longitude = 2 * np.pi / ORBIT_DURATION * t
@@ -130,6 +152,24 @@ def plot_acqisition_requests(acqs: list[LocationRequest]) -> None:
     ax.set_aspect("auto")
     plt.tight_layout()
     plt.show()
+
+
+def sample_most_likely(state_vector: dict[str, int]) -> list[int]:
+    values = list(state_vector.values())
+    k = np.argmax(np.abs(values))
+    res = list(state_vector.keys())[k]
+    # convert str of binary values to list of int
+    return [int(x) for x in res]
+
+
+def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -> bool:
+    """Checks if the determined solution is valid and does not violate any constraints."""
+    solution_vector = solution_vector[::-1]
+    for i in range(len(ac_reqs) - 1):
+        for j in range(i + 1, len(ac_reqs)):
+            if (solution_vector[i] + solution_vector[j] == 2) and not transition_possible(ac_reqs[i], ac_reqs[j]):
+                return False
+    return True
 
 
 def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
