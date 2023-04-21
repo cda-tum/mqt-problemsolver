@@ -31,6 +31,7 @@ from qiskit_optimization.translators import from_docplex_mp
 
 def init_random_acquisition_requests(n: int) -> list[LocationRequest]:
     """Returns list of n random acquisition requests"""
+    np.random.seed(10)
     acquisition_requests = []
     for _ in range(n):
         acquisition_requests.append(
