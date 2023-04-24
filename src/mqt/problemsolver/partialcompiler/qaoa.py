@@ -61,7 +61,7 @@ class QAOA:
                 for i in range(self.num_qubits):
                     p_qubit = Parameter(f"qubit_{i}_rep_{k}")
                     qc.rz(2 * p_qubit, i)
-                    qc_baseline.rz(p_qubit, i)
+                    qc_baseline.rz(2 * p_qubit, i)
             if k == 1:
                 tmp_len = len(remove_gates)  # Number of parameterized gates in the first layer
 
