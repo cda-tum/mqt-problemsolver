@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from qiskit import QuantumCircuit
-from qiskit.algorithms import MinimumEigensolverResult
-from qiskit.algorithms.minimum_eigensolvers import SamplingVQE as qiskitVQE, QAOA as qiskitQAOA
-from qiskit.algorithms.optimizers import COBYLA, L_BFGS_B
+if TYPE_CHECKING:
+    from qiskit import QuantumCircuit
+    from qiskit.algorithms import MinimumEigensolverResult
+    from qiskit_optimization import QuadraticProgram
+
+from qiskit.algorithms.minimum_eigensolvers import QAOA as qiskitQAOA
+from qiskit.algorithms.minimum_eigensolvers import SamplingVQE as qiskitVQE
+from qiskit.algorithms.optimizers import COBYLA
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.primitives import BackendSampler, Sampler
 from qiskit.providers.fake_provider import FakeMontreal
-from qiskit_optimization import QuadraticProgram
-from qiskit_optimization.algorithms import MinimumEigenOptimizer, CobylaOptimizer, WarmStartQAOAOptimizer
+from qiskit_optimization.algorithms import CobylaOptimizer, MinimumEigenOptimizer, WarmStartQAOAOptimizer
 
 
 def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> MinimumEigensolverResult:
