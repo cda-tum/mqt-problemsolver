@@ -69,30 +69,30 @@ def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> Sate
     exact_result = MinimumEigenOptimizer(exact_mes).solve(qubo).fval
 
     res_qaoa_times = []
-    successes_qaoa = 0
+    successes_qaoa = []
     for _ in range(num_runs):
         start_time = time()
         qaoa_res = solve_using_qaoa(qubo, noisy_flag=False)
         assert qaoa_res.status.value == 0
-        successes_qaoa += qaoa_res.fval / exact_result
+        successes_qaoa.append(qaoa_res.fval / exact_result)
         res_qaoa_times.append(time() - start_time)
 
     res_wqaoa_times = []
-    successes_wqaoa = 0
+    successes_wqaoa = []
     for _ in range(num_runs):
         start_time = time()
         res_w_qaoa = solve_using_w_qaoa(qubo, noisy_flag=False)
         assert res_w_qaoa.status.value == 0
-        successes_wqaoa += res_w_qaoa.fval / exact_result
+        successes_wqaoa.append(res_w_qaoa.fval / exact_result)
         res_wqaoa_times.append(time() - start_time)
 
     res_vqe_times = []
-    successes_vqe = 0
+    successes_vqe = []
     for _ in range(num_runs):
         start_time = time()
         res_vqe = solve_using_vqe(qubo, noisy_flag=False)
         assert res_vqe.status.value == 0
-        successes_vqe += res_vqe.fval / exact_result
+        successes_vqe.append(res_vqe.fval / exact_result)
         res_vqe_times.append(time() - start_time)
 
     res = SatelliteResult(
@@ -100,9 +100,9 @@ def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> Sate
         calculation_time_qaoa=sum(res_qaoa_times) / num_runs,
         calculation_time_wqaoa=sum(res_wqaoa_times) / num_runs,
         calculation_time_vqe=sum(res_vqe_times) / num_runs,
-        success_rate_qaoa=successes_qaoa / num_runs,
-        success_rate_wqaoa=successes_wqaoa / num_runs,
-        success_rate_vqe=successes_vqe / num_runs,
+        success_rate_qaoa=sum(successes_qaoa) / num_runs,
+        success_rate_wqaoa=sum(successes_wqaoa) / num_runs,
+        success_rate_vqe=sum(successes_vqe) / num_runs,
     )
     print(res)
 
