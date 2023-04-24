@@ -9,19 +9,12 @@ from mqt.problemsolver.satellitesolver.ImagingLocation import (
     ROTATION_SPEED_SATELLITE,
     LocationRequest,
 )
-from qiskit.algorithms.minimum_eigensolvers import QAOA as qiskitQAOA
-from qiskit.algorithms.minimum_eigensolvers import SamplingVQE as qiskitVQE
-from qiskit.circuit.library import RealAmplitudes
 
 if TYPE_CHECKING:
-    from qiskit import QuantumCircuit
-    from qiskit.algorithms import MinimumEigensolverResult
     from qiskit_optimization import QuadraticProgram
 import matplotlib.pyplot as plt
 import numpy as np
-from qiskit.algorithms.optimizers import L_BFGS_B
-from qiskit.primitives import Sampler
-from qiskit_optimization.algorithms import CobylaOptimizer, MinimumEigenOptimizer, WarmStartQAOAOptimizer
+from qiskit_optimization.algorithms import MinimumEigenOptimizer
 from qiskit_optimization.converters.quadratic_program_to_qubo import (
     QuadraticProgramToQubo,
 )
@@ -197,73 +190,3 @@ def get_longitude(vector: np.ndarray[Any, np.dtype[np.float64]]) -> float:
     temp = vector * np.array([1, 1, 0])
     temp /= np.linalg.norm(temp)
     return cast(float, np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))
-
-
-class VQE(qiskitVQE):  # type: ignore[misc]
-    def __init__(self, VQE_params: dict[str, Any] | None = None) -> None:
-        """Function which initializes the VQE class."""
-        if VQE_params is None or type(VQE_params) is not dict:
-            VQE_params = {}
-        if VQE_params.get("optimizer") is None:
-            VQE_params["optimizer"] = L_BFGS_B(maxiter=1000)
-        if VQE_params.get("sampler") is None:
-            VQE_params["sampler"] = Sampler()
-        if VQE_params.get("ansatz") is None:
-            VQE_params["ansatz"] = RealAmplitudes()
-
-        super().__init__(**VQE_params)
-
-    def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
-        """Function which returns the quantum circuit of the VQE algorithm and the resulting solution."""
-        vqe_result = MinimumEigenOptimizer(self).solve(qubo)
-        qc = self.ansatz
-        return qc, vqe_result
-
-
-class QAOA(qiskitQAOA):  # type: ignore[misc]
-    def __init__(self, QAOA_params: dict[str, Any] | None = None) -> None:
-        """Function which initializes the QAOA class."""
-        if QAOA_params is None or type(QAOA_params) is not dict:
-            QAOA_params = {}
-        if QAOA_params.get("optimizer") is None:
-            QAOA_params["optimizer"] = L_BFGS_B(maxiter=1000)
-        if QAOA_params.get("reps") is None:
-            QAOA_params["reps"] = 5
-        if QAOA_params.get("sampler") is None:
-            QAOA_params["sampler"] = Sampler()
-
-        super().__init__(**QAOA_params)
-
-    def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
-        """Function which returns the quantum circuit of the QAOA algorithm and the resulting solution."""
-        qaoa_result = MinimumEigenOptimizer(self).solve(qubo)
-        qc = self.ansatz
-        return qc, qaoa_result
-
-
-class W_QAOA:
-    def __init__(self, W_QAOA_params: dict[str, Any] | None = None, QAOA_params: dict[str, Any] | None = None) -> None:
-        """Function which initializes the QAOA class."""
-        if type(W_QAOA_params) is not dict:
-            W_QAOA_params = {}
-        if W_QAOA_params.get("pre_solver") is None:
-            W_QAOA_params["pre_solver"] = CobylaOptimizer()
-        if W_QAOA_params.get("relax_for_pre_solver") is None:
-            W_QAOA_params["relax_for_pre_solver"] = True
-        if W_QAOA_params.get("qaoa") is None:
-            if type(QAOA_params) is not dict:
-                W_QAOA_params["qaoa"] = qiskitQAOA()
-            else:
-                W_QAOA_params["qaoa"] = qiskitQAOA(**QAOA_params)
-
-        self.W_QAOA_params = W_QAOA_params
-        self.qaoa = W_QAOA_params["qaoa"]
-
-    def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
-        """Function which returns the quantum circuit of the W-QAOA algorithm and the resulting solution."""
-
-        ws_qaoa = WarmStartQAOAOptimizer(**self.W_QAOA_params)
-        res = ws_qaoa.solve(qubo)
-        qc = self.W_QAOA_params["qaoa"].ansatz
-
-        return qc, res

@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from mqt.problemsolver.satellitesolver import evaluator, utils
+from mqt.problemsolver.satellitesolver import algorithms, utils
 from mqt.problemsolver.satellitesolver.evaluator import eval_all_instances_Satellite_Solver
 from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
 from qiskit_optimization import QuadraticProgram
@@ -15,17 +15,17 @@ def qubo() -> QuadraticProgram:
 
 
 def test_solve_using_qaoa(qubo: QuadraticProgram) -> None:
-    res_qaoa = evaluator.solve_using_qaoa(qubo)
+    res_qaoa = algorithms.solve_using_qaoa(qubo)
     assert res_qaoa is not None
 
 
 def test_solve_using_wqaoa(qubo: QuadraticProgram) -> None:
-    res_qaoa = evaluator.solve_using_w_qaoa(qubo)
+    res_qaoa = algorithms.solve_using_w_qaoa(qubo)
     assert res_qaoa is not None
 
 
 def test_solve_using_vqe(qubo: QuadraticProgram) -> None:
-    res_qaoa = evaluator.solve_using_vqe(qubo)
+    res_qaoa = algorithms.solve_using_vqe(qubo)
     assert res_qaoa is not None
 
 

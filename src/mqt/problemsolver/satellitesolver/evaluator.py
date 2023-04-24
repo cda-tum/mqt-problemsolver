@@ -1,23 +1,14 @@
 from __future__ import annotations
 
 from time import time
-from typing import TYPE_CHECKING, Any, TypedDict, cast
-
-from qiskit_optimization.algorithms import MinimumEigenOptimizer
-
-if TYPE_CHECKING:
-    from qiskit.algorithms import MinimumEigensolverResult
-    from qiskit_optimization.problems import QuadraticProgram
+from typing import TypedDict
 
 import numpy as np
 from joblib import Parallel, delayed
 from mqt.problemsolver.satellitesolver import utils
-from qiskit import IBMQ
+from mqt.problemsolver.satellitesolver.algorithms import solve_using_qaoa, solve_using_vqe, solve_using_w_qaoa
 from qiskit.algorithms.minimum_eigensolvers import NumPyMinimumEigensolver
-from qiskit.algorithms.optimizers import COBYLA, SPSA
-from qiskit.circuit.library import RealAmplitudes
-from qiskit.primitives import BackendSampler, Sampler
-from qiskit.providers.fake_provider import FakeMontreal
+from qiskit_optimization.algorithms import MinimumEigenOptimizer
 
 
 class SatelliteResult(TypedDict):
@@ -30,69 +21,7 @@ class SatelliteResult(TypedDict):
     success_rate_vqe: float
 
 
-class NoisySatelliteResult(TypedDict):
-    num_qubits: int
-    calculation_time_qaoa: float
-    calculation_time_wqaoa: float
-    calculation_time_vqe: float
-    success_rate_qaoa: float
-    success_rate_vqe: float
-    success_rate_wqaoa: float
-    job_id_qaoa: str
-    job_id_vqe: str
-
-
-def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> MinimumEigensolverResult:
-    if noisy_flag:
-        print("Using FakeMontreal")
-        wqaoa = utils.W_QAOA(
-            QAOA_params={"reps": 3, "optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())}
-        )
-    else:
-        wqaoa = utils.W_QAOA(
-            QAOA_params={
-                "reps": 3,
-                "optimizer": COBYLA(maxiter=100),
-                "sampler": Sampler(),
-            }
-        )
-    qc_wqaoa, res_wqaoa = wqaoa.get_solution(qubo)
-    return res_wqaoa
-
-
-def solve_using_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
-    if noisy_flag:
-        qaoa = utils.QAOA(
-            QAOA_params={"reps": 3, "optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())}
-        )
-    else:
-        qaoa = utils.QAOA(
-            QAOA_params={
-                "reps": 3,
-                "optimizer": COBYLA(maxiter=100),
-                "sampler": Sampler(),
-            }
-        )
-    qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
-    return res_qaoa
-
-
-def solve_using_vqe(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
-    if noisy_flag:
-        vqe = utils.VQE(VQE_params={"optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())})
-    else:
-        vqe = utils.VQE(
-            VQE_params={
-                "optimizer": COBYLA(maxiter=100),
-                "sampler": Sampler(),
-                "ansatz": RealAmplitudes(num_qubits=qubo.get_num_binary_vars(), reps=3),
-            }
-        )
-    qc_vqe, res_vqe = vqe.get_solution(qubo)
-    return res_vqe
-
-
-def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> NoisySatelliteResult:
+def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
     ac_reqs = utils.init_random_acquisition_requests(num_locations)
     mdl = utils.create_satellite_doxplex(ac_reqs)
     converter, qubo = utils.convert_docplex_to_qubo(mdl)
@@ -106,16 +35,11 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> NoisySatelliteRes
     success_qaoa = qaoa_res.fval / exact_result
     res_qaoa_time = time() - start_time
 
-    IBMQ.load_account()
-    job_id_qaoa = "-1"  # eval_qaoa_using_qiskit_runtime(qubo)
-
     start_time = time()
     res_vqe = solve_using_vqe(qubo, noisy_flag=True)
     assert res_vqe.status.value == 0
     success_vqe = res_vqe.fval / exact_result
     res_vqe_time = time() - start_time
-
-    job_id_vqe = "-1"  # eval_vqe_using_qiskit_runtime(num_locations, qubo)
 
     start_time = time()
     res_wqaoa = solve_using_w_qaoa(qubo, noisy_flag=True)
@@ -123,7 +47,7 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> NoisySatelliteRes
     success_wqaoa = res_wqaoa.fval / exact_result
     res_wqaoa_time = time() - start_time
 
-    res = NoisySatelliteResult(
+    res = SatelliteResult(
         num_qubits=num_locations,
         calculation_time_qaoa=res_qaoa_time,
         calculation_time_wqaoa=res_wqaoa_time,
@@ -131,8 +55,6 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> NoisySatelliteRes
         success_rate_qaoa=success_qaoa,
         success_rate_vqe=success_vqe,
         success_rate_wqaoa=success_wqaoa,
-        job_id_qaoa=job_id_qaoa,
-        job_id_vqe=job_id_vqe,
     )
     print(res)
     return res
@@ -221,68 +143,3 @@ def eval_all_instances_Satellite_Solver_Noisy(min_qubits: int = 3, max_qubits: i
         delimiter=",",
         fmt="%s",
     )
-
-
-def eval_qaoa_using_qiskit_runtime(qubo: QuadraticProgram) -> str:
-    provider = IBMQ.get_provider(hub="ibm-q", group="open", project="main")
-    program_id = "qaoa"
-    provider.runtime.program(program_id)
-
-    optimizer = SPSA(maxiter=100)
-    reps = 2
-    initial_point = np.random.random(2 * reps)
-    options = {"backend_name": "ibmq_manila"}  # ibmq_nairobi
-
-    op = qubo.to_ising()[0]
-
-    runtime_inputs = {
-        "operator": op,
-        "reps": reps,
-        "optimizer": optimizer,
-        "initial_point": initial_point,
-        "shots": 2**13,
-        # Set to True when running on real backends to reduce circuit
-        # depth by leveraging swap strategies. If False the
-        # given optimization_level (default is 1) will be used.
-        "use_swap_strategies": True,
-        # Set to True when optimizing sparse problems.
-        "use_initial_mapping": False,
-        # Set to true when using echoed-cross-resonance hardware.
-        "use_pulse_efficient": False,
-    }
-
-    job = provider.runtime.run(
-        program_id=program_id,
-        options=options,
-        inputs=runtime_inputs,
-    )
-
-    return cast(str, job.job_id())
-
-
-def eval_vqe_using_qiskit_runtime(num_locations: int, qubo: QuadraticProgram) -> str:
-    provider = IBMQ.get_provider(hub="ibm-q", group="open", project="main")
-    program_id = "vqe"
-    provider.runtime.program(program_id)
-
-    optimizer = SPSA(maxiter=100)
-    options = {"backend_name": "ibmq_manila"}  # ibmq_nairobi, ibmq_qasm_simulator
-
-    op = qubo.to_ising()[0]
-
-    runtime_inputs = {
-        "operator": op,
-        "ansatz": RealAmplitudes(num_qubits=num_locations),
-        "optimizer": optimizer,
-        "initial_point": "random",
-        "max_evals_grouped": 1000,
-        "shots": 2**13,
-    }
-
-    job = provider.runtime.run(
-        program_id=program_id,
-        options=options,
-        inputs=runtime_inputs,
-    )
-
-    return cast(str, job.job_id())
