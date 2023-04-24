@@ -17,7 +17,7 @@ from qiskit.algorithms.minimum_eigensolvers import NumPyMinimumEigensolver
 from qiskit.algorithms.optimizers import COBYLA, SPSA
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.primitives import BackendSampler, Sampler
-from qiskit.providers.fake_provider import FakeManila
+from qiskit.providers.fake_provider import FakeMontreal
 
 
 class SatelliteResult(TypedDict):
@@ -33,17 +33,20 @@ class SatelliteResult(TypedDict):
 class NoisySatelliteResult(TypedDict):
     num_qubits: int
     calculation_time_qaoa: float
+    calculation_time_wqaoa: float
     calculation_time_vqe: float
     success_rate_qaoa: float
     success_rate_vqe: float
+    success_rate_wqaoa: float
     job_id_qaoa: str
     job_id_vqe: str
 
 
 def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> MinimumEigensolverResult:
     if noisy_flag:
+        print("Using FakeMontreal")
         wqaoa = utils.W_QAOA(
-            QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100), "sampler": BackendSampler(FakeManila())}
+            QAOA_params={"reps": 3, "optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())}
         )
     else:
         wqaoa = utils.W_QAOA(
@@ -60,7 +63,7 @@ def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Mini
 def solve_using_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
     if noisy_flag:
         qaoa = utils.QAOA(
-            QAOA_params={"reps": 3, "optimizer": SPSA(maxiter=100), "sampler": BackendSampler(FakeManila())}
+            QAOA_params={"reps": 3, "optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())}
         )
     else:
         qaoa = utils.QAOA(
@@ -76,7 +79,7 @@ def solve_using_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
 
 def solve_using_vqe(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
     if noisy_flag:
-        vqe = utils.VQE(VQE_params={"optimizer": SPSA(maxiter=100), "sampler": BackendSampler(FakeManila())})
+        vqe = utils.VQE(VQE_params={"optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())})
     else:
         vqe = utils.VQE(
             VQE_params={
@@ -97,36 +100,42 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> NoisySatelliteRes
     exact_mes = NumPyMinimumEigensolver()
     exact_result = MinimumEigenOptimizer(exact_mes).solve(qubo).fval
 
-    successes_qaoa = 0
-
     start_time = time()
     qaoa_res = solve_using_qaoa(qubo, noisy_flag=True)
     assert qaoa_res.status.value == 0
-    successes_qaoa += qaoa_res.fval / exact_result
+    success_qaoa = qaoa_res.fval / exact_result
     res_qaoa_time = time() - start_time
 
     IBMQ.load_account()
-    job_id_qaoa = eval_qaoa_using_qiskit_runtime(qubo)
-
-    successes_vqe = 0
+    job_id_qaoa = "-1"  # eval_qaoa_using_qiskit_runtime(qubo)
 
     start_time = time()
     res_vqe = solve_using_vqe(qubo, noisy_flag=True)
     assert res_vqe.status.value == 0
-    successes_vqe += res_vqe.fval / exact_result
+    success_vqe = res_vqe.fval / exact_result
     res_vqe_time = time() - start_time
 
-    job_id_vqe = eval_vqe_using_qiskit_runtime(num_locations, qubo)
+    job_id_vqe = "-1"  # eval_vqe_using_qiskit_runtime(num_locations, qubo)
 
-    return NoisySatelliteResult(
+    start_time = time()
+    res_wqaoa = solve_using_w_qaoa(qubo, noisy_flag=True)
+    assert res_wqaoa.status.value == 0
+    success_wqaoa = res_wqaoa.fval / exact_result
+    res_wqaoa_time = time() - start_time
+
+    res = NoisySatelliteResult(
         num_qubits=num_locations,
         calculation_time_qaoa=res_qaoa_time,
+        calculation_time_wqaoa=res_wqaoa_time,
         calculation_time_vqe=res_vqe_time,
-        success_rate_qaoa=successes_qaoa,
-        success_rate_vqe=successes_vqe,
+        success_rate_qaoa=success_qaoa,
+        success_rate_vqe=success_vqe,
+        success_rate_wqaoa=success_wqaoa,
         job_id_qaoa=job_id_qaoa,
         job_id_vqe=job_id_vqe,
     )
+    print(res)
+    return res
 
 
 def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> SatelliteResult:
@@ -199,7 +208,7 @@ def eval_all_instances_Satellite_Solver(
 
 def eval_all_instances_Satellite_Solver_Noisy(min_qubits: int = 3, max_qubits: int = 8) -> None:
     res_csv = []
-    results = Parallel(n_jobs=1, verbose=3)(
+    results = Parallel(n_jobs=-1, verbose=3)(
         delayed(evaluate_Satellite_Solver_Noisy)(i) for i in range(min_qubits, max_qubits)
     )
 
