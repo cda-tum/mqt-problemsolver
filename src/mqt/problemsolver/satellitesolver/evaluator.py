@@ -30,9 +30,9 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
     exact_result = MinimumEigenOptimizer(exact_mes).solve(qubo).fval
 
     start_time = time()
-    qaoa_res = solve_using_qaoa(qubo, noisy_flag=True)
-    assert qaoa_res.status.value == 0
-    success_qaoa = qaoa_res.fval / exact_result
+    res_qaoa = solve_using_qaoa(qubo, noisy_flag=True)
+    assert res_qaoa.status.value == 0
+    success_qaoa = res_qaoa.fval / exact_result
     res_qaoa_time = time() - start_time
 
     start_time = time()
@@ -42,19 +42,19 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
     res_vqe_time = time() - start_time
 
     start_time = time()
-    res_wqaoa = solve_using_w_qaoa(qubo, noisy_flag=True)
-    assert res_wqaoa.status.value == 0
-    success_wqaoa = res_wqaoa.fval / exact_result
-    res_wqaoa_time = time() - start_time
+    res_w_qaoa = solve_using_w_qaoa(qubo, noisy_flag=True)
+    assert res_w_qaoa.status.value == 0
+    success_w_qaoa = res_w_qaoa.fval / exact_result
+    res_w_qaoa_time = time() - start_time
 
     res = SatelliteResult(
         num_qubits=num_locations,
         calculation_time_qaoa=res_qaoa_time,
-        calculation_time_wqaoa=res_wqaoa_time,
+        calculation_time_wqaoa=res_w_qaoa_time,
         calculation_time_vqe=res_vqe_time,
         success_rate_qaoa=success_qaoa,
         success_rate_vqe=success_vqe,
-        success_rate_wqaoa=success_wqaoa,
+        success_rate_wqaoa=success_w_qaoa,
     )
     print(res)
     return res
@@ -72,19 +72,19 @@ def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> Sate
     successes_qaoa = []
     for _ in range(num_runs):
         start_time = time()
-        qaoa_res = solve_using_qaoa(qubo, noisy_flag=False)
-        assert qaoa_res.status.value == 0
-        successes_qaoa.append(qaoa_res.fval / exact_result)
+        res_qaoa = solve_using_qaoa(qubo, noisy_flag=False)
+        assert res_qaoa.status.value == 0
+        successes_qaoa.append(res_qaoa.fval / exact_result)
         res_qaoa_times.append(time() - start_time)
 
-    res_wqaoa_times = []
-    successes_wqaoa = []
+    res_w_qaoa_times = []
+    successes_w_qaoa = []
     for _ in range(num_runs):
         start_time = time()
         res_w_qaoa = solve_using_w_qaoa(qubo, noisy_flag=False)
         assert res_w_qaoa.status.value == 0
-        successes_wqaoa.append(res_w_qaoa.fval / exact_result)
-        res_wqaoa_times.append(time() - start_time)
+        successes_w_qaoa.append(res_w_qaoa.fval / exact_result)
+        res_w_qaoa_times.append(time() - start_time)
 
     res_vqe_times = []
     successes_vqe = []
@@ -98,10 +98,10 @@ def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> Sate
     res = SatelliteResult(
         num_qubits=num_locations,
         calculation_time_qaoa=sum(res_qaoa_times) / num_runs,
-        calculation_time_wqaoa=sum(res_wqaoa_times) / num_runs,
+        calculation_time_wqaoa=sum(res_w_qaoa_times) / num_runs,
         calculation_time_vqe=sum(res_vqe_times) / num_runs,
         success_rate_qaoa=sum(successes_qaoa) / num_runs,
-        success_rate_wqaoa=sum(successes_wqaoa) / num_runs,
+        success_rate_wqaoa=sum(successes_w_qaoa) / num_runs,
         success_rate_vqe=sum(successes_vqe) / num_runs,
     )
     print(res)
