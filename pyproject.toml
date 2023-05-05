@@ -19,12 +19,15 @@ requires-python = ">=3.8"
 dynamic = ["version"]
 
 dependencies = [
-    "qiskit~=0.36",
-    "numpy~=1.23.3",
-    "matplotlib~=3.5.1",
-    "mqt.ddsim~=1.11.0",
-    "networkx~=2.8.6",
-    "python_tsp~=0.3.1",
+    "qiskit>=0.36.0,<0.42.0",
+    "joblib",
+    "numpy",
+    "matplotlib",
+    "mqt.ddsim",
+    "networkx",
+    "python_tsp",
+    "docplex",
+    "qiskit_optimization"
 ]
 
 classifiers = [
@@ -132,5 +135,5 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*"]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*"]
 ignore_missing_imports = true

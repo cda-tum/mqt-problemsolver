@@ -92,3 +92,4 @@ repos:
           - python_tsp
           - networkx
           - mqt.ddsim
+          - pytest
