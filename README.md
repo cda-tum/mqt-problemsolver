@@ -93,18 +93,20 @@ MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemso
 ├── src
 │ └── mqt
 │     └── problemsolver
-│     │  └── csp.py
-│     │  └── tsp.py
-│     └── satelitesolver
-│     │  └── ...
-│     └── precompilation
-│        └── ...
+│        └── satelitesolver
+│        │   └── ...
+│        └── precompilation
+│        │   └── ...
+│        └── csp.py
+│        └── tsp.py
 └── notebooks
-│     └── problemsolver
-│        └── csp_example.ipynb
-│        └── tsp_example.ipynb
-│        └── satellitesolver
-│           └── satellitesolver_example.ipynb
+     └── satelitesolver
+     │   └── ...
+     └── precompilation
+     │   └── ...
+     └── problemsolver_paper_figures.ipynb
+     └── csp_example.ipynb
+     └── tsp_example.ipynb
 ```
 
 # References
@@ -117,5 +119,18 @@ In case you are using MQT ProblemSolver in your work, we would be thankful if yo
     title     = {{Towards an Automated Framework for Realizing Quantum Computing Solutions}},
     booktitle = {International Symposium on Multiple-Valued Logic (ISMVL)},
     year      = {2023},
+}
+```
+
+In case you are mention our Pre-Compilation approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@misc{quetschlich2023precompilation,
+  title={Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level},
+  author={Quetschlich, Nils and Burgholzer, Lukas and Wille, Robert},
+  year={2023},
+  eprint = {2305.04941},
+  eprinttype = {arxiv},
+  publisher = {arXiv},
 }
 ```
