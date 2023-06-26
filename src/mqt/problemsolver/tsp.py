@@ -130,8 +130,7 @@ class TSP:
             self.distances_sum = sum([dist_1_2, dist_1_3, dist_1_4, dist_2_3, dist_2_4, dist_3_4])
 
             self.num_qubits_qft = num_qubits_qft
-            sol_perm = self.solve_using_QPE()
-            return sol_perm
+            return self.solve_using_QPE()
 
         print("ERROR: Combination of objective function quantum algorithm is not implemented.")
         return False
