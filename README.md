@@ -69,12 +69,19 @@ Every quantum computing application must be encoded into a quantum circuit and t
 This lengthy compilation process is a key bottleneck and intensifies for recurring problems---each of which requires
 a new compilation run thus far.
 
+<p align="center">
+<img src="img/workflow_old.png">
+</p>
+
 Pre-compilation is a promising approach to overcome this bottleneck.
 Beginning with a problem class and suitable quantum algorithm, a **predictive encoding** scheme is applied to encode a
 representative problem instance into a general-purpose quantum circuit for that problem class.
 Once the real problem instance is known, the previously constructed circuit only needs to be
-**adjusted**—with (nearly) no compilation necessary.
+**adjusted**—with (nearly) no compilation necessary:
 
+<p align="center">
+<img src="img/workflow_new.png">
+</p>
 Following this approach, we provide a pre-compilation module that can be used to precompile QAOA circuits
 for the MaxCut problem.
 
@@ -115,22 +122,37 @@ In case you are using MQT ProblemSolver in your work, we would be thankful if yo
 
 ```bibtex
 @INPROCEEDINGS{quetschlich2023mqtproblemsolver,
-    author    = {N. Quetschlich and L. Burgholzer and R. Wille},
     title     = {{Towards an Automated Framework for Realizing Quantum Computing Solutions}},
+    author    = {N. Quetschlich and L. Burgholzer and R. Wille},
     booktitle = {International Symposium on Multiple-Valued Logic (ISMVL)},
     year      = {2023},
 }
 ```
 
-In case you are mention our Pre-Compilation approach, we would be thankful if you referred to it by citing the following publication:
+which is also available on arXiv:
+[![a](https://img.shields.io/static/v1?label=arXiv&message=2210.14928&color=inactive&style=flat-square)](https://arxiv.org/abs/2210.14928)
+
+In case you are using our Pre-Compilation approach, we would be thankful if you referred to it by citing the following publication:
 
 ```bibtex
-@misc{quetschlich2023precompilation,
-  title={Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level},
-  author={Quetschlich, Nils and Burgholzer, Lukas and Wille, Robert},
-  year={2023},
-  eprint = {2305.04941},
-  eprinttype = {arxiv},
-  publisher = {arXiv},
+@INPROCEEDINGS{quetschlich2023precompilation,
+    title     = {{Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level}},
+    author    = {N. Quetschlich and L. Burgholzer and R. Wille},
+    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+    year      = {2023},
+}
+```
+
+which is also available on arXiv:
+[![a](https://img.shields.io/static/v1?label=arXiv&message=2305.04941&color=inactive&style=flat-square)](https://arxiv.org/abs/2305.04941)
+
+In case you are using our Satellite Mission Planning Problem approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@INPROCEEDINGS{quetschlich2023satellite,
+    title     = {{A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem}},
+    author    = {N. Quetschlich and V. Koch and L. Burgholzer and R. Wille},
+    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+    year      = {2023},
 }
 ```
