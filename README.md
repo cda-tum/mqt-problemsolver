@@ -156,3 +156,6 @@ In case you are using our Satellite Mission Planning Problem approach, we would 
     year      = {2023},
 }
 ```
+
+which is also available on arXiv:
+[![a](https://img.shields.io/static/v1?label=arXiv&message=2308.00029&color=inactive&style=flat-square)](https://arxiv.org/abs/2308.00029)
