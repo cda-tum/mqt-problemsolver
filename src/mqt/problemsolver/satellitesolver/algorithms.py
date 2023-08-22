@@ -68,7 +68,7 @@ def solve_using_vqe(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
 class VQE(qiskitVQE):  # type: ignore[misc]
     def __init__(self, VQE_params: dict[str, Any] | None = None) -> None:
         """Function which initializes the VQE class."""
-        if VQE_params is None or type(VQE_params) is not dict:
+        if VQE_params is None or not isinstance(VQE_params, dict):
             VQE_params = {}
         if VQE_params.get("optimizer") is None:
             VQE_params["optimizer"] = COBYLA(maxiter=1000)
@@ -89,7 +89,7 @@ class VQE(qiskitVQE):  # type: ignore[misc]
 class QAOA(qiskitQAOA):  # type: ignore[misc]
     def __init__(self, QAOA_params: dict[str, Any] | None = None) -> None:
         """Function which initializes the QAOA class."""
-        if QAOA_params is None or type(QAOA_params) is not dict:
+        if QAOA_params is None or not isinstance(QAOA_params, dict):
             QAOA_params = {}
         if QAOA_params.get("optimizer") is None:
             QAOA_params["optimizer"] = COBYLA(maxiter=1000)
@@ -110,14 +110,15 @@ class QAOA(qiskitQAOA):  # type: ignore[misc]
 class W_QAOA:
     def __init__(self, W_QAOA_params: dict[str, Any] | None = None, QAOA_params: dict[str, Any] | None = None) -> None:
         """Function which initializes the QAOA class."""
-        if type(W_QAOA_params) is not dict:
+
+        if not isinstance(W_QAOA_params, dict):
             W_QAOA_params = {}
         if W_QAOA_params.get("pre_solver") is None:
             W_QAOA_params["pre_solver"] = CobylaOptimizer()
         if W_QAOA_params.get("relax_for_pre_solver") is None:
             W_QAOA_params["relax_for_pre_solver"] = True
         if W_QAOA_params.get("qaoa") is None:
-            if type(QAOA_params) is not dict:
+            if not isinstance(QAOA_params, dict):
                 W_QAOA_params["qaoa"] = qiskitQAOA()
             else:
                 W_QAOA_params["qaoa"] = qiskitQAOA(**QAOA_params)
