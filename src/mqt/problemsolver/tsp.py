@@ -173,7 +173,7 @@ class TSP:
         qc.h(qft_register[:])
         qc.barrier()
 
-        for i in range(0, self.num_qubits_qft):
+        for i in range(self.num_qubits_qft):
             qc.append(
                 self.final_U(times=i, eigenstate_register=eigenstate_register),
                 [qft_register[self.num_qubits_qft - 1 - i]] + eigenstate_register[:],
@@ -297,7 +297,7 @@ class TSP:
         eigen_register: QuantumRegister,
         eigenstate: QuantumRegister,
     ) -> QuantumCircuit:
-        for i in range(0, len(eigen_register)):
+        for i in range(len(eigen_register)):
             if eigenstate[i] == "1":
                 qc.x(eigen_register[i])
             if eigenstate[i] == "0":
