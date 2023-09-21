@@ -8,7 +8,7 @@ from qiskit_optimization import QuadraticProgram
 
 @pytest.fixture()
 def qubo() -> QuadraticProgram:
-    ac_reqs = utils.init_random_acquisition_requests(3)
+    ac_reqs = utils.init_random_location_requests(3)
     mdl = utils.create_satellite_doxplex(ac_reqs)
     converter, qubo = utils.convert_docplex_to_qubo(mdl)
     return qubo
@@ -34,7 +34,7 @@ def test_eval_all_instances_Satellite_Solver() -> None:
 
 
 def test_init_random_acquisition_requests() -> None:
-    req = utils.init_random_acquisition_requests(5)
+    req = utils.init_random_location_requests(5)
     assert len(req) == 5
     assert isinstance(req[0], LocationRequest)
 

@@ -21,7 +21,7 @@ from qiskit_optimization.converters.quadratic_program_to_qubo import (
 from qiskit_optimization.translators import from_docplex_mp
 
 
-def init_random_acquisition_requests(n: int) -> list[LocationRequest]:
+def init_random_location_requests(n: int) -> list[LocationRequest]:
     """Returns list of n random acquisition requests"""
     np.random.seed(10)
     acquisition_requests = []
@@ -136,6 +136,7 @@ def plot_acqisition_requests(acqs: list[LocationRequest]) -> None:
 
     ax.set_aspect("auto")
     plt.tight_layout()
+    plt.savefig("test.png")
     plt.show()
 
 
@@ -161,7 +162,7 @@ def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
     """Returns a doxplex model for the satellite problem"""
     mdl = Model("satellite model")
     # Create binary variables for each acquisition request
-    requests = mdl.binary_var_list(len(all_acqs), name="requests")
+    requests = mdl.binary_var_list(len(all_acqs), name="location")
     values = []
     for req in all_acqs:
         values.append(req.imaging_attempt_score)

@@ -22,7 +22,7 @@ class SatelliteResult(TypedDict):
 
 
 def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
-    ac_reqs = utils.init_random_acquisition_requests(num_locations)
+    ac_reqs = utils.init_random_location_requests(num_locations)
     mdl = utils.create_satellite_doxplex(ac_reqs)
     converter, qubo = utils.convert_docplex_to_qubo(mdl)
 
@@ -61,7 +61,7 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
 
 
 def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> SatelliteResult:
-    ac_reqs = utils.init_random_acquisition_requests(num_locations)
+    ac_reqs = utils.init_random_location_requests(num_locations)
     mdl = utils.create_satellite_doxplex(ac_reqs)
     converter, qubo = utils.convert_docplex_to_qubo(mdl)
 
