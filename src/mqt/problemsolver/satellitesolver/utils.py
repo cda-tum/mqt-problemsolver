@@ -178,13 +178,9 @@ def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
     return mdl
 
 
-def convert_docplex_to_qubo(
-    model: Model, penalty: int | None = None
-) -> tuple[QuadraticProgramToQubo, QuadraticProgram]:
+def convert_docplex_to_qubo(model: Model, penalty: int | None = None) -> QuadraticProgram:
     """Converts a docplex model to a qubo"""
-    qp = from_docplex_mp(model)
-    conv = QuadraticProgramToQubo(penalty=penalty)
-    return conv, conv.convert(qp)
+    return QuadraticProgramToQubo(penalty=penalty).convert(from_docplex_mp(model))
 
 
 def get_longitude(vector: np.ndarray[Any, np.dtype[np.float64]]) -> float:

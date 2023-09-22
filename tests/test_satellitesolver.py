@@ -10,8 +10,7 @@ from qiskit_optimization import QuadraticProgram
 def qubo() -> QuadraticProgram:
     ac_reqs = utils.init_random_location_requests(3)
     mdl = utils.create_satellite_doxplex(ac_reqs)
-    converter, qubo = utils.convert_docplex_to_qubo(mdl)
-    return qubo
+    return utils.convert_docplex_to_qubo(mdl)
 
 
 def test_solve_using_qaoa(qubo: QuadraticProgram) -> None:
