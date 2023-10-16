@@ -82,7 +82,7 @@ repos:
       - id: nb-clean
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+    rev: v1.6.0
     hooks:
       - id: mypy
         files: ^(src|tests|setup.py)
