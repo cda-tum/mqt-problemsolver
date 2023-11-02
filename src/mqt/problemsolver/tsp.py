@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, cast
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from mqt.ddsim import DDSIMProvider
 from python_tsp.exact import solve_tsp_dynamic_programming
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, execute
 from qiskit.circuit.library import QFT
+
+from mqt.ddsim import DDSIMProvider
 
 if TYPE_CHECKING:
     from qiskit.circuit import Gate

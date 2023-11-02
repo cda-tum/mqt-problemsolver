@@ -5,10 +5,11 @@ from typing import TypedDict
 
 import numpy as np
 from joblib import Parallel, delayed
-from mqt.problemsolver.satellitesolver import utils
-from mqt.problemsolver.satellitesolver.algorithms import solve_using_qaoa, solve_using_vqe, solve_using_w_qaoa
 from qiskit.algorithms.minimum_eigensolvers import NumPyMinimumEigensolver
 from qiskit_optimization.algorithms import MinimumEigenOptimizer
+
+from mqt.problemsolver.satellitesolver import utils
+from mqt.problemsolver.satellitesolver.algorithms import solve_using_qaoa, solve_using_vqe, solve_using_w_qaoa
 
 
 class SatelliteResult(TypedDict):
@@ -119,7 +120,7 @@ def eval_all_instances_Satellite_Solver(
 
     res_csv.append(list(results[0].keys()))
     for res in results:
-        res_csv.append(list(res.values()))
+        res_csv.append(list(res.values()))  # noqa: PERF401
     np.savetxt(
         "res_satellite_solver.csv",
         res_csv,
@@ -136,7 +137,7 @@ def eval_all_instances_Satellite_Solver_Noisy(min_qubits: int = 3, max_qubits: i
 
     res_csv.append(list(results[0].keys()))
     for res in results:
-        res_csv.append(list(res.values()))
+        res_csv.append(list(res.values()))  # noqa: PERF401
     np.savetxt(
         "res_satellite_solver_noisy.csv",
         res_csv,
