@@ -1,9 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pytest
+
 from mqt.problemsolver.satellitesolver import algorithms, utils
 from mqt.problemsolver.satellitesolver.evaluator import eval_all_instances_Satellite_Solver
 from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
-from qiskit_optimization import QuadraticProgram
+
+if TYPE_CHECKING:
+    from qiskit_optimization import QuadraticProgram
 
 
 @pytest.fixture()

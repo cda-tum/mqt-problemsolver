@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from time import time
 from typing import TypedDict
 
 import numpy as np
 from joblib import Parallel, delayed
+
 from mqt.problemsolver.partialcompiler.qaoa import QAOA
 
 
@@ -94,7 +97,7 @@ def eval_all_instances_QAOA(min_qubits: int = 3, max_qubits: int = 80, stepsize:
 
     res_csv.append(list(results[0].keys()))
     for res in results:
-        res_csv.append(list(res.values()))
+        res_csv.append(list(res.values()))  # noqa: PERF401
     np.savetxt(
         "res_qaoa.csv",
         res_csv,
@@ -111,7 +114,7 @@ def eval_all_instances_Satellite(min_qubits: int = 3, max_qubits: int = 80, step
 
     res_csv.append(list(results[0].keys()))
     for res in results:
-        res_csv.append(list(res.values()))
+        res_csv.append(list(res.values()))  # noqa: PERF401
     np.savetxt(
         "res_satellite.csv",
         res_csv,

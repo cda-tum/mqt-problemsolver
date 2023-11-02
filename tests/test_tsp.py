@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from mqt.problemsolver.tsp import TSP
 
 

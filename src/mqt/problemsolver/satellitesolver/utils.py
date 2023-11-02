@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 from docplex.mp.model import Model
+
 from mqt.problemsolver.satellitesolver.ImagingLocation import (
     R_E,
     R_S,
@@ -24,11 +25,10 @@ from qiskit_optimization.translators import from_docplex_mp
 def init_random_location_requests(n: int) -> list[LocationRequest]:
     """Returns list of n random acquisition requests"""
     np.random.seed(10)
-    acquisition_requests = []
-    for _ in range(n):
-        acquisition_requests.append(
-            LocationRequest(position=create_acquisition_position(), imaging_attempt_score=np.random.randint(1, 3))
-        )
+    acquisition_requests = [
+        LocationRequest(position=create_acquisition_position(), imaging_attempt_score=np.random.randint(1, 3))
+        for _ in range(n)
+    ]
 
     return sort_acquisition_requests(acquisition_requests)
 
@@ -109,7 +109,7 @@ def sort_acquisition_requests(acqs: list[LocationRequest]) -> list[LocationReque
         longitudes[idx] += acq.get_longitude_angle()
     indices_sorted = np.argsort(longitudes)
     for i in indices_sorted:
-        acqs_sorted.append(acqs[i])
+        acqs_sorted.append(acqs[i])  # noqa: PERF401
 
     return acqs_sorted
 
@@ -165,7 +165,7 @@ def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
     requests = mdl.binary_var_list(len(all_acqs), name="location")
     values = []
     for req in all_acqs:
-        values.append(req.imaging_attempt_score)
+        values.append(req.imaging_attempt_score)  # noqa: PERF401
 
     # Add constraints for each acquisition request
     for i in range(len(all_acqs) - 1):

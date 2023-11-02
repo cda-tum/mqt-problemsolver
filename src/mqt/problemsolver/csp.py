@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
-from mqt.ddsim import DDSIMProvider
 from qiskit import QuantumCircuit, QuantumRegister, execute
+
+from mqt.ddsim import DDSIMProvider
 
 if TYPE_CHECKING:
     from qiskit.circuit import Instruction
