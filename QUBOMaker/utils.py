@@ -36,7 +36,7 @@ def optimise_classically(qubo: np.mat) -> tuple[list[int], float]:
             binary.append(0)
         return binary
 
-    all_tests = [from_binary(i, 16) for i in range(2**16)]
+    all_tests = [from_binary(i, qubo.shape[0]) for i in range(2**qubo.shape[0])]
 
     best_test = None
     best_score = 999999999999

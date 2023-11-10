@@ -60,7 +60,6 @@ class ArithmeticItem:
         l = LatexTransformer()
         lat = l.transform(s.transform(self))
         return "$$" + lat + "$$"
-        #display(Math(lat))
 
 
 @dataclass
@@ -282,6 +281,19 @@ class SimplifyingTransformer(VisitingTransformer[ArithmeticItem]):
         if exponent == Constant(1):
             return base
         return super().transform_exponentiation(base, exponent, expression, parent)
+    
+    def transform_sum_set(self, child: ArithmeticItem, variables: list[ArithmeticItem], set_expression: str, set_callback: Callable[[], list[ArithmeticItem | tuple[ArithmeticItem]]], expression: SumSet, _parent: ArithmeticItem) -> Expr:
+        s = expression.set_callback()
+        if len(s) == 0:
+            return Constant(0)
+        if len(s) != 1:
+            return super().transform_sum_set(child, variables, set_expression, set_callback, expression, _parent)
+        if not isinstance(s[0], tuple):
+            s = tuple([s[0]])
+        else:
+            s = s[0]
+        assignment = list(zip(variables, s))        
+        return self.transform(AssigningTransformer(*assignment).transform(expression.expression, None), expression)
 
 class SympyTransformer(VisitingTransformer[sp.Expr]):
 
@@ -310,6 +322,7 @@ class SympyTransformer(VisitingTransformer[sp.Expr]):
 
     def transform_variable(self, name: str, subscripts: list[ArithmeticItem], superscripts: list[ArithmeticItem], expression: Variable, _parent: ArithmeticItem) -> Expr:
         return sp.Symbol(str(expression))
+
 
 class LatexTransformer(VisitingTransformer[str]):
 
@@ -382,7 +395,43 @@ class AssigningTransformer(VisitingTransformer[ArithmeticItem]):
         self.assignments = list(assignments)
 
     def transform_variable(self, name: str, subscripts: list[ArithmeticItem], superscripts: list[ArithmeticItem], expression: Variable, parent: ArithmeticItem) -> ArithmeticItem:
+        calc = CalculateConstantMathExpressionTransformer()
+        
+        subscripts = [calc.transform(self.transform(s)) for s in expression.subscripts]
+        superscripts = [calc.transform(self.transform(s)) for s in expression.superscripts]
+        expression = Variable(expression.name, subscripts, superscripts)
+        
         for (variable, value) in self.assignments:
             if expression == variable:
                 return value
         return super().transform_variable(name, subscripts, superscripts, expression, parent)
+
+class CalculateConstantMathExpressionTransformer(VisitingTransformer[ArithmeticItem]):
+    
+    def transform_addition(self, left: ArithmeticItem, right: ArithmeticItem, expression: Addition, _parent: ArithmeticItem) -> ArithmeticItem:
+        l = self.transform(left)
+        r = self.transform(right)
+        if isinstance(l, Constant) and isinstance(r, Constant):
+            return Constant(l.value + r.value)
+        return Addition(l, r)
+    
+    def transform_division(self, left: ArithmeticItem, right: ArithmeticItem, expression: Division, _parent: ArithmeticItem) -> ArithmeticItem:
+        l = self.transform(left)
+        r = self.transform(right)
+        if isinstance(l, Constant) and isinstance(r, Constant):
+            return Constant(l.value / r.value)
+        return Division(l, r)
+    
+    def transform_exponentiation(self, base: ArithmeticItem, exponent: ArithmeticItem, expression: Exponentiation, _parent: ArithmeticItem) -> ArithmeticItem:
+        l = self.transform(base)
+        r = self.transform(exponent)
+        if isinstance(l, Constant) and isinstance(r, Constant):
+            return Constant(l.value ** r.value)
+        return Exponentiation(l, r)
+    
+    def transform_multiplication(self, left: ArithmeticItem, right: ArithmeticItem, expression: Multiplication, _parent: ArithmeticItem) -> ArithmeticItem:
+        l = self.transform(left)
+        r = self.transform(right)
+        if isinstance(l, Constant) and isinstance(r, Constant):
+            return Constant(l.value * r.value)
+        return Multiplication(l, r)
