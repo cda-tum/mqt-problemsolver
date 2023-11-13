@@ -24,11 +24,28 @@ class ArithmeticItem:
         raise TypeError(type(value))
 
     def __add__(self, other: Any) -> ArithmeticItem:
-        return Addition(self, ArithmeticItem.__item_or_constant(other))
+        summands = []
+        if isinstance(self, Addition):
+            summands.extend([self.left, self.right])
+        elif isinstance(self, MultiAddition):
+            summands.extend(self.summands)
+        else:
+            summands.append(self)
+            
+        if isinstance(other, Addition):
+            summands.extend([other.left, other.right])
+        if isinstance(other, MultiAddition):
+            summands.extend(other.summands)
+        else:
+            summands.append(other)
+            
+        if len(summands) == 2:
+            return Addition(summands[0], ArithmeticItem.__item_or_constant(summands[1]))
+        return MultiAddition(summands)
 
     def __radd__(self, other: Any) -> ArithmeticItem:
         x: Addition = self + other
-        return Addition(x.right, x.left)
+        return x #TODO this may screw up ordering. Do we mind?
 
     def __sub__(self, other: Any) -> ArithmeticItem:
         return self + -1 * other
@@ -93,6 +110,15 @@ class Variable(ArithmeticItem):
         if not self.subscripts and not self.superscripts:
             return self.name
         return f"{self.name}{('_{' + ','.join([str(x) for x in self.subscripts]) + '}') if self.subscripts else ''}{('_{' + ','.join([str(x) for x in self.superscripts]) + '}') if self.superscripts else ''}"
+
+@dataclass
+class MultiAddition(ArithmeticItem):
+    __match_args__ = ("summands",)
+    summands: tuple[ArithmeticItem, ...]
+    
+    def __init__(self, summands: tuple[ArithmeticItem, ...]) -> None:
+        super().__init__(3)
+        self.summands = summands
 
 @dataclass
 class Addition(ArithmeticItem):
@@ -195,6 +221,7 @@ class VisitingTransformer(Generic[T]):
         match expression:
             case Constant(value): result = self.transform_constant(value, expression, parent)
             case Variable(name, subscripts, superscripts): result = self.transform_variable(name, subscripts, superscripts, expression, parent)
+            case MultiAddition(summands): result = self.transform_multi_addition(summands, expression, parent)
             case Addition(left, right): result = self.transform_addition(left, right, expression, parent)
             case Multiplication(left, right): result = self.transform_multiplication(left, right, expression, parent)
             case Division(left, right): result = self.transform_division(left, right, expression, parent)
@@ -209,6 +236,8 @@ class VisitingTransformer(Generic[T]):
         return expression
     def transform_variable(self, name: str, subscripts: list[ArithmeticItem], superscripts: list[ArithmeticItem], _expression: Variable, _parent: ArithmeticItem) -> T:
         return Variable(name, [self.transform(v) for v in subscripts], [self.transform(v) for v in superscripts])
+    def transform_multi_addition(self, summands: tuple[ArithmeticItem, ...], expression: MultiAddition, _parent: ArithmeticItem) -> T:
+        return MultiAddition([self.transform(summand) for summand in summands])
     def transform_addition(self, left: ArithmeticItem, right: ArithmeticItem, expression: Addition, _parent: ArithmeticItem) -> T:
         return Addition(self.transform(left, expression), self.transform(right, expression))
     def transform_multiplication(self, left: ArithmeticItem, right: ArithmeticItem, expression: Multiplication, _parent: ArithmeticItem) -> T:
@@ -256,6 +285,23 @@ class SimplifyingTransformer(VisitingTransformer[ArithmeticItem]):
             return l
 
         return Division(l, r)
+    
+    def transform_multi_addition(self, summands: tuple[ArithmeticItem, ...], expression: MultiAddition, _parent: ArithmeticItem) -> ArithmeticItem:
+        summands = [
+            self.transform(summand)
+            for summand
+            in summands
+            if summand != Constant(0)]
+        
+        match len(summands):
+            case 0:
+                return Constant(0)
+            case 1:
+                return summands[0]
+            case 2:
+                return Addition(summands[0], summands[1])
+            case _:
+                return MultiAddition(summands)
 
     def transform_addition(self, left: ArithmeticItem, right: ArithmeticItem, expression: Addition, _parent: ArithmeticItem) -> ArithmeticItem:
         l = self.transform(left, expression)
@@ -301,6 +347,10 @@ class SympyTransformer(VisitingTransformer[sp.Expr]):
         l = self.transform(left, expression)
         r = self.transform(right, expression)
         return l + r
+    
+    def transform_multi_addition(self, summands: tuple[ArithmeticItem, ...], expression: MultiAddition, _parent: ArithmeticItem) -> Expr:
+        summands = [self.transform(summand) for summand in summands]
+        return functools.reduce(lambda a, b: a + b, summands, 0)
 
     def transform_constant(self, value: int, expression: Constant, _parent: ArithmeticItem) -> Expr:
         return value
@@ -344,6 +394,11 @@ class LatexTransformer(VisitingTransformer[str]):
         if r.startswith("-"):
             return f"{l} - {r[1:]}"
         return f"{l} + {r}"
+    
+    def transform_multi_addition(self, summands: tuple[ArithmeticItem, ...], expression: MultiAddition, _parent: ArithmeticItem) -> str:
+        summands = [self.transform(summand) for summand in summands]
+        parts = [(summands[0], "")] + [(s[1:], "-") if s.startswith("-") else (s, "+") for s in summands[1:]]
+        return functools.reduce(lambda a, b: a + f"{b[1]} {b[0]}", "").strip()
 
     def transform_multiplication(self, left: ArithmeticItem, right: ArithmeticItem, expression: Multiplication, parent: ArithmeticItem) -> T:
         match left:
@@ -376,16 +431,11 @@ class BreakDownSumsTransformer(VisitingTransformer[ArithmeticItem]):
         a = from_value.value
         b = to_value.value
         new_child = self.transform(child, expression)
-        initial = AssigningTransformer((variable, Constant(a))).transform(new_child)
-        return functools.reduce(lambda current, next: current + AssigningTransformer((variable, Constant(next))).transform(new_child), range(a + 1, b + 1), initial)
+        return MultiAddition([AssigningTransformer((variable, Constant(i))).transform(new_child) for i in range(a, b + 1)])
 
     def transform_sum_set(self, child: ArithmeticItem, variables: list[ArithmeticItem], _set_expression: str, set_callback: Callable[[], list[ArithmeticItem | tuple[ArithmeticItem]]], expression: SumSet, _parent: ArithmeticItem) -> ArithmeticItem:
         new_child = self.transform(child, expression)
-        return functools.reduce(
-            lambda current, new: current + AssigningTransformer(*zip(variables, new if isinstance(new, tuple) else [new])).transform(new_child),
-            set_callback(),
-            0
-        )
+        return MultiAddition([AssigningTransformer(*zip(variables, vars if isinstance(vars, tuple) else [vars])).transform(new_child) for vars in set_callback()])
 
 class AssigningTransformer(VisitingTransformer[ArithmeticItem]):
     assignments: list[tuple[Variable, ArithmeticItem]]
@@ -414,6 +464,22 @@ class CalculateConstantMathExpressionTransformer(VisitingTransformer[ArithmeticI
         if isinstance(l, Constant) and isinstance(r, Constant):
             return Constant(l.value + r.value)
         return Addition(l, r)
+    
+    def transform_multi_addition(self, summands: tuple[ArithmeticItem, ...], expression: MultiAddition, _parent: ArithmeticItem) -> ArithmeticItem:
+        summands = [self.transform(summand) for summand in summands]
+        constants = [c for c in summands if isinstance(c, Constant)]
+        rest = [s for s in summands if not isinstance(s, Constant)]
+        all_terms = rest + Constant(sum([c.value for c in constants]))
+        
+        match len(all_terms):
+            case 0:
+                return Constant(0)
+            case 1:
+                return summands[0]
+            case 2:
+                return Addition(summands[0], summands[1])
+            case _:
+                return MultiAddition(summands)
     
     def transform_division(self, left: ArithmeticItem, right: ArithmeticItem, expression: Division, _parent: ArithmeticItem) -> ArithmeticItem:
         l = self.transform(left)

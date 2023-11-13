@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import networkx as nx
 
-Edge = tuple[int, int] | tuple[int, int, int]
+Edge = tuple[int, int] | tuple[int, int, int] | tuple[int, int, float]
 
 class Graph:
     n_vertices: int
@@ -20,7 +20,7 @@ class Graph:
         for edge in edges:
             if len(edge) == 2:
                 edge = (edge[0], edge[1], 1)
-            self.adjacency_matrix[edge[0], edge[1]] = edge[2]
+            self.adjacency_matrix[edge[0] - 1, edge[1] - 1] = edge[2]
 
     @staticmethod
     def read(file: TextIOWrapper) -> Graph:

@@ -14,16 +14,17 @@ def print_matrix(array: Iterable[Iterable[float]]):
         matrix = matrix[:-1] + r'\\'
     display(Math(r'Q = \begin{bmatrix}'+matrix+r'\end{bmatrix}'))
 
-def optimise_classically(qubo: np.mat) -> tuple[list[int], float]:
-    progress_bar = widgets.FloatProgress(
-        value=0,
-        min=0,
-        max=1,
-        description='Calculating:',
-        bar_style='info',
-        style={'bar_color': "#0055bb"},
-        orientation='horizontal'
-    )
+def optimise_classically(qubo: np.mat, show_progress_bar: bool = False) -> tuple[list[int], float]:
+    if show_progress_bar:
+        progress_bar = widgets.FloatProgress(
+            value=0,
+            min=0,
+            max=1,
+            description='Calculating:',
+            bar_style='info',
+            style={'bar_color': "#0055bb"},
+            orientation='horizontal'
+        )
 
     def from_binary(num: int, digits: int) -> list[int]:
         binary = []
@@ -47,12 +48,13 @@ def optimise_classically(qubo: np.mat) -> tuple[list[int], float]:
         if best_score > score:
             best_score = score
             best_test = test
-        if i % 2000 == 0:
+        if i % 2000 == 0 and show_progress_bar:
             progress_bar.value = i / len(all_tests)
             clear_output(True)
             display(progress_bar)
 
-    progress_bar.value = 1
-    clear_output(True)
-    display(progress_bar)
+    if show_progress_bar:
+        progress_bar.value = 1
+        clear_output(True)
+        display(progress_bar)
     return (best_test, best_score)

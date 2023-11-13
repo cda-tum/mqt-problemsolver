@@ -1,9 +1,13 @@
 import functools
+from qiskit.quantum_info import Pauli, SparsePauliOp
 from typing import Any
 import numpy as np
 import sympy as sp
 from arithmetic import ArithmeticItem, SympyTransformer, BreakDownSumsTransformer, Variable
-
+from qiskit_optimization import QuadraticProgram
+from qiskit_optimization.converters import QuadraticProgramToQubo
+import time
+        
 class QUBOGenerator:
     objective_function: ArithmeticItem
 
@@ -23,14 +27,16 @@ class QUBOGenerator:
 
     def construct_expansion(self) -> sp.Expr:
         expression = self.construct()
+        print(f"A {time.time()}")
         expression = BreakDownSumsTransformer().transform(expression)
+        print(f"B {time.time()}")
         expression = self._construct_expansion(expression)
         return SympyTransformer().transform(expression).expand()
 
     def _construct_expansion(self, expression: ArithmeticItem) -> ArithmeticItem:
         return expression
 
-    def construct_qubo_matrix(self) -> np.mat:
+    def construct_qubo_matrix(self) -> np.ndarray:
         coefficients = dict(self.construct_expansion().expand().as_coefficients_dict())
         result = np.zeros((self.get_qubit_count(), self.get_qubit_count()))
 
@@ -62,3 +68,13 @@ class QUBOGenerator:
 
     def decode_bit_array(self, _array: list[int]) -> Any:
         return ""
+    
+    def construct_operator(self) -> SparsePauliOp:
+        qubo = self.construct_qubo_matrix()
+        quadratic_task = QuadraticProgram()
+        quadratic_task.binary_var_list(len(qubo))
+        quadratic_task.minimize(quadratic=qubo)
+        q = QuadraticProgramToQubo().convert(quadratic_task)
+        operator, offset = q.to_ising()
+        return operator
+        

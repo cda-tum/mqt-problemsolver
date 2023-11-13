@@ -266,26 +266,24 @@ class PathIsValid(PathBound):
     def get_formula_one_hot(self, graph: Graph) -> ArithmeticItem:
         return arithmetic.SumSet(
             arithmetic.SumSet(
-                arithmetic.Addition(
-                    arithmetic.SumFromTo(
-                        get_encoding_variable_one_hot("p", "v", "i") * get_encoding_variable_one_hot("p", "w", Variable("i") + 1),
-                        Variable("i"),
-                        Constant(1),
-                        Constant(graph.n_vertices - 1)
-                    ),
-                    arithmetic.SumFromTo(
-                        (
-                            1 - arithmetic.SumSet(
-                                get_encoding_variable_one_hot("p", "v", "i"),
-                                [Variable("v")],
-                                r" \in V",
-                                lambda: [Constant(i) for i in graph.all_vertices]
-                            )
-                        )**2,
-                        Variable("i"),
-                        Constant(1),
-                        Constant(graph.n_vertices)
-                    ),
+                arithmetic.SumFromTo(
+                    get_encoding_variable_one_hot("p", "v", "i") * get_encoding_variable_one_hot("p", "w", Variable("i") + 1),
+                    Variable("i"),
+                    Constant(1),
+                    Constant(graph.n_vertices - 1)
+                ) + 
+                arithmetic.SumFromTo(
+                    (
+                        1 - arithmetic.SumSet(
+                            get_encoding_variable_one_hot("p", "v", "i"),
+                            [Variable("v")],
+                            r" \in V",
+                            lambda: [Constant(i) for i in graph.all_vertices]
+                        )
+                    )**2,
+                    Variable("i"),
+                    Constant(1),
+                    Constant(graph.n_vertices)
                 ),
                 [Variable("v"), Variable("w")],
                 "\\not\\in E",
@@ -311,7 +309,7 @@ class MinimisePathLength(PathBound):
     
     loop: bool
     
-    def __init__(self, path_ids: list[int], loop: bool) -> None:
+    def __init__(self, path_ids: list[int], loop: bool = False) -> None:
         super().__init__(path_ids)
         self.loop = loop
 
