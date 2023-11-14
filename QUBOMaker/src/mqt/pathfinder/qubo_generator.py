@@ -7,6 +7,7 @@ from qiskit_optimization.converters import QuadraticProgramToQubo
 import sympy as sp
 import numpy as np
 
+
 class QUBOGenerator:
     objective_function: sp.Expr
 
@@ -20,9 +21,11 @@ class QUBOGenerator:
         self.penalties.append((penalty_function, lam))
 
     def construct(self) -> sp.Expr:
-        return functools.reduce(lambda current, new: current + new[1] * new[0],
-                        self._select_lambdas(),
-                        self.objective_function)
+        return functools.reduce(
+            lambda current, new: current + new[1] * new[0],
+            self._select_lambdas(),
+            self.objective_function,
+        )
 
     def construct_expansion(self) -> sp.Expr:
         expression = self.construct().expand().doit()
@@ -40,8 +43,8 @@ class QUBOGenerator:
         coefficients = dict(self.construct_expansion().expand().as_coefficients_dict())
         result = np.zeros((self.get_qubit_count(), self.get_qubit_count()))
 
-        for (var1, i) in self._get_all_variables():
-            for (var2, j) in self._get_all_variables():
+        for var1, i in self._get_all_variables():
+            for var2, j in self._get_all_variables():
                 coeff = coefficients.get(var1 * var2, 0)
                 if var1 == var2:
                     coeff += coefficients.get(var1, 0)
@@ -58,8 +61,7 @@ class QUBOGenerator:
     def _select_lambdas(self) -> list[tuple[sp.Expr, int]]:
         return [
             (expr, weight) if weight is not None else (expr, 1)
-            for (expr, weight)
-            in self.penalties
+            for (expr, weight) in self.penalties
         ]
 
     def get_qubit_count(self) -> int:
@@ -79,4 +81,3 @@ class QUBOGenerator:
         q = QuadraticProgramToQubo().convert(quadratic_task)
         operator, _ = q.to_ising()
         return operator
-        

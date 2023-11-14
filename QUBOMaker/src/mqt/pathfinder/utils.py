@@ -3,29 +3,32 @@ import numpy as np
 from IPython.display import display, Math, clear_output
 from ipywidgets import widgets
 
+
 def print_matrix(array: Iterable[Iterable[float]]):
-    matrix = ''
+    matrix = ""
     for row in array:
         try:
             for number in row:
-                matrix += f'{number}&'
+                matrix += f"{number}&"
         except TypeError:
-            matrix += f'{row}&'
-        matrix = matrix[:-1] + r'\\'
-    display(Math(r'Q = \begin{bmatrix}'+matrix+r'\end{bmatrix}'))
+            matrix += f"{row}&"
+        matrix = matrix[:-1] + r"\\"
+    display(Math(r"Q = \begin{bmatrix}" + matrix + r"\end{bmatrix}"))
 
-def optimise_classically(qubo: np.ndarray,
-                         show_progress_bar: bool = False) -> tuple[list[int], float]:
+
+def optimise_classically(
+    qubo: np.ndarray, show_progress_bar: bool = False
+) -> tuple[list[int], float]:
     progress_bar: widgets.FloatProgress | None = None
     if show_progress_bar:
         progress_bar = widgets.FloatProgress(
             value=0,
             min=0,
             max=1,
-            description='Calculating:',
-            bar_style='info',
-            style={'bar_color': "#0055bb"},
-            orientation='horizontal'
+            description="Calculating:",
+            bar_style="info",
+            style={"bar_color": "#0055bb"},
+            orientation="horizontal",
         )
 
     def from_binary(num: int, digits: int) -> list[int]:
@@ -39,7 +42,7 @@ def optimise_classically(qubo: np.ndarray,
             binary.append(0)
         return binary
 
-    all_tests = [from_binary(i, qubo.shape[0]) for i in range(2**qubo.shape[0])]
+    all_tests = [from_binary(i, qubo.shape[0]) for i in range(2 ** qubo.shape[0])]
 
     best_test: list[int] = []
     best_score = 999999999999

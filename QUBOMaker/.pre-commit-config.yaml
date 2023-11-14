@@ -1,0 +1,90 @@
+# To run all pre-commit checks, use:
+#
+#     pre-commit run -a
+#
+# To install pre-commit hooks that run every time you commit:
+#
+#     pre-commit install
+#
+
+ci:
+  autoupdate_commit_msg: "⬆️🪝 update pre-commit hooks"
+  autofix_commit_msg: "🎨 pre-commit fixes"
+  skip: [mypy]
+
+repos:
+  # Standard hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v4.5.0"
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+
+  # Handling unwanted unicode characters
+  - repo: https://github.com/sirosen/texthooks
+    rev: "0.6.2"
+    hooks:
+      - id: fix-ligatures
+      - id: fix-smartquotes
+
+  # Check for spelling
+  - repo: https://github.com/codespell-project/codespell
+    rev: "v2.2.6"
+    hooks:
+      - id: codespell
+        args: ["-L", "wille,linz"]
+        exclude: >
+          (?x)^(
+              .*\.ipynb
+          )$
+
+  # Format configuration files with prettier
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v3.1.0"
+    hooks:
+      - id: prettier
+        types_or: [yaml, markdown, html, css, javascript, json]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.5
+    hooks:
+      - id: ruff
+        args: ["--fix", "--show-fixes"]
+        types_or: [python, pyi, jupyter]
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]
+
+  # Also run Black on examples in the documentation
+  - repo: https://github.com/adamchainz/blacken-docs
+    rev: 1.16.0
+    hooks:
+      - id: blacken-docs
+        additional_dependencies: [black==23.*]
+
+  # Clean jupyter notebooks
+  - repo: https://github.com/srstevenson/nb-clean
+    rev: "3.1.0"
+    hooks:
+      - id: nb-clean
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.0
+    hooks:
+      - id: mypy
+        files: ^(src|tests|setup.py)
+        args: []
+        additional_dependencies:
+          - types-setuptools
+          - python_tsp
+          - networkx
+          - pytest

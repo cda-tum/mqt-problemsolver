@@ -8,6 +8,7 @@ import networkx as nx
 # type Edge = tuple[int, int] | tuple[int, int, int] | tuple[int, int, float]
 Edge = tuple[int, int] | tuple[int, int, int] | tuple[int, int, float]
 
+
 class Graph:
     n_vertices: int
     adjacency_matrix: np.ndarray
@@ -38,14 +39,8 @@ class Graph:
     def deserialize(encoding: str) -> Graph:
         lines = [x.strip() for x in encoding.strip().split("\n") if x.strip()]
         values = [
-            [
-                float(cell.strip())
-                for cell
-                in line.split(" ")
-                if cell.strip()
-            ]
-            for line
-            in lines
+            [float(cell.strip()) for cell in line.split(" ") if cell.strip()]
+            for line in lines
         ]
         m = np.mat(values)
         g = Graph(m.shape[0], [])
@@ -53,10 +48,17 @@ class Graph:
         return g
 
     def serialize(self) -> str:
-        return str(self.adjacency_matrix).replace("]", "").replace("[", "").replace("\n ", "\n")
+        return (
+            str(self.adjacency_matrix)
+            .replace("]", "")
+            .replace("[", "")
+            .replace("\n ", "\n")
+        )
 
     def plot(self) -> None:
-        g: nx.Graph = nx.from_numpy_matrix(self.adjacency_matrix, create_using=nx.DiGraph)
+        g: nx.Graph = nx.from_numpy_matrix(
+            self.adjacency_matrix, create_using=nx.DiGraph
+        )
         pos = nx.spring_layout(g, seed=20)
         ax = plt.gca()
         nx.draw(
@@ -65,14 +67,15 @@ class Graph:
             ax,
             arrows=True,
             with_labels=True,
-            labels={i:i+1 for i in range(self.n_vertices)}
+            labels={i: i + 1 for i in range(self.n_vertices)},
         )
         nx.draw_networkx_edge_labels(
             g,
             pos,
             font_size=7,
-            edge_labels={e:self.adjacency_matrix[int(e[0]), int(e[1])] for e in g.edges}
+            edge_labels={
+                e: self.adjacency_matrix[int(e[0]), int(e[1])] for e in g.edges
+            },
         )
         ax.set_axis_off()
         plt.show()
-        

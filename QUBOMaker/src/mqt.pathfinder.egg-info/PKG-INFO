@@ -1,0 +1,45 @@
+Metadata-Version: 2.1
+Name: mqt.pathfinder
+Version: 0.1.dev7+g446228d.d20231114
+Summary: TODO
+Author-email: Damian Rovara <damian.rovara@tum.de>, Nils Quetschlich <nils.quetschlich@tum.de>, Lukas Burgholzer <lukas.burgholzer@jku.at>
+Project-URL: Homepage, https://github.com/cda-tum/mqtpathfinder
+Project-URL: Bug Tracker, https://github.com/cda-tum/mqtpathfinder/issues
+Project-URL: Discussions, https://github.com/cda-tum/mqtpathfinder/discussions
+Project-URL: Research, https://www.cda.cit.tum.de/research/quantum/
+Keywords: MQT,quantum computing,shortest path
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Intended Audience :: Science/Research
+Classifier: Natural Language :: English
+Classifier: Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: qiskit<=0.45.0,>=0.36.0
+Requires-Dist: joblib
+Requires-Dist: numpy
+Requires-Dist: sympy
+Requires-Dist: matplotlib
+Requires-Dist: mqt.ddsim
+Requires-Dist: networkx
+Requires-Dist: python_tsp
+Requires-Dist: docplex
+Requires-Dist: qiskit_optimization
+Requires-Dist: tsplib95
+Provides-Extra: test
+Requires-Dist: pytest>=7; extra == "test"
+Provides-Extra: coverage
+Requires-Dist: mqt.pathfinder[test]; extra == "coverage"
+Requires-Dist: coverage[toml]~=6.5.0; extra == "coverage"
+Requires-Dist: pytest-cov~=4.0.0; extra == "coverage"
+Provides-Extra: dev
+Requires-Dist: mqt.pathfinder[coverage]; extra == "dev"
