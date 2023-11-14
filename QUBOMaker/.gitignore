@@ -3,3 +3,5 @@ __pycache__
 .vscode
 .github
 .ruff_cache
+*.egg-info/
+build
