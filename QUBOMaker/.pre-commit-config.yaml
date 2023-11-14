@@ -88,3 +88,7 @@ repos:
           - python_tsp
           - networkx
           - pytest
+          - sympy
+          - ipywidgets
+          - IPython
+          - tsplib95

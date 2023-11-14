@@ -1,11 +1,16 @@
-from typing import Any
-import functools
+from __future__ import annotations
 
-from qiskit.opflow import OperatorBase
+import functools
+from typing import TYPE_CHECKING, Any
+
+import numpy as np
+import numpy.typing as npt
+import sympy as sp
 from qiskit_optimization import QuadraticProgram
 from qiskit_optimization.converters import QuadraticProgramToQubo
-import sympy as sp
-import numpy as np
+
+if TYPE_CHECKING:
+    from qiskit.opflow import OperatorBase
 
 
 class QUBOGenerator:
@@ -34,12 +39,13 @@ class QUBOGenerator:
         expression = expression.doit()
         if isinstance(expression, sp.Expr):
             return expression
-        raise TypeError("Expression is not an expression.")
+        msg = "Expression is not an expression."
+        raise TypeError(msg)
 
     def _construct_expansion(self, expression: sp.Expr) -> sp.Expr:
         return expression
 
-    def construct_qubo_matrix(self) -> np.ndarray:
+    def construct_qubo_matrix(self) -> npt.ArrayLike:
         coefficients = dict(self.construct_expansion().expand().as_coefficients_dict())
         result = np.zeros((self.get_qubit_count(), self.get_qubit_count()))
 
@@ -59,10 +65,7 @@ class QUBOGenerator:
         return []
 
     def _select_lambdas(self) -> list[tuple[sp.Expr, int]]:
-        return [
-            (expr, weight) if weight is not None else (expr, 1)
-            for (expr, weight) in self.penalties
-        ]
+        return [(expr, weight) if weight is not None else (expr, 1) for (expr, weight) in self.penalties]
 
     def get_qubit_count(self) -> int:
         return len(self._get_all_variables())

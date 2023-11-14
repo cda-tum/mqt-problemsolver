@@ -1,19 +1,22 @@
+from __future__ import annotations
+
+import functools
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import functools
 from enum import Enum
-from typing import Any, Callable, Self
+from typing import TYPE_CHECKING, Any, Callable, Self
+
 import numpy as np
 import sympy as sp
 
-from mqt.pathfinder.graph import Graph
 from mqt.pathfinder.qubo_generator import QUBOGenerator
+
+if TYPE_CHECKING:
+    from mqt.pathfinder.graph import Graph
 
 # Python 3.12
 # type SetCallback = Callable[[], list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]]]
-SetCallback = Callable[
-    [], list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]]
-]
+SetCallback = Callable[[], list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]]]
 
 
 class EncodingType(Enum):
@@ -34,19 +37,15 @@ class X(sp.Function):
         return rf"x_{{{p},{v},{i}}}"
 
 
-def sum_from_to(
-    expression: sp.Expr, var: str, from_number: int, to_number: int
-) -> sp.Expr:
+def sum_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
     s = sp.Symbol(var)
     return sp.Sum(expression, (s, from_number, to_number))
 
 
-def sum_set(
-    expression: sp.Expr, variables: list[str], _latex: str, callback: SetCallback
-) -> sp.Expr:
+def sum_set(expression: sp.Expr, variables: list[str], _latex: str, callback: SetCallback) -> sp.Expr:
     # TODO use latex output
     variable_symbols = [variable(v) for v in variables]
-    assignments = [x if isinstance(x, tuple) else tuple([x]) for x in callback()]
+    assignments = [x if isinstance(x, tuple) else (x,) for x in callback()]
     return functools.reduce(
         lambda total, new: total + expression.subs(dict(zip(variable_symbols, new))),
         assignments,
@@ -76,8 +75,8 @@ def get_encoding_variable_one_hot(path: Any, vertex: Any, position: Any) -> sp.F
     return X(path, vertex, position)
 
 
-def get_encoding_sum_unary(path: Any, vertex: Any, n: int) -> sp.Expr:
-    raise NotImplementedError()
+def get_encoding_sum_unary(_path: Any, _vertex: Any, _n: int) -> sp.Expr:
+    raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
@@ -85,7 +84,8 @@ class CostFunction(ABC):
     def get_formula(self, graph: Graph, encoding: EncodingType) -> sp.Expr:
         if encoding == EncodingType.ONE_HOT:
             return self.get_formula_one_hot(graph)
-        raise ValueError(f"Encoding type {encoding} not supported.")
+        msg = f"Encoding type {encoding} not supported."
+        raise ValueError(msg)
 
     @abstractmethod
     def get_formula_one_hot(self, graph: Graph) -> sp.Expr:
@@ -116,15 +116,13 @@ class CompositeCostFunction(CostFunction):
             self.summands[0][1] * self.summands[0][0].get_formula(graph, encoding),
         )
 
-    def get_formula_one_hot(self, graph: Graph) -> sp.Expr:
-        raise RuntimeError(
-            "This method should not be called for a composite cost function."
-        )
+    def get_formula_one_hot(self, _graph: Graph) -> sp.Expr:
+        msg = "This method should not be called for a composite cost function."
+        raise RuntimeError(msg)
 
-    def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise RuntimeError(
-            "This method should not be called for a composite cost function."
-        )
+    def get_formula_unary(self, _graph: Graph) -> sp.Expr:
+        msg = "This method should not be called for a composite cost function."
+        raise RuntimeError(msg)
 
 
 # pylint: disable=too-few-public-methods
@@ -159,7 +157,7 @@ class PathPositionIs(CostFunction):
         return f"PathPosition[{self.position}]Is[{','.join([str(v) for v in self.vertex_ids])}]"
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
@@ -205,9 +203,7 @@ class PathContainsVertices(CostFunction):
 
     def __str__(self) -> str:
         vertices = ",".join([str(v) for v in self.vertex_ids])
-        return (
-            f"PathContains[{vertices}]:[{self.min_occurrences}-{self.max_occurrences}]"
-        )
+        return f"PathContains[{vertices}]:[{self.min_occurrences}-{self.max_occurrences}]"
 
 
 # pylint: disable=too-few-public-methods
@@ -243,9 +239,7 @@ class PathContainsVerticesExactlyOnce(PathContainsVertices):
         return (
             1
             - sum_set(
-                sum_from_to(
-                    get_encoding_variable_one_hot("p", v, "i"), "i", 1, graph.n_vertices
-                ),
+                sum_from_to(get_encoding_variable_one_hot("p", v, "i"), "i", 1, graph.n_vertices),
                 ["p"],
                 rf"\in \left\{{{', '.join([str(p) for p in self.possible_paths])} \right\}} ",
                 lambda: list(self.possible_paths),
@@ -253,7 +247,7 @@ class PathContainsVerticesExactlyOnce(PathContainsVertices):
         ) ** 2
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
@@ -262,10 +256,10 @@ class PathContainsVerticesAtLeastOnce(PathContainsVertices):
         super().__init__(1, -1, vertex_ids, possible_paths)
 
     def get_formula_one_hot(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
@@ -274,10 +268,10 @@ class PathContainsVerticesAtMostOnce(PathContainsVertices):
         super().__init__(0, 1, vertex_ids, possible_paths)
 
     def get_formula_one_hot(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
@@ -288,9 +282,7 @@ class PathBound(CostFunction):
         self.path_ids = path_ids
 
     def __str__(self) -> str:
-        return (
-            f"{self.__class__.__name__}[{','.join([str(id) for id in self.path_ids])}]"
-        )
+        return f"{self.__class__.__name__}[{','.join([str(path_id) for path_id in self.path_ids])}]"
 
 
 # pylint: disable=too-few-public-methods
@@ -298,8 +290,7 @@ class PathIsLoop(PathBound):
     def get_formula_one_hot(self, graph: Graph) -> sp.Expr:
         return sum_set(
             sum_set(
-                get_encoding_variable_one_hot("p", "v", graph.n_vertices)
-                * get_encoding_variable_one_hot("p", "w", 1),
+                get_encoding_variable_one_hot("p", "v", graph.n_vertices) * get_encoding_variable_one_hot("p", "w", 1),
                 ["v", "w"],
                 "\\not\\in E",
                 lambda: [
@@ -315,25 +306,25 @@ class PathIsLoop(PathBound):
         )
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
 class PathsShareNoVertices(PathBound):
     def get_formula_one_hot(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
 class PathsShareNoEdges(PathBound):
     def get_formula_one_hot(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
@@ -378,7 +369,7 @@ class PathIsValid(PathBound):
         )
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 # pylint: disable=too-few-public-methods
@@ -418,15 +409,11 @@ class MinimisePathLength(PathBound):
         )
 
     def get_formula_unary(self, graph: Graph) -> sp.Expr:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
-def merge(
-    cost_functions: list[CostFunction], optimisation_goals: list[CostFunction]
-) -> CompositeCostFunction:
-    return CompositeCostFunction(
-        *([(f, 1) for f in cost_functions] + [(f, 1) for f in optimisation_goals])
-    )
+def merge(cost_functions: list[CostFunction], optimisation_goals: list[CostFunction]) -> CompositeCostFunction:
+    return CompositeCostFunction(*([(f, 1) for f in cost_functions] + [(f, 1) for f in optimisation_goals]))
 
 
 @dataclass
@@ -451,16 +438,11 @@ class PathFindingQUBOGenerator(QUBOGenerator):
         self.settings = settings
 
     def add_constraint(self, constraint: CostFunction) -> Self:
-        self.add_penalty(
-            constraint.get_formula(self.graph, self.settings.encoding_type)
-        )
+        self.add_penalty(constraint.get_formula(self.graph, self.settings.encoding_type))
         return self
 
     def _select_lambdas(self) -> list[tuple[sp.Expr, int]]:
-        return [
-            (expr, lam if lam else self.__optimal_lambda())
-            for (expr, lam) in self.penalties
-        ]
+        return [(expr, lam if lam else self.__optimal_lambda()) for (expr, lam) in self.penalties]
 
     def __optimal_lambda(self) -> int:
         return np.sum(self.graph.adjacency_matrix)
@@ -474,7 +456,8 @@ class PathFindingQUBOGenerator(QUBOGenerator):
         result = expression.subs(dict(assignment))
         if isinstance(result, sp.Expr):
             return result
-        raise ValueError("Expression is not an expression.")
+        msg = "Expression is not an expression."
+        raise ValueError(msg)
 
     def get_variable_index(self, var: sp.Function) -> int:
         parts = var.args
@@ -498,14 +481,13 @@ class PathFindingQUBOGenerator(QUBOGenerator):
             s = i // self.graph.n_vertices
             path.append((v, s))
         path.sort(key=lambda x: x[1])
-        path = [entry[0] + 1 for entry in path]
-        return path
+        return [entry[0] + 1 for entry in path]
 
     def _get_all_variables(self) -> list[tuple[Any, int]]:
         result = []
-        for p in range(0, self.settings.n_paths):
+        for p in range(self.settings.n_paths):
             for v in self.graph.all_vertices:
-                for i in range(0, self.settings.max_path_length):
+                for i in range(self.settings.max_path_length):
                     var = get_encoding_variable_one_hot(p + 1, v, i + 1)
                     result.append((var, self.get_variable_index(var)))
         return result

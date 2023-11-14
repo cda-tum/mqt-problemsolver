@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from typing import Iterable
+
 import numpy as np
-from IPython.display import display, Math, clear_output
+from IPython.display import Math, clear_output, display
 from ipywidgets import widgets
 
 
@@ -16,9 +19,7 @@ def print_matrix(array: Iterable[Iterable[float]]):
     display(Math(r"Q = \begin{bmatrix}" + matrix + r"\end{bmatrix}"))
 
 
-def optimise_classically(
-    qubo: np.ndarray, show_progress_bar: bool = False
-) -> tuple[list[int], float]:
+def optimise_classically(qubo: np.ndarray[int | float, "2D"], show_progress_bar: bool = False) -> tuple[list[int], float]:
     progress_bar: widgets.FloatProgress | None = None
     if show_progress_bar:
         progress_bar = widgets.FloatProgress(
@@ -31,18 +32,13 @@ def optimise_classically(
             orientation="horizontal",
         )
 
-    def from_binary(num: int, digits: int) -> list[int]:
-        binary = []
-        c = 0
-        while num > 0:
-            binary.append(num % 2)
-            c += 1
-            num = num // 2
-        for _ in range(c, digits):
-            binary.append(0)
-        return binary
+    def int_to_fixed_length_binary(number, length):
+        binary_string = bin(number)[2:]
+        padding_zeros = max(0, length - len(binary_string))
+        binary_string = '0' * padding_zeros + binary_string
+        return [int(bit) for bit in binary_string]
 
-    all_tests = [from_binary(i, qubo.shape[0]) for i in range(2 ** qubo.shape[0])]
+    all_tests = [int_to_fixed_length_binary(i, qubo.shape[0]) for i in range(2 ** qubo.shape[0])]
 
     best_test: list[int] = []
     best_score = 999999999999

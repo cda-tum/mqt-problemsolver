@@ -1,5 +1,11 @@
 .gitignore
+.pre-commit-config.yaml
 pyproject.toml
+notebooks/gr24.tsp
+notebooks/graph
+notebooks/tsp.ipynb
+notebooks/tsplib.ipynb
+notebooks/u574.tsp
 src/mqt.pathfinder.egg-info/PKG-INFO
 src/mqt.pathfinder.egg-info/SOURCES.txt
 src/mqt.pathfinder.egg-info/dependency_links.txt

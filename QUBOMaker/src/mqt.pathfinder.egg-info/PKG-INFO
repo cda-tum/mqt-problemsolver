@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: mqt.pathfinder
-Version: 0.1.dev7+g446228d.d20231114
+Version: 0.1.dev8+ge1ea851.d20231114
 Summary: TODO
 Author-email: Damian Rovara <damian.rovara@tum.de>, Nils Quetschlich <nils.quetschlich@tum.de>, Lukas Burgholzer <lukas.burgholzer@jku.at>
 Project-URL: Homepage, https://github.com/cda-tum/mqtpathfinder
