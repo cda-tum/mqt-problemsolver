@@ -4,15 +4,17 @@ import numpy as np
 from matplotlib import pyplot as plt
 import networkx as nx
 
+# Python 3.12:
+# type Edge = tuple[int, int] | tuple[int, int, int] | tuple[int, int, float]
 Edge = tuple[int, int] | tuple[int, int, int] | tuple[int, int, float]
 
 class Graph:
     n_vertices: int
-    adjacency_matrix: np.Matrix
+    adjacency_matrix: np.ndarray
 
-    def __get_all_vertices(self) -> list[int]:
+    @property
+    def all_vertices(self) -> list[int]:
         return list(range(1, self.n_vertices + 1))
-    all_vertices: list[int] = property(__get_all_vertices, None)
 
     def __init__(self, n_vertices: int, edges: list[Edge]) -> None:
         self.n_vertices = n_vertices

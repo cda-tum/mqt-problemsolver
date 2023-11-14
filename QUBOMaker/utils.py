@@ -14,7 +14,9 @@ def print_matrix(array: Iterable[Iterable[float]]):
         matrix = matrix[:-1] + r'\\'
     display(Math(r'Q = \begin{bmatrix}'+matrix+r'\end{bmatrix}'))
 
-def optimise_classically(qubo: np.mat, show_progress_bar: bool = False) -> tuple[list[int], float]:
+def optimise_classically(qubo: np.ndarray,
+                         show_progress_bar: bool = False) -> tuple[list[int], float]:
+    progress_bar: widgets.FloatProgress | None = None
     if show_progress_bar:
         progress_bar = widgets.FloatProgress(
             value=0,
@@ -39,7 +41,7 @@ def optimise_classically(qubo: np.mat, show_progress_bar: bool = False) -> tuple
 
     all_tests = [from_binary(i, qubo.shape[0]) for i in range(2**qubo.shape[0])]
 
-    best_test = None
+    best_test: list[int] = []
     best_score = 999999999999
 
     for i, test in enumerate(all_tests):
@@ -48,12 +50,12 @@ def optimise_classically(qubo: np.mat, show_progress_bar: bool = False) -> tuple
         if best_score > score:
             best_score = score
             best_test = test
-        if i % 2000 == 0 and show_progress_bar:
+        if i % 2000 == 0 and show_progress_bar and progress_bar is not None:
             progress_bar.value = i / len(all_tests)
             clear_output(True)
             display(progress_bar)
 
-    if show_progress_bar:
+    if show_progress_bar and progress_bar is not None:
         progress_bar.value = 1
         clear_output(True)
         display(progress_bar)
