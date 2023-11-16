@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -14,11 +14,11 @@ if TYPE_CHECKING:
 
 
 class QUBOGenerator:
-    objective_function: sp.Expr
+    objective_function: sp.Expr | None
 
     penalties: list[tuple[sp.Expr, float | None]]
 
-    def __init__(self, objective_function: sp.Expr) -> None:
+    def __init__(self, objective_function: sp.Expr | None) -> None:
         self.objective_function = objective_function
         self.penalties = []
 
@@ -26,10 +26,13 @@ class QUBOGenerator:
         self.penalties.append((penalty_function, lam))
 
     def construct(self) -> sp.Expr:
-        return functools.reduce(
-            lambda current, new: current + new[1] * new[0],
-            self._select_lambdas(),
-            self.objective_function,
+        return cast(
+            sp.Expr,
+            functools.reduce(
+                lambda current, new: current + new[1] * new[0],
+                self._select_lambdas(),
+                self.objective_function if self.objective_function is not None else 0,
+            ),
         )
 
     def construct_expansion(self) -> sp.Expr:

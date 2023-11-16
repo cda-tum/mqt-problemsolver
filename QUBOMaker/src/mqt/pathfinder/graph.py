@@ -31,7 +31,7 @@ class Graph:
                 (from_vertex, to_vertex, weight) = (edge[0], edge[1], 1.0)
             else:
                 (from_vertex, to_vertex, weight) = edge
-            self.adjacency_matrix[from_vertex - 1, to_vertex - 1] = weight
+            self.adjacency_matrix[from_vertex - 1, to_vertex - 1] = weight if weight != -1 else 0
 
     @staticmethod
     def read(file: TextIOWrapper) -> Graph:
