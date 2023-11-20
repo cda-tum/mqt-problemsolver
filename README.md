@@ -159,3 +159,27 @@ In case you are using our Satellite Mission Planning Problem approach, we would 
 
 which is also available on arXiv:
 [![a](https://img.shields.io/static/v1?label=arXiv&message=2308.00029&color=inactive&style=flat-square)](https://arxiv.org/abs/2308.00029)
+
+## Acknowledgements
+
+The Munich Quantum Toolkit has been supported by the European
+Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement
+No. 101001318), the Bavarian State Ministry for Science and Arts through the Distinguished Professorship Program, as well as the
+Munich Quantum Valley, which is supported by the Bavarian state government with funds from the Hightech Agenda Bayern Plus.
+
+<p align="center">
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/tum_dark.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/tum_light.svg" width="28%">
+</picture>
+<picture>
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/logo-bavaria.svg" width="16%">
+</picture>
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/erc_dark.svg" width="24%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/erc_light.svg" width="24%">
+</picture>
+<picture>
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/logo-mqv.svg" width="28%">
+</picture>
+</p>
