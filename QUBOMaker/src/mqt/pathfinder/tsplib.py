@@ -17,11 +17,10 @@ def to_graph(g: nx.Graph) -> graph.Graph:
 
 def __tsp(problem: StandardProblem, encoding_type: cost_functions.EncodingType) -> PathFindingQUBOGenerator:
     g = to_graph(problem.get_graph())
-    settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices)
-    generator = PathFindingQUBOGenerator(cost_functions.MinimisePathLength([1], True), g, settings)
+    settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices, True)
+    generator = PathFindingQUBOGenerator(cost_functions.MinimisePathLength([1]), g, settings)
 
     generator.add_constraint(cost_functions.PathIsValid([1]))
-    generator.add_constraint(cost_functions.PathIsLoop([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
 
     return generator
@@ -29,11 +28,10 @@ def __tsp(problem: StandardProblem, encoding_type: cost_functions.EncodingType) 
 
 def __hcp(problem: StandardProblem, encoding_type: cost_functions.EncodingType) -> PathFindingQUBOGenerator:
     g = to_graph(problem.get_graph())
-    settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices)
+    settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices, True)
     generator = PathFindingQUBOGenerator(None, g, settings)
 
     generator.add_constraint(cost_functions.PathIsValid([1]))
-    generator.add_constraint(cost_functions.PathIsLoop([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
 
     return generator
@@ -41,7 +39,7 @@ def __hcp(problem: StandardProblem, encoding_type: cost_functions.EncodingType) 
 
 def __sop(problem: StandardProblem, encoding_type: cost_functions.EncodingType) -> PathFindingQUBOGenerator:
     g = to_graph(problem.get_graph())
-    settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices)
+    settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices, False)
     generator = PathFindingQUBOGenerator(cost_functions.MinimisePathLength([1]), g, settings)
     generator.add_constraint(cost_functions.PathIsValid([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))

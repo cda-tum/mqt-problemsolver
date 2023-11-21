@@ -54,15 +54,19 @@ class QUBOGenerator:
 
         for var1, i in self._get_all_variables():
             for var2, j in self._get_all_variables():
+                if j > i:
+                    continue
                 coeff = coefficients.get(var1 * var2, 0)
                 if var1 == var2:
                     coeff += coefficients.get(var1, 0)
-                if i <= j:
-                    result[i - 1][j - 1] += coeff
-                else:
-                    result[j - 1][i - 1] += coeff
+                result[j - 1][i - 1] += coeff
 
         return result
+
+    def get_cost(self, assignment: list[int]) -> float:
+        expansion = self.construct_expansion()
+        variable_assignment = [(item[0], assignment[item[1] - 1]) for item in self._get_all_variables()]
+        return cast(float, expansion.subs(variable_assignment).evalf())  # type: ignore[no-untyped-call]
 
     def _get_all_variables(self) -> Sequence[tuple[sp.Expr, int]]:
         return []
