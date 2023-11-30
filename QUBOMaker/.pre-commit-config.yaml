@@ -92,3 +92,4 @@ repos:
           - ipywidgets
           - IPython
           - tsplib95
+          - types-Pillow
