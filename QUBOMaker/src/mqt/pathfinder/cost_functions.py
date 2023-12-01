@@ -149,14 +149,10 @@ class CostFunction(ABC):
         pass
 
     def get_formula_one_hot(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        return self.get_formula_general(
-            graph, settings, _FormulaHelpers.get_encoding_variable_one_hot
-        )
+        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_one_hot)
 
     def get_formula_unary(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        return self.get_formula_general(
-            graph, settings, _FormulaHelpers.get_encoding_variable_unary
-        )
+        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}"
@@ -463,9 +459,7 @@ class PathIsValid(PathBound):
         )
 
     def get_formula_unary(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        general = self.get_formula_general(
-            graph, settings, _FormulaHelpers.get_encoding_variable_unary
-        )
+        general = self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
         return cast(
             sp.Expr,
             general
