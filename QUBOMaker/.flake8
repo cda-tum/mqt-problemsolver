@@ -15,4 +15,4 @@ exclude =
     .nox,
     venv,
     .venv
-application-import-names = mqt.predictor
+application-import-names = mqt.pathfinder

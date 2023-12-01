@@ -20,12 +20,12 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - name: Install MQT Predictor
+      - name: Install MQT Pathfinder
         run: pip install .[coverage]
       - name: Generate Report
         run: pytest -v --cov=./ --cov-report=xml
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.AK_TOKEN }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
