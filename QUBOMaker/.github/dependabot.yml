@@ -8,7 +8,7 @@ updates:
       time: "06:00"
       timezone: "Europe/Vienna"
     assignees:
-      - "nquetschlich"
+      - "DRovara"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -18,4 +18,4 @@ updates:
       time: "06:00"
       timezone: "Europe/Vienna"
     assignees:
-      - "nquetschlich"
+      - "DRovara"
