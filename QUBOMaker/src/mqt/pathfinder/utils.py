@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import typing
-from typing import Iterable
+from typing import Iterable, no_type_check
 
 import numpy as np
 import numpy.typing as npt
