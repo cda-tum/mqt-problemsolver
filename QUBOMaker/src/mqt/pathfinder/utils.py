@@ -8,7 +8,7 @@ from IPython.display import Math, clear_output, display
 from ipywidgets import widgets
 
 
-@typing.no_type_check
+@no_type_check
 def print_matrix(array: Iterable[Iterable[float]]) -> None:
     matrix = ""
     for row in array:
@@ -21,7 +21,7 @@ def print_matrix(array: Iterable[Iterable[float]]) -> None:
     display(Math(r"Q = \begin{bmatrix}" + matrix + r"\end{bmatrix}"))
 
 
-@typing.no_type_check
+@no_type_check
 def optimise_classically(
     qubo: npt.NDArray[np.int_ | np.float64], show_progress_bar: bool = False
 ) -> tuple[list[int], float]:
