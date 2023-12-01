@@ -25,7 +25,7 @@ jobs:
       - name: Generate Report
         run: pytest -v --cov=./ --cov-report=xml
         env:
-          GITHUB_TOKEN: ${{ secrets.AK_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
