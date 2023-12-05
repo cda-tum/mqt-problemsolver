@@ -25,7 +25,7 @@ class Graph:
 
     def __init__(self, n_vertices: int, edges: list[Edge]) -> None:
         self.n_vertices = n_vertices
-        self.adjacency_matrix = np.ones((n_vertices, n_vertices)) * -1
+        self.adjacency_matrix = np.zeros((n_vertices, n_vertices))
         for edge in edges:
             if len(edge) == 2:
                 (from_vertex, to_vertex, weight) = (edge[0], edge[1], 1.0)

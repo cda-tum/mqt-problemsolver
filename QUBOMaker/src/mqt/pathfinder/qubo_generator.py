@@ -41,25 +41,82 @@ class QUBOGenerator:
             expression = self._construct_expansion(expression).expand()
         expression = expression.doit()
         if isinstance(expression, sp.Expr):
-            return expression
+            return self.expand_higher_order_terms(expression)
         msg = "Expression is not an expression."
         raise TypeError(msg)
+
+    def expand_higher_order_terms(self, expression: sp.Expr) -> sp.Expr:
+        result = 0
+        auxilliary_index = 1
+        coeffs = expression.as_coefficients_dict()  # type: ignore[no-untyped-call]
+        for term in coeffs:
+            unpowered = self.__unpower(term)
+            order = self.__get_order(unpowered)
+            if order <= 2:
+                result += unpowered * coeffs[term]
+                continue
+            (new_term, auxilliary_index) = self.__decrease_order(unpowered, auxilliary_index)
+            result += new_term * coeffs[term]
+        return cast(sp.Expr, result)
+
+    def __decrease_order(self, expression: sp.Expr, next_auxilliary: int) -> tuple[sp.Expr, int]:
+        x1 = cast(sp.Expr, expression.args[0])
+        x2 = cast(sp.Expr, expression.args[1])
+        y = sp.Symbol(f"y_{next_auxilliary}")  # type: ignore[no-untyped-call]
+        auxilliary_penalty = x1 * x2 - 2 * y * x1 - 2 * y * x2 + 3 * y
+        auxilliary_index = next_auxilliary + 1
+        rest = sp.Mul(*expression.args[2:]) * y
+        if self.__get_order(rest) > 2:
+            rest, auxilliary_index = self.__decrease_order(rest, auxilliary_index)
+        return (auxilliary_penalty + rest, auxilliary_index)
+
+    def __get_order(self, expression: sp.Expr) -> int:
+        if isinstance(expression, sp.Mul):
+            return sum([self.__get_order(arg) for arg in expression.args])
+        return 1
+
+    def __unpower(self, expression: sp.Expr) -> sp.Expr:
+        if isinstance(expression, sp.Pow):
+            return cast(sp.Expr, expression.args[0])
+        if isinstance(expression, sp.Mul):
+            return cast(sp.Expr, sp.Mul(*[self.__unpower(arg) for arg in expression.args]))
+        return expression
+
+    def __get_auxilliary_variables(self, expression: sp.Expr) -> list[sp.Symbol]:
+        if isinstance(expression, sp.Mul):
+            return list({var for arg in expression.args for var in self.__get_auxilliary_variables(arg)})
+        if isinstance(expression, sp.Symbol) and str(expression).startswith("y_"):
+            return [expression]
+        return []
 
     def _construct_expansion(self, expression: sp.Expr) -> sp.Expr:
         return expression
 
     def construct_qubo_matrix(self) -> npt.NDArray[np.int_ | np.float64]:
         coefficients = dict(self.construct_expansion().expand().as_coefficients_dict())
-        result = np.zeros((self.get_qubit_count(), self.get_qubit_count()))
+        auxilliary_variables = list({var for arg in coefficients for var in self.__get_auxilliary_variables(arg)})
+        auxilliary_variables.sort(key=lambda var: int(str(var)[2:]))
+        result = np.zeros(
+            (self.get_qubit_count() + len(auxilliary_variables), self.get_qubit_count() + len(auxilliary_variables))
+        )
 
-        for var1, i in self._get_all_variables():
-            for var2, j in self._get_all_variables():
-                if j > i:
-                    continue
-                coeff = coefficients.get(var1 * var2, 0)
-                if var1 == var2:
-                    coeff += coefficients.get(var1, 0)
-                result[j - 1][i - 1] += coeff
+        all_variables = dict(self._get_all_variables())
+
+        def get_index(variable: sp.Expr) -> int:
+            if variable in all_variables:
+                return all_variables[variable] - 1
+            return auxilliary_variables.index(cast(sp.Symbol, variable)) + self.get_qubit_count()
+
+        for term in coefficients:
+            if isinstance(term, sp.Mul):
+                index1 = get_index(term.args[0])
+                index2 = get_index(term.args[1])
+                if index1 > index2:
+                    index1, index2 = index2, index1
+                result[index1][index2] = coefficients[term]
+            elif isinstance(term, sp.Symbol):
+                index = get_index(term)
+                result[index][index] = coefficients[term]
 
         return result
 
