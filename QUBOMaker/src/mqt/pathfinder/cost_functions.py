@@ -45,6 +45,11 @@ class _FormulaHelpers:
         return sp.Sum(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
 
     @staticmethod
+    def prod_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
+        s = sp.Symbol(var)  # type: ignore[no-untyped-call]
+        return sp.Product(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
+
+    @staticmethod
     def sum_set(expression: sp.Expr, variables: list[str], _latex: str, callback: SetCallback) -> sp.Expr:
         # TODO use latex output
         variable_symbols = [_FormulaHelpers.variable(v) for v in variables]
@@ -257,24 +262,11 @@ class PathContainsVertices(CostFunction):
         vertices = ",".join([str(v) for v in self.vertex_ids])
         return f"PathContains[{vertices}]:[{self.min_occurrences}-{self.max_occurrences}]"
 
-
-class PathContainsVerticesExactlyOnce(PathContainsVertices):
-    def __init__(self, vertex_ids: list[int], possible_paths: list[int]) -> None:
-        super().__init__(1, 1, vertex_ids, possible_paths)
-
-    def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
-    ) -> sp.Expr:
+    def _handle_for_each(self, expression: sp.Expr) -> sp.Expr:
         return _FormulaHelpers.get_for_each_path(
             (
                 _FormulaHelpers.sum_set(
-                    (
-                        1
-                        - _FormulaHelpers.get_for_each_position(
-                            get_variable_function("p", "v", "i"), settings.max_path_length
-                        )
-                    )
-                    ** 2,
+                    expression,
                     ["v"],
                     f"\\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
                     lambda: list(self.vertex_ids),
@@ -284,14 +276,29 @@ class PathContainsVerticesExactlyOnce(PathContainsVertices):
         )
 
 
+class PathContainsVerticesExactlyOnce(PathContainsVertices):
+    def __init__(self, vertex_ids: list[int], possible_paths: list[int]) -> None:
+        super().__init__(1, 1, vertex_ids, possible_paths)
+
+    def get_formula_general(
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+    ) -> sp.Expr:
+        return self._handle_for_each(
+            (1 - _FormulaHelpers.get_for_each_position(get_variable_function("p", "v", "i"), settings.max_path_length))
+            ** 2
+        )
+
+
 class PathContainsVerticesAtLeastOnce(PathContainsVertices):
     def __init__(self, vertex_ids: list[int], possible_paths: list[int]) -> None:
         super().__init__(1, -1, vertex_ids, possible_paths)
 
     def get_formula_general(
-        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
-        raise NotImplementedError
+        return self._handle_for_each(
+            _FormulaHelpers.prod_from_to((1 - get_variable_function("p", "v", "i")), "i", 1, settings.max_path_length)
+        )
 
 
 class PathContainsVerticesAtMostOnce(PathContainsVertices):
@@ -299,9 +306,21 @@ class PathContainsVerticesAtMostOnce(PathContainsVertices):
         super().__init__(0, 1, vertex_ids, possible_paths)
 
     def get_formula_general(
-        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
-        raise NotImplementedError
+        return self._handle_for_each(
+            _FormulaHelpers.sum_from_to(
+                _FormulaHelpers.sum_from_to(
+                    get_variable_function("p", "v", "i") * get_variable_function("p", "v", "j"),
+                    "j",
+                    _FormulaHelpers.variable("i") + 1,
+                    settings.max_path_length,
+                ),
+                "i",
+                1,
+                settings.max_path_length - 1,
+            )
+        )
 
 
 class PathContainsEdges(CostFunction):
@@ -326,27 +345,10 @@ class PathContainsEdges(CostFunction):
         vertices = ",".join([str(v) for v in self.edges])
         return f"PathContains[{vertices}]:[{self.min_occurrences}-{self.max_occurrences}]"
 
-
-class PathContainsEdgesExactlyOnce(PathContainsEdges):
-    def __init__(self, edges: list[tuple[int, int]], possible_paths: list[int]) -> None:
-        super().__init__(1, 1, edges, possible_paths)
-
-    def get_formula_general(
-        self, graph: Graph, _settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
-    ) -> sp.Expr:
+    def _handle_for_each(self, expression: sp.Expr) -> sp.Expr:
         return _FormulaHelpers.get_for_each_path(
             _FormulaHelpers.sum_set(
-                (
-                    1
-                    - _FormulaHelpers.sum_from_to(
-                        get_variable_function("p", "v", "i")
-                        * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1),
-                        "i",
-                        1,
-                        graph.n_vertices - 1,  # TODO use path length instead
-                    )
-                )
-                ** 2,
+                expression,
                 ["v", "w"],
                 f"\\in \\left\\{{ {', '.join(['(' + str(v) + ', ' + str(w) + ')' for (v, w) in self.edges])} \\right\\}}",
                 lambda: list(self.edges),
@@ -355,14 +357,47 @@ class PathContainsEdgesExactlyOnce(PathContainsEdges):
         )
 
 
+class PathContainsEdgesExactlyOnce(PathContainsEdges):
+    def __init__(self, edges: list[tuple[int, int]], possible_paths: list[int]) -> None:
+        super().__init__(1, 1, edges, possible_paths)
+
+    def get_formula_general(
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+    ) -> sp.Expr:
+        return self._handle_for_each(
+            (
+                1
+                - _FormulaHelpers.sum_from_to(
+                    get_variable_function("p", "v", "i")
+                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1),
+                    "i",
+                    1,
+                    settings.max_path_length,
+                )
+            )
+            ** 2
+        )
+
+
 class PathContainsEdgesAtLeastOnce(PathContainsEdges):
     def __init__(self, edges: list[tuple[int, int]], possible_paths: list[int]) -> None:
         super().__init__(1, -1, edges, possible_paths)
 
     def get_formula_general(
-        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
-        raise NotImplementedError
+        return self._handle_for_each(
+            _FormulaHelpers.prod_from_to(
+                (
+                    1
+                    - get_variable_function("p", "v", "i")
+                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1)
+                ),
+                "i",
+                1,
+                settings.max_path_length,
+            )
+        )
 
 
 class PathContainsEdgesAtMostOnce(PathContainsEdges):
@@ -370,9 +405,26 @@ class PathContainsEdgesAtMostOnce(PathContainsEdges):
         super().__init__(0, 1, edges, possible_paths)
 
     def get_formula_general(
-        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
-        raise NotImplementedError
+        return self._handle_for_each(
+            _FormulaHelpers.sum_from_to(
+                _FormulaHelpers.sum_from_to(
+                    (
+                        get_variable_function("p", "v", "i")
+                        * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1)
+                        * get_variable_function("p", "v", "j")
+                        * get_variable_function("p", "w", _FormulaHelpers.variable("j") + 1)
+                    ),
+                    "j",
+                    _FormulaHelpers.variable("i") + 1,
+                    settings.max_path_length,
+                ),
+                "i",
+                1,
+                settings.max_path_length - 1,
+            )
+        )
 
 
 class PathBound(CostFunction):
@@ -395,23 +447,81 @@ class PrecedenceConstraint(PathBound):
         self.post = post
 
     def get_formula_general(
-        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
-        raise NotImplementedError
+        return _FormulaHelpers.get_for_each_path(
+            _FormulaHelpers.sum_from_to(
+                get_variable_function("p", self.post, "i")
+                * _FormulaHelpers.prod_from_to(
+                    (1 - get_variable_function("p", self.pre, "j")), "j", 1, _FormulaHelpers.variable("i") - 1
+                ),
+                "i",
+                1,
+                settings.max_path_length,
+            ),
+            self.path_ids,
+        )
 
 
-class PathsShareNoVertices(PathBound):
+class PathComparison(CostFunction):
+    path_one: int
+    path_two: int
+
+    def __init__(self, path_one: int, path_two: int) -> None:
+        self.path_one = path_one
+        self.path_two = path_two
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}[{self.path_one}, {self.path_two}]"
+
+
+class PathsShareNoVertices(PathComparison):
     def get_formula_general(
         self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
-        raise NotImplementedError
+        return _FormulaHelpers.get_for_each_vertex(
+            _FormulaHelpers.get_for_each_position(
+                get_variable_function(self.path_one, "v", "i"), settings.max_path_length
+            )
+            * _FormulaHelpers.get_for_each_position(
+                get_variable_function(self.path_two, "v", "i"), settings.max_path_length
+            ),
+            graph.all_vertices,
+        )
 
 
-class PathsShareNoEdges(PathBound):
+class PathsShareNoEdges(PathComparison):
     def get_formula_general(
         self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
-        raise NotImplementedError
+        return _FormulaHelpers.sum_set(
+            _FormulaHelpers.sum_from_to(
+                (
+                    get_variable_function(self.path_one, "v", "i")
+                    * get_variable_function(self.path_one, "w", _FormulaHelpers.variable("i") + 1)
+                ),
+                "i",
+                1,
+                settings.max_path_length,
+            )
+            * _FormulaHelpers.sum_from_to(
+                (
+                    get_variable_function(self.path_two, "v", "i")
+                    * get_variable_function(self.path_two, "w", _FormulaHelpers.variable("i") + 1)
+                ),
+                "i",
+                1,
+                settings.max_path_length,
+            ),
+            ["v", "w"],
+            "\\in E",
+            lambda: [
+                (i + 1, j + 1)
+                for i in range(graph.n_vertices)
+                for j in range(graph.n_vertices)
+                if graph.adjacency_matrix[i, j] > 0
+            ],
+        )
 
 
 class PathIsValid(PathBound):
