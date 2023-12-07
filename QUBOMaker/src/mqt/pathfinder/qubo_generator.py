@@ -47,28 +47,53 @@ class QUBOGenerator:
 
     def expand_higher_order_terms(self, expression: sp.Expr) -> sp.Expr:
         result = 0
-        auxilliary_index = 1
+        auxilliary_dict: dict[sp.Expr, sp.Expr] = {}
         coeffs = expression.as_coefficients_dict()  # type: ignore[no-untyped-call]
         for term in coeffs:
             unpowered = self.__unpower(term)
+            unpowered = self.__simplify_auxilliary_variables(unpowered, auxilliary_dict)
             order = self.__get_order(unpowered)
             if order <= 2:
                 result += unpowered * coeffs[term]
                 continue
-            (new_term, auxilliary_index) = self.__decrease_order(unpowered, auxilliary_index)
+            new_term = self.__decrease_order(unpowered, auxilliary_dict)
             result += new_term * coeffs[term]
         return cast(sp.Expr, result)
 
-    def __decrease_order(self, expression: sp.Expr, next_auxilliary: int) -> tuple[sp.Expr, int]:
-        x1 = cast(sp.Expr, expression.args[0])
-        x2 = cast(sp.Expr, expression.args[1])
-        y = sp.Symbol(f"y_{next_auxilliary}")  # type: ignore[no-untyped-call]
+    def __simplify_auxilliary_variables(self, expression: sp.Expr, auxilliary_dict: dict[sp.Expr, sp.Expr]) -> sp.Expr:
+        if not isinstance(expression, sp.Mul):
+            return expression
+        used_auxilliaries = {term for term in expression.args if term in auxilliary_dict.values()}
+        redundant_variables = {term for term in auxilliary_dict if auxilliary_dict[term] in used_auxilliaries}
+        remaining_variables = [arg for arg in expression.args if arg not in redundant_variables]
+        if len(remaining_variables) == 1:
+            return cast(sp.Expr, remaining_variables[0])
+        return cast(sp.Expr, sp.Mul(*remaining_variables))
+
+    def __optimal_decomposition(
+        self, terms: tuple[sp.Expr, ...], auxilliary_dict: dict[sp.Expr, sp.Expr]
+    ) -> tuple[sp.Expr, sp.Expr, sp.Expr, sp.Expr]:
+        for x1 in terms:
+            for x2 in terms:
+                if x1 == x2:
+                    continue
+                if (x1 * x2) not in auxilliary_dict:
+                    continue
+                return (x1, x2, auxilliary_dict[x1 * x2], sp.Mul(*[term for term in terms if term not in (x1, x2)]))
+        x1 = terms[0]
+        x2 = terms[1]
+        y: sp.Symbol = sp.Symbol(f"y_{len(auxilliary_dict) + 1}")  # type: ignore[no-untyped-call]
+        auxilliary_dict[x1 * x2] = y
+        rest = sp.Mul(*terms[2:])
+        return (x1, x2, y, rest)
+
+    def __decrease_order(self, expression: sp.Expr, auxilliary_dict: dict[sp.Expr, sp.Expr]) -> sp.Expr:
+        (x1, x2, y, rest) = self.__optimal_decomposition(cast(tuple[sp.Expr, ...], expression.args), auxilliary_dict)
         auxilliary_penalty = x1 * x2 - 2 * y * x1 - 2 * y * x2 + 3 * y
-        auxilliary_index = next_auxilliary + 1
-        rest = sp.Mul(*expression.args[2:]) * y
+        rest = rest * y
         if self.__get_order(rest) > 2:
-            rest, auxilliary_index = self.__decrease_order(rest, auxilliary_index)
-        return (auxilliary_penalty + rest, auxilliary_index)
+            rest = self.__decrease_order(rest, auxilliary_dict)
+        return cast(sp.Expr, auxilliary_penalty + rest)
 
     def __get_order(self, expression: sp.Expr) -> int:
         if isinstance(expression, sp.Mul):
@@ -114,7 +139,7 @@ class QUBOGenerator:
                 if index1 > index2:
                     index1, index2 = index2, index1
                 result[index1][index2] = coefficients[term]
-            elif isinstance(term, sp.Symbol):
+            elif isinstance(term, (sp.Symbol, sp.Function)):
                 index = get_index(term)
                 result[index][index] = coefficients[term]
 

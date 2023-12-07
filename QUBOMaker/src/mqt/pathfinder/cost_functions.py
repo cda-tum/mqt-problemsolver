@@ -200,14 +200,18 @@ class PathPositionIs(CostFunction):
         self.path = path
 
     def get_formula_general(
-        self, _graph: Graph, _settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return cast(
             sp.Expr,
             (
                 1
                 - _FormulaHelpers.sum_set(
-                    get_variable_function(self.path, "v", self.position),
+                    get_variable_function(
+                        self.path,
+                        "v",
+                        self.position if self.position > 0 else (settings.max_path_length + 1 + self.position),
+                    ),
                     ["v"],
                     f"\\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
                     lambda: list(self.vertex_ids),
@@ -682,7 +686,7 @@ class PathFindingQUBOGenerator(QUBOGenerator):
         result = expression.subs(dict(assignment))  # type: ignore[no-untyped-call]
         if isinstance(result, sp.Expr):
             return result
-        msg = "Expression is not an expression."
+        msg = "Expression is not a sympy expression."
         raise ValueError(msg)
 
     def get_variable_index(self, var: sp.Function) -> int:
