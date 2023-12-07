@@ -30,7 +30,8 @@ dependencies = [
     "python_tsp",
     "docplex",
     "qiskit_optimization",
-    "tsplib95"
+    "tsplib95",
+    "jsonschema",
 ]
 
 classifiers = [
@@ -60,6 +61,8 @@ Research = "https://www.cda.cit.tum.de/research/quantum/"
 
 [tool.setuptools_scm]
 
+[tool.setuptools.package-data]
+"mqt.pathfinder" = ["resources/*", "resources/constraints/*"]
 
 
 [tool.mypy]
@@ -74,7 +77,7 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["types-Pillow", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*"]
+module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

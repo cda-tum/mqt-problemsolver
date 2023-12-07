@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "settings": {
+      "type": "object",
+      "properties": {
+        "encoding": {
+          "type": "string",
+          "enum": ["ONE_HOT", "UNARY", "DOMAIN_WALL", "BINARY"]
+        },
+        "n_paths": { "type": "integer", "default": 1 },
+        "max_path_length": { "type": "integer", "default": 0 },
+        "loops": { "type": "boolean", "default": false }
+      },
+      "required": ["encoding"]
+    },
+    "objective_function": { "$ref": "constraint.json" },
+    "constraints": {
+      "type": "array",
+      "items": { "$ref": "constraint.json" }
+    }
+  },
+  "required": ["settings"]
+}

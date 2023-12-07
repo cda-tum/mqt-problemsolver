@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import functools
+import json
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from importlib import resources as impresources
 from typing import TYPE_CHECKING, Any, Callable, Self, Sequence, cast
 
+import jsonschema
 import numpy as np
 import sympy as sp
 
+import mqt.pathfinder
 from mqt.pathfinder.qubo_generator import QUBOGenerator
 
 if TYPE_CHECKING:
@@ -248,19 +253,19 @@ class PathContainsVertices(CostFunction):
     vertex_ids: list[int]
     min_occurrences: int
     max_occurrences: int
-    possible_paths: list[int]
+    path_ids: list[int]
 
     def __init__(
         self,
         min_occurrences: int,
         max_occurrences: int,
         vertex_ids: list[int],
-        possible_paths: list[int],
+        path_ids: list[int],
     ) -> None:
         self.vertex_ids = vertex_ids
         self.min_occurrences = min_occurrences
         self.max_occurrences = max_occurrences
-        self.possible_paths = possible_paths
+        self.path_ids = path_ids
 
     def __str__(self) -> str:
         vertices = ",".join([str(v) for v in self.vertex_ids])
@@ -276,13 +281,13 @@ class PathContainsVertices(CostFunction):
                     lambda: list(self.vertex_ids),
                 )
             ),
-            self.possible_paths,
+            self.path_ids,
         )
 
 
 class PathContainsVerticesExactlyOnce(PathContainsVertices):
-    def __init__(self, vertex_ids: list[int], possible_paths: list[int]) -> None:
-        super().__init__(1, 1, vertex_ids, possible_paths)
+    def __init__(self, vertex_ids: list[int], path_ids: list[int]) -> None:
+        super().__init__(1, 1, vertex_ids, path_ids)
 
     def get_formula_general(
         self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
@@ -294,8 +299,8 @@ class PathContainsVerticesExactlyOnce(PathContainsVertices):
 
 
 class PathContainsVerticesAtLeastOnce(PathContainsVertices):
-    def __init__(self, vertex_ids: list[int], possible_paths: list[int]) -> None:
-        super().__init__(1, -1, vertex_ids, possible_paths)
+    def __init__(self, vertex_ids: list[int], path_ids: list[int]) -> None:
+        super().__init__(1, -1, vertex_ids, path_ids)
 
     def get_formula_general(
         self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
@@ -306,8 +311,8 @@ class PathContainsVerticesAtLeastOnce(PathContainsVertices):
 
 
 class PathContainsVerticesAtMostOnce(PathContainsVertices):
-    def __init__(self, vertex_ids: list[int], possible_paths: list[int]) -> None:
-        super().__init__(0, 1, vertex_ids, possible_paths)
+    def __init__(self, vertex_ids: list[int], path_ids: list[int]) -> None:
+        super().__init__(0, 1, vertex_ids, path_ids)
 
     def get_formula_general(
         self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
@@ -331,19 +336,19 @@ class PathContainsEdges(CostFunction):
     edges: list[tuple[int, int]]
     min_occurrences: int
     max_occurrences: int
-    possible_paths: list[int]
+    path_ids: list[int]
 
     def __init__(
         self,
         min_occurrences: int,
         max_occurrences: int,
         edges: list[tuple[int, int]],
-        possible_paths: list[int],
+        path_ids: list[int],
     ) -> None:
         self.edges = edges
         self.min_occurrences = min_occurrences
         self.max_occurrences = max_occurrences
-        self.possible_paths = possible_paths
+        self.path_ids = path_ids
 
     def __str__(self) -> str:
         vertices = ",".join([str(v) for v in self.edges])
@@ -357,13 +362,13 @@ class PathContainsEdges(CostFunction):
                 f"\\in \\left\\{{ {', '.join(['(' + str(v) + ', ' + str(w) + ')' for (v, w) in self.edges])} \\right\\}}",
                 lambda: list(self.edges),
             ),
-            self.possible_paths,
+            self.path_ids,
         )
 
 
 class PathContainsEdgesExactlyOnce(PathContainsEdges):
-    def __init__(self, edges: list[tuple[int, int]], possible_paths: list[int]) -> None:
-        super().__init__(1, 1, edges, possible_paths)
+    def __init__(self, edges: list[tuple[int, int]], path_ids: list[int]) -> None:
+        super().__init__(1, 1, edges, path_ids)
 
     def get_formula_general(
         self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
@@ -384,8 +389,8 @@ class PathContainsEdgesExactlyOnce(PathContainsEdges):
 
 
 class PathContainsEdgesAtLeastOnce(PathContainsEdges):
-    def __init__(self, edges: list[tuple[int, int]], possible_paths: list[int]) -> None:
-        super().__init__(1, -1, edges, possible_paths)
+    def __init__(self, edges: list[tuple[int, int]], path_ids: list[int]) -> None:
+        super().__init__(1, -1, edges, path_ids)
 
     def get_formula_general(
         self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
@@ -405,8 +410,8 @@ class PathContainsEdgesAtLeastOnce(PathContainsEdges):
 
 
 class PathContainsEdgesAtMostOnce(PathContainsEdges):
-    def __init__(self, edges: list[tuple[int, int]], possible_paths: list[int]) -> None:
-        super().__init__(0, 1, edges, possible_paths)
+    def __init__(self, edges: list[tuple[int, int]], path_ids: list[int]) -> None:
+        super().__init__(0, 1, edges, path_ids)
 
     def get_formula_general(
         self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
@@ -519,12 +524,7 @@ class PathsShareNoEdges(PathComparison):
             ),
             ["v", "w"],
             "\\in E",
-            lambda: [
-                (i + 1, j + 1)
-                for i in range(graph.n_vertices)
-                for j in range(graph.n_vertices)
-                if graph.adjacency_matrix[i, j] > 0
-            ],
+            lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.all_edges),
         )
 
 
@@ -617,12 +617,7 @@ class MinimisePathLength(PathBound):
                 ),
                 ["v", "w"],
                 "\\in E",
-                lambda: [
-                    (i + 1, j + 1)
-                    for i in range(graph.n_vertices)
-                    for j in range(graph.n_vertices)
-                    if graph.adjacency_matrix[i, j] > 0
-                ],
+                lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.all_edges),
             ),
             self.path_ids,
         )
@@ -653,6 +648,106 @@ class PathFindingQUBOGenerator(QUBOGenerator):
         super().__init__(objective_function.get_formula(graph, settings) if objective_function is not None else None)
         self.graph = graph
         self.settings = settings
+
+    @staticmethod
+    def from_json(json_string: str, graph: Graph) -> PathFindingQUBOGenerator:
+        with (impresources.files(mqt.pathfinder) / "resources" / "input-format.json").open("r") as f:
+            main_schema = json.load(f)
+        with (impresources.files(mqt.pathfinder) / "resources" / "constraint.json").open("r") as f:
+            constraint_schema = json.load(f)
+        resolver = jsonschema.RefResolver.from_schema(main_schema)
+        resolver.store["constraint.json"] = constraint_schema
+        for file in os.listdir(str(impresources.files(mqt.pathfinder) / "resources" / "constraints")):
+            with (impresources.files(mqt.pathfinder) / "resources" / "constraints" / file).open("r") as f:
+                resolver.store[file] = json.load(f)
+
+        validator = jsonschema.Draft7Validator(main_schema, resolver=resolver)
+        json_object = json.loads(json_string)
+        validator.validate(json_object)
+
+        if json_object["settings"]["encoding"] == "ONE_HOT":
+            encoding_type = EncodingType.ONE_HOT
+        elif json_object["settings"]["encoding"] in ["UNARY", "DOMAIN_WALL"]:
+            encoding_type = EncodingType.UNARY
+        else:
+            encoding_type = EncodingType.BINARY
+
+        settings = PathFindingQUBOGeneratorSettings(
+            encoding_type,
+            json_object["settings"].get("n_paths", 1),
+            json_object["settings"].get("max_path_length", 0),
+            json_object["settings"].get("loops", False),
+        )
+        if settings.max_path_length == 0:
+            settings.max_path_length = graph.n_vertices
+
+        def get_constraint(constraint: dict[str, Any]) -> list[CostFunction]:
+            if constraint["type"] == "PathIsValid":
+                return [PathIsValid(constraint.get("path_ids", [1]))]
+            if constraint["type"] == "MinimisePathLength":
+                return [MinimisePathLength(constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathStartsAt":
+                return [PathStartsAt(constraint["vertices"], constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathEndsAt":
+                return [PathEndsAt(constraint["vertices"], constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathPositionIs":
+                return [PathPositionIs(constraint["position"], constraint["vertices"], constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathContainsVerticesExactlyOnce":
+                vertices = constraint.get("vertices", [])
+                if len(vertices) == 0:
+                    vertices = graph.all_vertices
+                return [PathContainsVerticesExactlyOnce(vertices, constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathContainsVerticesAtLeastOnce":
+                vertices = constraint.get("vertices", [])
+                if len(vertices) == 0:
+                    vertices = graph.all_vertices
+                return [PathContainsVerticesAtLeastOnce(vertices, constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathContainsVerticesAtMostOnce":
+                vertices = constraint.get("vertices", [])
+                if len(vertices) == 0:
+                    vertices = graph.all_vertices
+                return [PathContainsVerticesAtMostOnce(vertices, constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathContainsEdgesExactlyOnce":
+                edges = [tuple(edge) for edge in constraint.get("edges", [])]
+                if len(edges) == 0:
+                    edges = graph.all_edges
+                return [PathContainsEdgesExactlyOnce(edges, constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathContainsEdgesAtLeastOnce":
+                edges = [tuple(edge) for edge in constraint.get("edges", [])]
+                if len(edges) == 0:
+                    edges = graph.all_edges
+                return [PathContainsEdgesAtLeastOnce(edges, constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PathContainsEdgesAtMostOnce":
+                edges = [tuple(edge) for edge in constraint.get("edges", [])]
+                if len(edges) == 0:
+                    edges = graph.all_edges
+                return [PathContainsEdgesAtMostOnce(edges, constraint.get("path_ids", [1]))]
+            if constraint["type"] == "PrecedenceConstraint":
+                return [
+                    PrecedenceConstraint(precedence["before"], precedence["after"], constraint.get("path_ids", [1]))
+                    for precedence in constraint["precedences"]
+                ]
+            if constraint["type"] == "PathsShareNoVertices":
+                paths = constraint.get("path_ids", [1])
+                return [(PathsShareNoVertices(i, j)) for i in paths for j in paths if i != j]
+            if constraint["type"] == "PathsShareNoEdges":
+                paths = constraint.get("path_ids", [1])
+                return [(PathsShareNoEdges(i, j)) for i in paths for j in paths if i != j]
+            msg = f"Constraint {constraint['type']} not supported."
+            raise ValueError(msg)
+
+        generator = PathFindingQUBOGenerator(
+            get_constraint(json_object["objective_function"])[0] if "objective_function" in json_object else None,
+            graph,
+            settings,
+        )
+        if "constraints" in json_object:
+            for constraint in json_object["constraints"]:
+                get_constraint(constraint)
+                for cost_function in get_constraint(constraint):
+                    generator.add_constraint(cost_function)
+
+        return generator
 
     def add_constraint(self, constraint: CostFunction) -> Self:
         self.add_penalty(constraint.get_formula(self.graph, self.settings))

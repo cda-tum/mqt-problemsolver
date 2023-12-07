@@ -23,6 +23,10 @@ class Graph:
     def all_vertices(self) -> list[int]:
         return list(range(1, self.n_vertices + 1))
 
+    @property
+    def all_edges(self) -> list[tuple[int, int]]:
+        return [(i, j) for i in self.all_vertices for j in self.all_vertices if self.adjacency_matrix[i - 1, j - 1] > 0]
+
     def __init__(self, n_vertices: int, edges: list[Edge]) -> None:
         self.n_vertices = n_vertices
         self.adjacency_matrix = np.zeros((n_vertices, n_vertices))
