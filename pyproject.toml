@@ -60,7 +60,14 @@ Research = "https://www.cda.cit.tum.de/research/quantum/"
 
 [tool.setuptools_scm]
 
-
+[tool.coverage]
+run.source = ["mqt.problemsolver"]
+report.exclude_also = [
+    '\.\.\.',
+    'if TYPE_CHECKING:',
+    'raise AssertionError',
+    'raise NotImplementedError',
+]
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"

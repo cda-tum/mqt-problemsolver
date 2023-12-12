@@ -1,3 +1,6 @@
+ignore:
+  - "tests/**/*"
+
 coverage:
   range: 60..90
   precision: 1
