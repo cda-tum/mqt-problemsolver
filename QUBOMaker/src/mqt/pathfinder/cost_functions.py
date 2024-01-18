@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 # Python 3.12
 # type SetCallback = Callable[[], list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]]]
 SetCallback = Callable[[], list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]]]
-GetVariableFunction = Callable[[Any, Any, Any], sp.Expr]
+GetVariableFunction = Callable[[Any, Any, Any, int], sp.Expr]
 
 
 class EncodingType(Enum):
@@ -41,6 +41,18 @@ class X(sp.Function):
     def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
         p, v, i = (self.args[0], self.args[1], self.args[2])
         return rf"x_{{{p},{v},{i}}}"
+
+
+class Decompose(sp.Function):
+    def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+        n, i = (self.args[0], self.args[1])
+        return rf"\bar{{{n}}}_{{{i}}}"
+
+    def doit(self, **_hints: Any) -> sp.Expr:
+        n, i = self.args
+        if not isinstance(n, sp.Integer) or not isinstance(i, sp.Integer):
+            return self
+        return cast(sp.Expr, sp.Integer(int(n) >> (int(i) - 1) & 1))
 
 
 class _FormulaHelpers:
@@ -81,7 +93,7 @@ class _FormulaHelpers:
         return sp.Symbol(name)  # type: ignore[no-untyped-call]
 
     @staticmethod
-    def get_encoding_variable_one_hot(path: Any, vertex: Any, position: Any) -> sp.Function:
+    def get_encoding_variable_one_hot(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Function:
         if isinstance(path, str):
             path = _FormulaHelpers.variable(path)
         if isinstance(vertex, str):
@@ -91,7 +103,7 @@ class _FormulaHelpers:
         return cast(sp.Function, X(path, vertex, position))
 
     @staticmethod
-    def get_encoding_variable_unary(path: Any, vertex: Any, position: Any) -> sp.Expr:
+    def get_encoding_variable_unary(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
         if isinstance(path, str):
             path = _FormulaHelpers.variable(path)
         if isinstance(vertex, str):
@@ -105,19 +117,26 @@ class _FormulaHelpers:
         )
 
     @staticmethod
-    def get_pos_is_not_unary(path: Any, position: Any, vertex: Any, num_vertices: int) -> sp.Expr:
+    def get_encoding_variable_binary(path: Any, vertex: Any, position: Any, num_vertices: int = 0) -> sp.Expr:
         if isinstance(path, str):
             path = _FormulaHelpers.variable(path)
-        if isinstance(position, str):
-            position = _FormulaHelpers.variable(position)
         if isinstance(vertex, str):
             vertex = _FormulaHelpers.variable(vertex)
-        if vertex == num_vertices:
-            return cast(sp.Expr, 1 - _FormulaHelpers.get_encoding_variable_one_hot(path, vertex, position))
+        if isinstance(position, str):
+            position = _FormulaHelpers.variable(position)
+        index_symbol = _FormulaHelpers.variable("v")
+        if index_symbol == vertex:
+            index_symbol = _FormulaHelpers.variable("w")
+        max_index = int(np.ceil(np.log2(num_vertices)))
         return cast(
             sp.Expr,
-            _FormulaHelpers.get_encoding_variable_one_hot(path, vertex, position)
-            * (1 - _FormulaHelpers.get_encoding_variable_one_hot(path, vertex + 1, position)),
+            sp.Product(
+                Decompose(vertex - 1, index_symbol)
+                * _FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)
+                + (1 - Decompose(vertex - 1, index_symbol))
+                * (1 - _FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)),
+                (index_symbol, 1, max_index),
+            ),  # type: ignore[no-untyped-call]
         )
 
     @staticmethod
@@ -149,8 +168,9 @@ class CostFunction(ABC):
             return self.get_formula_one_hot(graph, settings)
         if settings.encoding_type == EncodingType.UNARY:
             return self.get_formula_unary(graph, settings)
-        msg = f"Encoding type {settings.encoding_type} not supported."
-        raise ValueError(msg)
+        if settings.encoding_type == EncodingType.BINARY:
+            return self.get_formula_binary(graph, settings)
+        return None  # type: ignore[unreachable]
 
     @abstractmethod
     def get_formula_general(
@@ -163,6 +183,9 @@ class CostFunction(ABC):
 
     def get_formula_unary(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
         return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
+
+    def get_formula_binary(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_binary)
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}"
@@ -205,7 +228,7 @@ class PathPositionIs(CostFunction):
         self.path = path
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return cast(
             sp.Expr,
@@ -216,6 +239,7 @@ class PathPositionIs(CostFunction):
                         self.path,
                         "v",
                         self.position if self.position > 0 else (settings.max_path_length + 1 + self.position),
+                        graph.n_vertices,
                     ),
                     ["v"],
                     f"\\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
@@ -290,10 +314,15 @@ class PathContainsVerticesExactlyOnce(PathContainsVertices):
         super().__init__(1, 1, vertex_ids, path_ids)
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return self._handle_for_each(
-            (1 - _FormulaHelpers.get_for_each_position(get_variable_function("p", "v", "i"), settings.max_path_length))
+            (
+                1
+                - _FormulaHelpers.get_for_each_position(
+                    get_variable_function("p", "v", "i", graph.n_vertices), settings.max_path_length
+                )
+            )
             ** 2
         )
 
@@ -303,10 +332,12 @@ class PathContainsVerticesAtLeastOnce(PathContainsVertices):
         super().__init__(1, -1, vertex_ids, path_ids)
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return self._handle_for_each(
-            _FormulaHelpers.prod_from_to((1 - get_variable_function("p", "v", "i")), "i", 1, settings.max_path_length)
+            _FormulaHelpers.prod_from_to(
+                (1 - get_variable_function("p", "v", "i", graph.n_vertices)), "i", 1, settings.max_path_length
+            )
         )
 
 
@@ -315,12 +346,13 @@ class PathContainsVerticesAtMostOnce(PathContainsVertices):
         super().__init__(0, 1, vertex_ids, path_ids)
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return self._handle_for_each(
             _FormulaHelpers.sum_from_to(
                 _FormulaHelpers.sum_from_to(
-                    get_variable_function("p", "v", "i") * get_variable_function("p", "v", "j"),
+                    get_variable_function("p", "v", "i", graph.n_vertices)
+                    * get_variable_function("p", "v", "j", graph.n_vertices),
                     "j",
                     _FormulaHelpers.variable("i") + 1,
                     settings.max_path_length,
@@ -371,14 +403,14 @@ class PathContainsEdgesExactlyOnce(PathContainsEdges):
         super().__init__(1, 1, edges, path_ids)
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return self._handle_for_each(
             (
                 1
                 - _FormulaHelpers.sum_from_to(
-                    get_variable_function("p", "v", "i")
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1),
+                    get_variable_function("p", "v", "i", graph.n_vertices)
+                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
                     "i",
                     1,
                     settings.max_path_length,
@@ -393,14 +425,14 @@ class PathContainsEdgesAtLeastOnce(PathContainsEdges):
         super().__init__(1, -1, edges, path_ids)
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return self._handle_for_each(
             _FormulaHelpers.prod_from_to(
                 (
                     1
-                    - get_variable_function("p", "v", "i")
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1)
+                    - get_variable_function("p", "v", "i", graph.n_vertices)
+                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
                 ),
                 "i",
                 1,
@@ -414,16 +446,16 @@ class PathContainsEdgesAtMostOnce(PathContainsEdges):
         super().__init__(0, 1, edges, path_ids)
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return self._handle_for_each(
             _FormulaHelpers.sum_from_to(
                 _FormulaHelpers.sum_from_to(
                     (
-                        get_variable_function("p", "v", "i")
-                        * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1)
-                        * get_variable_function("p", "v", "j")
-                        * get_variable_function("p", "w", _FormulaHelpers.variable("j") + 1)
+                        get_variable_function("p", "v", "i", graph.n_vertices)
+                        * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
+                        * get_variable_function("p", "v", "j", graph.n_vertices)
+                        * get_variable_function("p", "w", _FormulaHelpers.variable("j") + 1, graph.n_vertices)
                     ),
                     "j",
                     _FormulaHelpers.variable("i") + 1,
@@ -456,13 +488,16 @@ class PrecedenceConstraint(PathBound):
         self.post = post
 
     def get_formula_general(
-        self, _graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
+        self, graph: Graph, settings: PathFindingQUBOGeneratorSettings, get_variable_function: GetVariableFunction
     ) -> sp.Expr:
         return _FormulaHelpers.get_for_each_path(
             _FormulaHelpers.sum_from_to(
-                get_variable_function("p", self.post, "i")
+                get_variable_function("p", self.post, "i", graph.n_vertices)
                 * _FormulaHelpers.prod_from_to(
-                    (1 - get_variable_function("p", self.pre, "j")), "j", 1, _FormulaHelpers.variable("i") - 1
+                    (1 - get_variable_function("p", self.pre, "j", graph.n_vertices)),
+                    "j",
+                    1,
+                    _FormulaHelpers.variable("i") - 1,
                 ),
                 "i",
                 1,
@@ -490,10 +525,10 @@ class PathsShareNoVertices(PathComparison):
     ) -> sp.Expr:
         return _FormulaHelpers.get_for_each_vertex(
             _FormulaHelpers.get_for_each_position(
-                get_variable_function(self.path_one, "v", "i"), settings.max_path_length
+                get_variable_function(self.path_one, "v", "i", graph.n_vertices), settings.max_path_length
             )
             * _FormulaHelpers.get_for_each_position(
-                get_variable_function(self.path_two, "v", "i"), settings.max_path_length
+                get_variable_function(self.path_two, "v", "i", graph.n_vertices), settings.max_path_length
             ),
             graph.all_vertices,
         )
@@ -506,8 +541,8 @@ class PathsShareNoEdges(PathComparison):
         return _FormulaHelpers.sum_set(
             _FormulaHelpers.sum_from_to(
                 (
-                    get_variable_function(self.path_one, "v", "i")
-                    * get_variable_function(self.path_one, "w", _FormulaHelpers.variable("i") + 1)
+                    get_variable_function(self.path_one, "v", "i", graph.n_vertices)
+                    * get_variable_function(self.path_one, "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
                 ),
                 "i",
                 1,
@@ -515,8 +550,8 @@ class PathsShareNoEdges(PathComparison):
             )
             * _FormulaHelpers.sum_from_to(
                 (
-                    get_variable_function(self.path_two, "v", "i")
-                    * get_variable_function(self.path_two, "w", _FormulaHelpers.variable("i") + 1)
+                    get_variable_function(self.path_two, "v", "i", graph.n_vertices)
+                    * get_variable_function(self.path_two, "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
                 ),
                 "i",
                 1,
@@ -538,8 +573,8 @@ class PathIsValid(PathBound):
         return _FormulaHelpers.get_for_each_path(
             _FormulaHelpers.sum_set(
                 _FormulaHelpers.get_for_each_position(
-                    get_variable_function("p", "v", "i")
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1),
+                    get_variable_function("p", "v", "i", graph.n_vertices)
+                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
                     settings.max_path_length,
                 ),
                 ["v", "w"],
@@ -555,7 +590,7 @@ class PathIsValid(PathBound):
         )
 
     def get_formula_one_hot(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        def get_variable_function(p: Any, v: Any, i: Any) -> sp.Expr:
+        def get_variable_function(p: Any, v: Any, i: Any, _n: int = 0) -> sp.Expr:
             return _FormulaHelpers.get_encoding_variable_one_hot(p, v, i)
 
         general = self.get_formula_general(graph, settings, get_variable_function)
@@ -574,6 +609,10 @@ class PathIsValid(PathBound):
 
     def get_formula_unary(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
         general = self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
+        enforce_domain_wall_penalty = (
+            2 * settings.max_path_length * np.max(graph.adjacency_matrix) + graph.n_vertices**2
+        )
+        # This ensures that the domain wall condition (x_i = 0 -> x_{i+1} = 0) is not broken to achieve better cost in other cost functions.
         return cast(
             sp.Expr,
             general
@@ -582,8 +621,8 @@ class PathIsValid(PathBound):
                     1 - _FormulaHelpers.get_encoding_variable_one_hot("p", 1, "i"), settings.max_path_length
                 ),
                 self.path_ids,
-            )
-            + 2
+            )  # Enforce \pi_1 >= 1
+            + enforce_domain_wall_penalty
             * _FormulaHelpers.get_for_each_path(
                 _FormulaHelpers.get_for_each_position(
                     _FormulaHelpers.sum_set(
@@ -599,6 +638,9 @@ class PathIsValid(PathBound):
             ),  # TODO prove this is enough
         )
 
+    def get_formula_binary(self, graph: Graph, settings: PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_binary)
+
 
 class MinimisePathLength(PathBound):
     def __init__(self, path_ids: list[int]) -> None:
@@ -611,8 +653,8 @@ class MinimisePathLength(PathBound):
             _FormulaHelpers.sum_set(
                 _FormulaHelpers.get_for_each_position(
                     _FormulaHelpers.adjacency("v", "w")
-                    * get_variable_function("p", "v", "i")
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1),
+                    * get_variable_function("p", "v", "i", graph.n_vertices)
+                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
                     settings.max_path_length,
                 ),
                 ["v", "w"],
@@ -650,7 +692,21 @@ class PathFindingQUBOGenerator(QUBOGenerator):
         self.settings = settings
 
     @staticmethod
+    def suggest_encoding(json_string: str, graph: Graph) -> EncodingType:
+        results: list[tuple[EncodingType, int]] = []
+        for encoding in [EncodingType.ONE_HOT, EncodingType.UNARY, EncodingType.BINARY]:
+            generator = PathFindingQUBOGenerator.__from_json(json_string, graph, override_encoding=encoding)
+            results.append((encoding, generator.construct_qubo_matrix().shape[0]))
+        return next(encoding for (encoding, size) in results if size == min([size for (_, size) in results]))
+
+    @staticmethod
     def from_json(json_string: str, graph: Graph) -> PathFindingQUBOGenerator:
+        return PathFindingQUBOGenerator.__from_json(json_string, graph)
+
+    @staticmethod
+    def __from_json(
+        json_string: str, graph: Graph, override_encoding: EncodingType | None = None
+    ) -> PathFindingQUBOGenerator:
         with (impresources.files(mqt.pathfinder) / "resources" / "input-format.json").open("r") as f:
             main_schema = json.load(f)
         with (impresources.files(mqt.pathfinder) / "resources" / "constraint.json").open("r") as f:
@@ -665,12 +721,15 @@ class PathFindingQUBOGenerator(QUBOGenerator):
         json_object = json.loads(json_string)
         validator.validate(json_object)
 
-        if json_object["settings"]["encoding"] == "ONE_HOT":
-            encoding_type = EncodingType.ONE_HOT
-        elif json_object["settings"]["encoding"] in ["UNARY", "DOMAIN_WALL"]:
-            encoding_type = EncodingType.UNARY
+        if override_encoding is None:
+            if json_object["settings"]["encoding"] == "ONE_HOT":
+                encoding_type = EncodingType.ONE_HOT
+            elif json_object["settings"]["encoding"] in ["UNARY", "DOMAIN_WALL"]:
+                encoding_type = EncodingType.UNARY
+            else:
+                encoding_type = EncodingType.BINARY
         else:
-            encoding_type = EncodingType.BINARY
+            encoding_type = override_encoding
 
         settings = PathFindingQUBOGeneratorSettings(
             encoding_type,
@@ -757,7 +816,7 @@ class PathFindingQUBOGenerator(QUBOGenerator):
         return [(expr, lam if lam else self.__optimal_lambda()) for (expr, lam) in self.penalties]
 
     def __optimal_lambda(self) -> float:
-        return cast(float, np.sum(self.graph.adjacency_matrix))
+        return cast(float, np.max(self.graph.adjacency_matrix) * self.settings.max_path_length + 1)
 
     def _construct_expansion(self, expression: sp.Expr) -> sp.Expr:
         assignment = [

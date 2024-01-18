@@ -6,17 +6,14 @@
     "loops": true
   },
   "objective_function": {
-    "type": "MinimisePathLength",
-    "path_ids": [1]
+    "type": "MinimisePathLength"
   },
   "constraints": [
     {
-      "type": "PathIsValid",
-      "path_ids": [1]
+      "type": "PathIsValid"
     },
     {
-      "type": "PathContainsVerticesExactlyOnce",
-      "path_ids": [1]
+      "type": "PathContainsVerticesExactlyOnce"
     }
   ]
 }
