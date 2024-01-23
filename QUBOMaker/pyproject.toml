@@ -32,6 +32,8 @@ dependencies = [
     "qiskit_optimization",
     "tsplib95",
     "jsonschema",
+    "IPython",
+    "ipywidgets"
 ]
 
 classifiers = [
