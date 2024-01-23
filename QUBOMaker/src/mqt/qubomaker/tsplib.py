@@ -2,17 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import mqt.pathfinder.cost_functions as cost_functions
-import mqt.pathfinder.graph as graph
-from mqt.pathfinder.cost_functions import PathFindingQUBOGenerator, PathFindingQUBOGeneratorSettings
+from mqt.qubomaker import Graph
+from mqt.qubomaker.pathfinder import PathFindingQUBOGenerator, PathFindingQUBOGeneratorSettings, cost_functions
 
 if TYPE_CHECKING:
     import networkx as nx
     from tsplib95.models import StandardProblem
 
 
-def to_graph(g: nx.Graph) -> graph.Graph:
-    return graph.Graph(g.number_of_nodes(), g.edges.data("weight"))
+def to_graph(g: nx.Graph) -> Graph:
+    return Graph(g.number_of_nodes(), g.edges.data("weight"))
 
 
 def __tsp(problem: StandardProblem, encoding_type: cost_functions.EncodingType) -> PathFindingQUBOGenerator:

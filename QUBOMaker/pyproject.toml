@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mqt.pathfinder"
+name = "mqt.qubomaker"
 description = "TODO"
 readme = "README.md"
 authors = [
@@ -50,8 +50,8 @@ classifiers = [
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
-coverage = ["mqt.pathfinder[test]", "coverage[toml]~=7.4.0", "pytest-cov~=4.0.0"]
-dev = ["mqt.pathfinder[coverage]"]
+coverage = ["mqt.qubomaker[test]", "coverage[toml]~=7.4.0", "pytest-cov~=4.0.0"]
+dev = ["mqt.qubomaker[coverage]"]
 
 [project.urls]
 Homepage = "https://github.com/cda-tum/mqtpathfinder"
@@ -62,7 +62,7 @@ Research = "https://www.cda.cit.tum.de/research/quantum/"
 [tool.setuptools_scm]
 
 [tool.setuptools.package-data]
-"mqt.pathfinder" = ["resources/*", "resources/constraints/*"]
+"mqt.qubomaker.pathfinder" = ["resources/*", "resources/constraints/*"]
 
 
 [tool.mypy]
