@@ -46,11 +46,39 @@ class Decompose(sp.Function):
         return cast(sp.Expr, sp.Integer(int(n) >> (int(i) - 1) & 1))
 
 
+class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
+    def doit(self, **_hints) -> sp.Expr:  # type: ignore[no-untyped-def]
+        expr, *limits = self.args
+        limits = list(reversed(limits))
+        return self.__do_expansion(expr, limits[1:], limits[0])  # type: ignore[arg-type]
+
+    def __do_expansion(
+        self,
+        expr: sp.Expr | sp.Basic,
+        remaining_limits: list[tuple[sp.Symbol, sp.Expr, sp.Expr]],
+        limits: tuple[sp.Symbol, sp.Expr, sp.Expr],
+    ) -> sp.Expr:
+        result = sp.Integer(0)
+        (variable, from_value, to_value) = limits
+        if not isinstance(from_value, sp.Integer) or not isinstance(to_value, sp.Integer):
+            return ExpandingSum(expr, list(reversed([limits, *remaining_limits])))  # type: ignore[no-untyped-call]
+        for i in range(int(from_value), int(to_value) + 1):
+            if len(remaining_limits) == 0:
+                result += expr.subs(variable, i)  # type: ignore[no-untyped-call]
+            else:
+                new_remaining_limits = [
+                    (new_variable, new_from_limit.subs(variable, i), new_to_limit.subs(variable, i))  # type: ignore[no-untyped-call]
+                    for (new_variable, new_from_limit, new_to_limit) in remaining_limits
+                ]
+                result += self.__do_expansion(expr.subs(variable, i), new_remaining_limits[1:], new_remaining_limits[0])  # type: ignore[no-untyped-call]
+        return cast(sp.Expr, result)
+
+
 class _FormulaHelpers:
     @staticmethod
     def sum_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
         s = sp.Symbol(var)  # type: ignore[no-untyped-call]
-        return sp.Sum(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
+        return ExpandingSum(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
 
     @staticmethod
     def prod_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
@@ -118,13 +146,13 @@ class _FormulaHelpers:
         index_symbol = _FormulaHelpers.variable("v")
         if index_symbol == vertex:
             index_symbol = _FormulaHelpers.variable("w")
-        max_index = int(np.ceil(np.log2(num_vertices)))
+        max_index = int(np.ceil(np.log2(num_vertices + 1)))
         return cast(
             sp.Expr,
             sp.Product(
-                Decompose(vertex - 1, index_symbol)
+                Decompose(vertex, index_symbol)
                 * _FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)
-                + (1 - Decompose(vertex - 1, index_symbol))
+                + (1 - Decompose(vertex, index_symbol))
                 * (1 - _FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)),
                 (index_symbol, 1, max_index),
             ),  # type: ignore[no-untyped-call]
@@ -263,11 +291,47 @@ class PathStartsAt(PathPositionIs):
         return f"PathStartsAt[{','.join([str(v) for v in self.vertex_ids])}]"
 
 
-class PathEndsAt(PathPositionIs):
+class PathEndsAt(CostFunction):
     vertex_ids: list[int]
+    path: int
 
     def __init__(self, vertex_ids: list[int], path: int) -> None:
-        super().__init__(-1, vertex_ids, path)
+        self.vertex_ids = vertex_ids
+        self.path = path
+
+    def get_formula_general(
+        self,
+        graph: Graph,
+        settings: pathfinder.PathFindingQUBOGeneratorSettings,
+        get_variable_function: GetVariableFunction,
+    ) -> sp.Expr:
+        return cast(
+            sp.Expr,
+            _FormulaHelpers.sum_from_to(
+                (
+                    1
+                    - _FormulaHelpers.get_for_each_vertex(
+                        get_variable_function(self.path, "v", "i", graph.n_vertices), graph.all_vertices
+                    )
+                )
+                ** 2
+                * _FormulaHelpers.sum_set(
+                    get_variable_function(self.path, "v", _FormulaHelpers.variable("i") - 1, graph.n_vertices),
+                    ["v"],
+                    f"\\not \\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
+                    lambda: list(set(graph.all_vertices) - set(self.vertex_ids)),
+                ),
+                "i",
+                2,
+                settings.max_path_length,
+            )
+            + _FormulaHelpers.sum_set(
+                get_variable_function(self.path, "v", settings.max_path_length, graph.n_vertices),
+                ["v"],
+                f"\\not \\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
+                lambda: list(set(graph.all_vertices) - set(self.vertex_ids)),
+            ),
+        )
 
     def __str__(self) -> str:
         return f"PathEndsAt[{','.join([str(v) for v in self.vertex_ids])}]"
@@ -609,12 +673,7 @@ class PathIsValid(PathBound):
                 ),
                 ["v", "w"],
                 "\\not\\in E",
-                lambda: [
-                    (i + 1, j + 1)
-                    for i in range(graph.n_vertices)
-                    for j in range(graph.n_vertices)
-                    if graph.adjacency_matrix[i, j] <= 0
-                ],
+                lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.non_edges),
             ),
             self.path_ids,
         )
@@ -630,7 +689,8 @@ class PathIsValid(PathBound):
             + _FormulaHelpers.get_for_each_path(
                 _FormulaHelpers.get_for_each_position(
                     (1 - _FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices))
-                    ** 2,
+                    * -1
+                    * (_FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices)),
                     settings.max_path_length,
                 ),
                 self.path_ids,
@@ -646,12 +706,6 @@ class PathIsValid(PathBound):
         return cast(
             sp.Expr,
             general
-            + _FormulaHelpers.get_for_each_path(
-                _FormulaHelpers.get_for_each_position(
-                    1 - _FormulaHelpers.get_encoding_variable_one_hot("p", 1, "i"), settings.max_path_length
-                ),
-                self.path_ids,
-            )  # Enforce \pi_1 >= 1
             + enforce_domain_wall_penalty
             * _FormulaHelpers.get_for_each_path(
                 _FormulaHelpers.get_for_each_position(
@@ -695,6 +749,36 @@ class MinimisePathLength(PathBound):
                 lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.all_edges),
             ),
             self.path_ids,
+        )
+
+
+class MaximisePathLength(PathBound):
+    def __init__(self, path_ids: list[int]) -> None:
+        super().__init__(path_ids)
+
+    def get_formula_general(
+        self,
+        graph: Graph,
+        settings: pathfinder.PathFindingQUBOGeneratorSettings,
+        get_variable_function: GetVariableFunction,
+    ) -> sp.Expr:
+        return cast(
+            sp.Expr,
+            -1
+            * _FormulaHelpers.get_for_each_path(
+                _FormulaHelpers.sum_set(
+                    _FormulaHelpers.get_for_each_position(
+                        _FormulaHelpers.adjacency("v", "w")
+                        * get_variable_function("p", "v", "i", graph.n_vertices)
+                        * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
+                        settings.max_path_length,
+                    ),
+                    ["v", "w"],
+                    "\\in E",
+                    lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.all_edges),
+                ),
+                self.path_ids,
+            ),
         )
 
 

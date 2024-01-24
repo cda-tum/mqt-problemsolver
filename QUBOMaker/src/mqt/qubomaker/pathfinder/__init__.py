@@ -4,6 +4,7 @@ from .cost_functions import (
     CompositeCostFunction,
     CostFunction,
     EncodingType,
+    MaximisePathLength,
     MinimisePathLength,
     PathBound,
     PathComparison,
@@ -49,4 +50,5 @@ __all__ = [
     "PathsShareNoEdges",
     "PathIsValid",
     "MinimisePathLength",
+    "MaximisePathLength",
 ]
