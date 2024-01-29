@@ -669,7 +669,7 @@ class PathIsValid(PathBound):
                 _FormulaHelpers.get_for_each_position(
                     get_variable_function("p", "v", "i", graph.n_vertices)
                     * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
-                    settings.max_path_length,
+                    settings.max_path_length if settings.loops else settings.max_path_length - 1,
                 ),
                 ["v", "w"],
                 "\\not\\in E",
