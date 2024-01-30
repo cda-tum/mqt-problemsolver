@@ -33,7 +33,8 @@ dependencies = [
     "tsplib95",
     "jsonschema",
     "IPython",
-    "ipywidgets"
+    "ipywidgets",
+    "typing_extensions"
 ]
 
 classifiers = [
@@ -79,7 +80,7 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*"]
+module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "typing_extensions.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
