@@ -1,3 +1,5 @@
+"""Provides utility functions that can be used with QuboMaker."""
+
 from __future__ import annotations
 
 from typing import Iterable, no_type_check
@@ -10,6 +12,11 @@ from ipywidgets import widgets
 
 @no_type_check
 def print_matrix(array: Iterable[Iterable[float]]) -> None:
+    """Print a matrix data structure in LaTeX format.
+
+    Args:
+        array (Iterable[Iterable[float]]): The matrix to be printed.
+    """
     matrix = ""
     for row in array:
         try:
@@ -25,6 +32,15 @@ def print_matrix(array: Iterable[Iterable[float]]) -> None:
 def optimise_classically(
     qubo: npt.NDArray[np.int_ | np.float64], show_progress_bar: bool = False
 ) -> tuple[list[int], float]:
+    """Classically optimizes a given QUBO problem of the form x^TQx.
+
+    Args:
+        qubo (npt.NDArray[np.int_  |  np.float64]): A matrix representing the QUBO problem.
+        show_progress_bar (bool, optional): If True, shows a progress bar in jupyter notebooks during calculation. Defaults to False.
+
+    Returns:
+        tuple[list[int], float]: The optimal solution and its corresponding score.
+    """
     progress_bar: widgets.FloatProgress | None = None
     if show_progress_bar:
         progress_bar = widgets.FloatProgress(
