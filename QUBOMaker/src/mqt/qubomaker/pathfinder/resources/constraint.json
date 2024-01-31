@@ -13,6 +13,7 @@
     { "$ref": "paths_share_no_vertices.json" },
     { "$ref": "paths_share_no_edges.json" },
     { "$ref": "path_vertex_precedence.json" },
-    { "$ref": "path_minimise_length.json" }
+    { "$ref": "path_minimize_length.json" },
+    { "$ref": "path_maximize_length.json" }
   ]
 }

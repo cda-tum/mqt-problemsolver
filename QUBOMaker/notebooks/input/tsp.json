@@ -6,7 +6,7 @@
     "loops": true
   },
   "objective_function": {
-    "type": "MinimisePathLength"
+    "type": "MinimizePathLength"
   },
   "constraints": [
     {

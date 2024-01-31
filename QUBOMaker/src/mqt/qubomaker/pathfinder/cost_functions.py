@@ -1,3 +1,5 @@
+"""Includes all cost functions supported by the pathfinding QUBOGenerator."""
+
 from __future__ import annotations
 
 import functools
@@ -7,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Callable, cast
 
 import numpy as np
 import sympy as sp
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from mqt.qubomaker import Graph
@@ -17,28 +20,71 @@ GetVariableFunction = Callable[[Any, Any, Any, int], sp.Expr]
 
 
 class EncodingType(Enum):
+    """The encoding types supported for the QUBO generation."""
+
     ONE_HOT = 1
     UNARY = 2
     BINARY = 3
 
 
 class A(sp.Function):
+    """Custom sympy function for the adjacency matrix.
+
+    `A(v, w)` represents the weight of edge (v, w).
+    """
+
     def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+        """Returns the latex representation of the expression.
+
+        Args:
+            _printer (sp.StrPrinter): The printer to use.
+
+        Returns:
+            str: The latex representation of the expression.
+        """
         v, w = (self.args[0], self.args[1])
         return rf"A_{{{v},{w}}}"
 
 
 class X(sp.Function):
+    """Custom sympy function for the encoding variables.
+
+    `x(p, v, i)` represents a single binary variable. Its meaning depends on the encoding type.
+    """
+
     def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+        """Returns the latex representation of the expression.
+
+        Args:
+            _printer (sp.StrPrinter): The printer to use.
+
+        Returns:
+            str: The latex representation of the expression.
+        """
         p, v, i = (self.args[0], self.args[1], self.args[2])
         return rf"x_{{{p},{v},{i}}}"
 
 
 class Decompose(sp.Function):
+    """Custom sympy function for the decomposition of an integer into its binary digits.
+
+    Example:
+        `Decompose(5, 1)` represents digit 1 of the binary string `101`, i.e., 1.
+    """
+
     def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+        """Returns the latex representation of the expression.
+
+        Args:
+            _printer (sp.StrPrinter): The printer to use.
+
+        Returns:
+            str: The latex representation of the expression.
+        """
         n, i = (self.args[0], self.args[1])
         return rf"\bar{{{n}}}_{{{i}}}"
 
+    @override
     def doit(self, **_hints: Any) -> sp.Expr:
         n, i = self.args
         if not isinstance(n, sp.Integer) or not isinstance(i, sp.Integer):
@@ -47,6 +93,9 @@ class Decompose(sp.Function):
 
 
 class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
+    """Represents a sum that is always expanded into a sum of its elements when calling `doit()`."""
+
+    @override
     def doit(self, **_hints) -> sp.Expr:  # type: ignore[no-untyped-def]
         expr, *limits = self.args
         limits = list(reversed(limits))
@@ -58,6 +107,19 @@ class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
         remaining_limits: list[tuple[sp.Symbol, sp.Expr, sp.Expr]],
         limits: tuple[sp.Symbol, sp.Expr, sp.Expr],
     ) -> sp.Expr:
+        """Expands one layer of the sum.
+
+        A sum may consist of multiple layers of sums. This method expands the outer-most layer of the sum. And then continues
+        recursively with the remaining layers.
+
+        Args:
+            expr (sp.Expr | sp.Basic): The expression inside the sum.
+            remaining_limits (list[tuple[sp.Symbol, sp.Expr, sp.Expr]]): The remaining sum limits that have not been expanded yet.
+            limits (tuple[sp.Symbol, sp.Expr, sp.Expr]): The sum limits that are expanded in this step.
+
+        Returns:
+            sp.Expr: The expanded sum of elements.
+        """
         result = sp.Integer(0)
         (variable, from_value, to_value) = limits
         if not isinstance(from_value, sp.Integer) or not isinstance(to_value, sp.Integer):
@@ -75,18 +137,53 @@ class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
 
 
 class _FormulaHelpers:
+    """Provides static methods for the more efficient construction of sympy formulas."""
+
     @staticmethod
     def sum_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
+        """Generates a sum of the form `Sum(expression, (var, from_number, to_number)`.
+
+        Args:
+            expression (sp.Expr): The term inside the sum.
+            var (str): The iteration variable of the sum as a string.
+            from_number (int): The lower bound of the sum.
+            to_number (int): The upper bound of the sum.
+
+        Returns:
+            sp.Expr: The sympy sum term.
+        """
         s = sp.Symbol(var)  # type: ignore[no-untyped-call]
         return ExpandingSum(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
 
     @staticmethod
     def prod_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
+        """Generates a product of the form `Product(expression, (var, from_number, to_number)`.
+
+        Args:
+            expression (sp.Expr): The term inside the sum.
+            var (str): The iteration variable of the sum as a string.
+            from_number (int): The lower bound of the sum.
+            to_number (int): The upper bound of the sum.
+
+        Returns:
+            sp.Expr: The sympy sum term.
+        """
         s = sp.Symbol(var)  # type: ignore[no-untyped-call]
         return sp.Product(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
 
     @staticmethod
     def sum_set(expression: sp.Expr, variables: list[str], _latex: str, callback: SetCallback) -> sp.Expr:
+        """Generates a sum of the form `\sum_{[variables] \in [callback]} [expression]`.
+
+        Args:
+            expression (sp.Expr): The term inside the sum.
+            variables (list[str]): A list of iteration variables of the sum as strings.
+            _latex (str): The latex representation of the set expression.
+            callback (SetCallback): A callback returning the set over which the sum should iterate.
+
+        Returns:
+            sp.Expr: The sympy sum term.
+        """
         # TODO use latex output
         variable_symbols = [_FormulaHelpers.variable(v) for v in variables]
         assignments = [x if isinstance(x, tuple) else (x,) for x in callback()]
@@ -101,6 +198,17 @@ class _FormulaHelpers:
 
     @staticmethod
     def adjacency(v: int | str | sp.Expr, w: int | str | sp.Expr) -> sp.Function:
+        """Returns an access to the adjacency matrix with indices `v` and `w`.
+
+        `v` and `w` may be of type int, str, or sympy expressions.
+
+        Args:
+            v (int | str | sp.Expr): The "from" index of the adjacency matrix.
+            w (int | str | sp.Expr): The "to" index of the adjacency matrix.
+
+        Returns:
+            sp.Function: A call to the adjacency matrix function.
+        """
         if isinstance(v, str):
             v = _FormulaHelpers.variable(v)
         if isinstance(w, str):
@@ -109,10 +217,33 @@ class _FormulaHelpers:
 
     @staticmethod
     def variable(name: str) -> sp.Symbol:
+        """Returns a variable with the given name.
+
+        Args:
+            name (str): The name of the variable.
+
+        Returns:
+            sp.Symbol: The generated variable.
+        """
         return sp.Symbol(name)  # type: ignore[no-untyped-call]
 
     @staticmethod
     def get_encoding_variable_one_hot(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Function:
+        """Returns an access to the binary variable `x_{path, vertex, position}` representing the statement
+        "Vertex `vertex` is located at position `position` in path `path`" for One-Hot encoding.
+
+        All indices can be integers, strings, or sympy expressions.
+        The `_num_vertices` parameter is only included for compatibility.
+
+        Args:
+            path (Any): The path index.
+            vertex (Any): The vertex index.
+            position (Any): The position index.
+            _num_vertices (int, optional): The number of vertices in the graph. Defaults to 0.
+
+        Returns:
+            sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for One-Hot encoding.
+        """
         if isinstance(path, str):
             path = _FormulaHelpers.variable(path)
         if isinstance(vertex, str):
@@ -123,6 +254,21 @@ class _FormulaHelpers:
 
     @staticmethod
     def get_encoding_variable_unary(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
+        """Returns anexpression representing the statement
+        "Vertex `vertex` is located at position `position` in path `path`" for Unary encoding.
+
+        All indices can be integers, strings, or sympy expressions.
+        The `_num_vertices` parameter is only included for compatibility.
+
+        Args:
+            path (Any): The path index.
+            vertex (Any): The vertex index.
+            position (Any): The position index.
+            _num_vertices (int, optional): The number of vertices in the graph. Defaults to 0.
+
+        Returns:
+            sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Unary encoding.
+        """
         if isinstance(path, str):
             path = _FormulaHelpers.variable(path)
         if isinstance(vertex, str):
@@ -137,6 +283,21 @@ class _FormulaHelpers:
 
     @staticmethod
     def get_encoding_variable_binary(path: Any, vertex: Any, position: Any, num_vertices: int = 0) -> sp.Expr:
+        """Returns an expression representing the statement
+        "Vertex `vertex` is located at position `position` in path `path`" for Binary encoding.
+
+        All indices can be integers, strings, or sympy expressions.
+        The `_num_vertices` parameter is only included for compatibility.
+
+        Args:
+            path (Any): The path index.
+            vertex (Any): The vertex index.
+            position (Any): The position index.
+            _num_vertices (int, optional): The number of vertices in the graph. Defaults to 0.
+
+        Returns:
+            sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Binary encoding.
+        """
         if isinstance(path, str):
             path = _FormulaHelpers.variable(path)
         if isinstance(vertex, str):
@@ -160,6 +321,15 @@ class _FormulaHelpers:
 
     @staticmethod
     def get_for_each_path(expression: sp.Expr, paths: list[int]) -> sp.Expr:
+        """Returns a sum iterating over the given expression for each path in `paths`.
+
+        Args:
+            expression (sp.Expr): The expression to sum up.
+            paths (list[int]): The paths over which to sum the expression.
+
+        Returns:
+            sp.Expr: A sum of the expression for each path.
+        """
         return _FormulaHelpers.sum_set(
             expression,
             ["p"],
@@ -169,10 +339,28 @@ class _FormulaHelpers:
 
     @staticmethod
     def get_for_each_position(expression: sp.Expr, path_size: int) -> sp.Expr:
+        """Returns a sum iterating over the given expression for each possible index in the path.
+
+        Args:
+            expression (sp.Expr): The expression to sum up.
+            path_size (int): The maximum length of a path.
+
+        Returns:
+            sp.Expr: A sum of the expression for each position.
+        """
         return _FormulaHelpers.sum_from_to(expression, "i", 1, path_size)
 
     @staticmethod
     def get_for_each_vertex(expression: sp.Expr, vertices: list[int]) -> sp.Expr:
+        """Returns a sum iterating over the given expression for each possible vertex in `vertices`.
+
+        Args:
+            expression (sp.Expr): The expression to sum up.
+            vertices (list[int]): The list of vertices for which the expression should be summed.
+
+        Returns:
+            sp.Expr: A sum of the expression for each vertex.
+        """
         return _FormulaHelpers.sum_set(
             expression,
             ["v"],
@@ -182,7 +370,21 @@ class _FormulaHelpers:
 
 
 class CostFunction(ABC):
+    """An abstract base class for cost functions.
+
+    Represents a cost function that can be translated into a QUBO expression.
+    """
+
     def get_formula(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        """Translates the cost function into a QUBO expression.
+
+        Args:
+            graph (Graph): The graph on which the cost function should be applied.
+            settings (pathfinder.PathFindingQUBOGeneratorSettings): The settings of the QUBO generator.
+
+        Returns:
+            sp.Expr: An expression representing the cost function as a QUBO function.
+        """
         if settings.encoding_type == EncodingType.ONE_HOT:
             return self.get_formula_one_hot(graph, settings)
         if settings.encoding_type == EncodingType.UNARY:
@@ -198,30 +400,91 @@ class CostFunction(ABC):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        pass
+        """Returns the QUBO expression for the cost function in the general case.
+
+        In the general case, the cost function may access the blackbox function `get_variable_function(p, v, i)`
+        that returns 1 if vertex `v` is located at position `i` in path `p` and 0 otherwise.
+
+        Args:
+            graph (Graph): The graph on which the cost function should be applied.
+            settings (pathfinder.PathFindingQUBOGeneratorSettings): The settings of the QUBO generator.
+            get_variable_function (GetVariableFunction): The blackbox function for accessing the encoding variables.
+
+        Returns:
+            sp.Expr: An expression representing the cost function as a QUBO function.
+        """
 
     def get_formula_one_hot(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        """Computes the QUBO expression for the cost function for One-Hot encoding.
+
+        Args:
+            graph (Graph): The graph on which the cost function should be applied.
+            settings (pathfinder.PathFindingQUBOGeneratorSettings): The settings of the QUBO generator.
+
+        Returns:
+            sp.Expr: An expression representing the cost function as a QUBO function.
+        """
         return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_one_hot)
 
     def get_formula_unary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        """Computes the QUBO expression for the cost function for Unary encoding.
+
+        Args:
+            graph (Graph): The graph on which the cost function should be applied.
+            settings (pathfinder.PathFindingQUBOGeneratorSettings): The settings of the QUBO generator.
+
+        Returns:
+            sp.Expr: An expression representing the cost function as a QUBO function.
+        """
         return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
 
     def get_formula_binary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        """Computes the QUBO expression for the cost function for Binary encoding.
+
+        Args:
+            graph (Graph): The graph on which the cost function should be applied.
+            settings (pathfinder.PathFindingQUBOGeneratorSettings): The settings of the QUBO generator.
+
+        Returns:
+            sp.Expr: An expression representing the cost function as a QUBO function.
+        """
         return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_binary)
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         return f"{self.__class__.__name__}"
 
 
 class CompositeCostFunction(CostFunction):
+    """A composite cost function that is the sum of multiple cost functions.
+
+    Attributes:
+        summands (list[tuple[CostFunction, int]]): A list of tuples of cost functions and their weights.
+    """
+
     summands: list[tuple[CostFunction, int]]
 
     def __init__(self, *parts: tuple[CostFunction, int]) -> None:
+        """Initialises a composite cost function.
+
+        Args:
+            *parts (tuple[CostFunction, int]): A list of tuples of cost functions and their weights.
+        """
         self.summands = list(parts)
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         return "   " + "\n + ".join([f"{w} * {fn}" for (fn, w) in self.summands])
 
+    @override
     def get_formula(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         return cast(
             sp.Expr,
@@ -232,6 +495,7 @@ class CompositeCostFunction(CostFunction):
             ),
         )
 
+    @override
     def get_formula_general(
         self,
         _graph: Graph,
@@ -243,15 +507,31 @@ class CompositeCostFunction(CostFunction):
 
 
 class PathPositionIs(CostFunction):
+    """A cost function that penalises paths that do not contain a given vertex at a given position.
+
+    Attributes:
+        vertex_ids (list[int]): The list of vertices, one of which must be located at the given position.
+        path (int): The path index.
+        position (int): The position index.
+    """
+
     vertex_ids: list[int]
     path: int
     position: int
 
     def __init__(self, position: int, vertex_ids: list[int], path: int) -> None:
+        """Initialises a PathPositionIs cost function.
+
+        Args:
+            position (int): The position index.
+            vertex_ids (list[int]): The list of vertices, one of which must be located at the given position.
+            path (int): The path index.
+        """
         self.vertex_ids = vertex_ids
         self.position = position
         self.path = path
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -278,27 +558,57 @@ class PathPositionIs(CostFunction):
         )
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         return f"PathPosition[{self.position}]Is[{','.join([str(v) for v in self.vertex_ids])}]"
 
 
 class PathStartsAt(PathPositionIs):
-    vertex_ids: list[int]
+    """A cost function that penalises paths that do not start at a given vertex."""
 
     def __init__(self, vertex_ids: list[int], path: int) -> None:
+        """Initialises a PathStartsAt cost function.
+
+        Args:
+            vertex_ids (list[int]): The list of vertices, one of which must be located at the start of the path.
+            path (int): The path index.
+        """
         super().__init__(1, vertex_ids, path)
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         return f"PathStartsAt[{','.join([str(v) for v in self.vertex_ids])}]"
 
 
 class PathEndsAt(CostFunction):
+    """A cost function that penalises paths that do not end at a given vertex.
+
+    Attributes:
+        vertex_ids (list[int]): The list of vertices, one of which must be located at the end of the path.
+        path (int): The path index.
+    """
+
     vertex_ids: list[int]
     path: int
 
     def __init__(self, vertex_ids: list[int], path: int) -> None:
+        """Initialises a PathEndsAt cost function.
+
+        Args:
+            vertex_ids (list[int]): The list of vertices, one of which must be located at the end of the path.
+            path (int): The path index.
+        """
         self.vertex_ids = vertex_ids
         self.path = path
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -334,10 +644,24 @@ class PathEndsAt(CostFunction):
         )
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         return f"PathEndsAt[{','.join([str(v) for v in self.vertex_ids])}]"
 
 
 class PathContainsVertices(CostFunction):
+    """A cost function that penalises paths that do not contain a given set of vertices.
+
+    Attributes:
+        vertex_ids (list[int]): The list of vertices subject to the constraint.
+        min_occurrences (int): The minimum number of occurrences of the vertices in the path.
+        max_occurrences (int): The maximum number of occurrences of the vertices in the path.
+        path_ids (list[int]): The list of paths to which the cost function applies.
+    """
+
     vertex_ids: list[int]
     min_occurrences: int
     max_occurrences: int
@@ -350,16 +674,37 @@ class PathContainsVertices(CostFunction):
         vertex_ids: list[int],
         path_ids: list[int],
     ) -> None:
+        """Initialises a PathContainsVertices cost function.
+
+        Args:
+            min_occurrences (int): The minimum number of occurrences of the vertices in the path.
+            max_occurrences (int): The maximum number of occurrences of the vertices in the path.
+            vertex_ids (list[int]): The list of vertices subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         self.vertex_ids = vertex_ids
         self.min_occurrences = min_occurrences
         self.max_occurrences = max_occurrences
         self.path_ids = path_ids
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         vertices = ",".join([str(v) for v in self.vertex_ids])
         return f"PathContains[{vertices}]:[{self.min_occurrences}-{self.max_occurrences}]"
 
     def _handle_for_each(self, expression: sp.Expr) -> sp.Expr:
+        """Wraps an expression in the sum parts that are required for this constraint.
+
+        Args:
+            expression (sp.Expr): The expression to wrap.
+
+        Returns:
+            sp.Expr: The wrapped expression.
+        """
         return _FormulaHelpers.get_for_each_path(
             (
                 _FormulaHelpers.sum_set(
@@ -374,9 +719,18 @@ class PathContainsVertices(CostFunction):
 
 
 class PathContainsVerticesExactlyOnce(PathContainsVertices):
+    """A cost function that penalises paths that do not contain a given set of vertices exactly once."""
+
     def __init__(self, vertex_ids: list[int], path_ids: list[int]) -> None:
+        """Initialises a PathContainsVerticesExactlyOnce cost function.
+
+        Args:
+            vertex_ids (list[int]): The list of vertices subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(1, 1, vertex_ids, path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -395,9 +749,18 @@ class PathContainsVerticesExactlyOnce(PathContainsVertices):
 
 
 class PathContainsVerticesAtLeastOnce(PathContainsVertices):
+    """A cost function that penalises paths that do not contain a given set of vertices at least once."""
+
     def __init__(self, vertex_ids: list[int], path_ids: list[int]) -> None:
+        """Initialises a PathContainsVerticesAtLeastOnce cost function.
+
+        Args:
+            vertex_ids (list[int]): The list of vertices subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(1, -1, vertex_ids, path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -412,9 +775,18 @@ class PathContainsVerticesAtLeastOnce(PathContainsVertices):
 
 
 class PathContainsVerticesAtMostOnce(PathContainsVertices):
+    """A cost function that penalises paths that do not contain a given set of vertices at most once."""
+
     def __init__(self, vertex_ids: list[int], path_ids: list[int]) -> None:
+        """Initialises a PathContainsVerticesAtMostOnce cost function.
+
+        Args:
+            vertex_ids (list[int]): The list of vertices subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(0, 1, vertex_ids, path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -438,6 +810,15 @@ class PathContainsVerticesAtMostOnce(PathContainsVertices):
 
 
 class PathContainsEdges(CostFunction):
+    """A cost function that penalises paths that do not contain a given set of edges.
+
+    Attributes:
+        edges (list[tuple[int, int]]): The list of edges subject to the constraint.
+        min_occurrences (int): The minimum number of occurrences of the edges in the path.
+        max_occurrences (int): The maximum number of occurrences of the edges in the path.
+        path_ids (list[int]): The list of paths to which the cost function applies.
+    """
+
     edges: list[tuple[int, int]]
     min_occurrences: int
     max_occurrences: int
@@ -450,16 +831,37 @@ class PathContainsEdges(CostFunction):
         edges: list[tuple[int, int]],
         path_ids: list[int],
     ) -> None:
+        """Initialises a PathContainsEdges cost function.
+
+        Args:
+            min_occurrences (int): The minimum number of occurrences of the edges in the path.
+            max_occurrences (int): The maximum number of occurrences of the edges in the path.
+            edges (list[tuple[int, int]]): The list of edges subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         self.edges = edges
         self.min_occurrences = min_occurrences
         self.max_occurrences = max_occurrences
         self.path_ids = path_ids
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         vertices = ",".join([str(v) for v in self.edges])
         return f"PathContains[{vertices}]:[{self.min_occurrences}-{self.max_occurrences}]"
 
     def _handle_for_each(self, expression: sp.Expr) -> sp.Expr:
+        """Wraps an expression in the sum parts that are required for this constraint.
+
+        Args:
+            expression (sp.Expr): The expression to wrap.
+
+        Returns:
+            sp.Expr: The wrapped expression.
+        """
         return _FormulaHelpers.get_for_each_path(
             _FormulaHelpers.sum_set(
                 expression,
@@ -472,9 +874,18 @@ class PathContainsEdges(CostFunction):
 
 
 class PathContainsEdgesExactlyOnce(PathContainsEdges):
+    """A cost function that penalises paths that do not contain a given set of edges exactly once."""
+
     def __init__(self, edges: list[tuple[int, int]], path_ids: list[int]) -> None:
+        """Initialises a PathContainsEdgesExactlyOnce cost function.
+
+        Args:
+            edges (list[tuple[int, int]]): The list of edges subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(1, 1, edges, path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -497,9 +908,18 @@ class PathContainsEdgesExactlyOnce(PathContainsEdges):
 
 
 class PathContainsEdgesAtLeastOnce(PathContainsEdges):
+    """A cost function that penalises paths that do not contain a given set of edges at least once."""
+
     def __init__(self, edges: list[tuple[int, int]], path_ids: list[int]) -> None:
+        """Initialises a PathContainsEdgesAtLeastOnce cost function.
+
+        Args:
+            edges (list[tuple[int, int]]): The list of edges subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(1, -1, edges, path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -521,9 +941,18 @@ class PathContainsEdgesAtLeastOnce(PathContainsEdges):
 
 
 class PathContainsEdgesAtMostOnce(PathContainsEdges):
+    """A cost function that penalises paths that do not contain a given set of edges at most once."""
+
     def __init__(self, edges: list[tuple[int, int]], path_ids: list[int]) -> None:
+        """Initialises a PathContainsEdgesAtMostOnce cost function.
+
+        Args:
+            edges (list[tuple[int, int]]): The list of edges subject to the constraint.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(0, 1, edges, path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -551,24 +980,55 @@ class PathContainsEdgesAtMostOnce(PathContainsEdges):
 
 
 class PathBound(CostFunction):
+    """An abstract cost function for penalties limited to an individual path.
+
+    Attributes:
+        path_ids (list[int]): The list of paths to which the cost function applies.
+    """
+
     path_ids: list[int]
 
     def __init__(self, path_ids: list[int]) -> None:
+        """Initialises a PathBound cost function.
+
+        Args:
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         self.path_ids = path_ids
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         return f"{self.__class__.__name__}[{','.join([str(path_id) for path_id in self.path_ids])}]"
 
 
 class PrecedenceConstraint(PathBound):
+    """A cost function that penalises paths that do not satisfy a given precedence constraint.
+
+    Attributes:
+        pre (int): The vertex that must precede `post`.
+        post (int): The vertex that must follow `pre`.
+    """
+
     pre: int
     post: int
 
     def __init__(self, pre: int, post: int, path_ids: list[int]) -> None:
+        """Initialises a PrecedenceConstraint cost function.
+
+        Args:
+            pre (int): The vertex that must precede `post`.
+            post (int): The vertex that must follow `pre`.
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(path_ids)
         self.pre = pre
         self.post = post
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -593,18 +1053,38 @@ class PrecedenceConstraint(PathBound):
 
 
 class PathComparison(CostFunction):
+    """An abstract cost function for penalties that compare two paths.
+
+    Attributes:
+        path_one (int): The first path.
+        path_two (int): The second path."""
+
     path_one: int
     path_two: int
 
     def __init__(self, path_one: int, path_two: int) -> None:
+        """Initialises a PathComparison cost function.
+
+        Args:
+            path_one (int): The first path.
+            path_two (int): The second path.
+        """
         self.path_one = path_one
         self.path_two = path_two
 
     def __str__(self) -> str:
+        """Returns a string representation of the cost function.
+
+        Returns:
+            str: A string representation of the cost function.
+        """
         return f"{self.__class__.__name__}[{self.path_one}, {self.path_two}]"
 
 
 class PathsShareNoVertices(PathComparison):
+    """A cost function that penalises paths that share vertices."""
+
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -623,6 +1103,9 @@ class PathsShareNoVertices(PathComparison):
 
 
 class PathsShareNoEdges(PathComparison):
+    """A cost function that penalises paths that share edges."""
+
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -655,9 +1138,24 @@ class PathsShareNoEdges(PathComparison):
 
 
 class PathIsValid(PathBound):
+    """A cost function that penalises paths that are not valid for a given encoding.
+
+    A path may be invalid if
+        - it contains an edge that is not in the graph,
+        - it has an assignment incompatible with the encoding:
+            - for One-Hot encoding, multiple vertices are assigned to a single position
+            - for Unary encoding, a position bit string is of the form `1...10...1...0`
+    """
+
     def __init__(self, path_ids: list[int]) -> None:
+        """Initialises a PathIsValid cost function.
+
+        Args:
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -678,6 +1176,7 @@ class PathIsValid(PathBound):
             self.path_ids,
         )
 
+    @override
     def get_formula_one_hot(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         def get_variable_function(p: Any, v: Any, i: Any, _n: int = 0) -> sp.Expr:
             return _FormulaHelpers.get_encoding_variable_one_hot(p, v, i)
@@ -697,6 +1196,7 @@ class PathIsValid(PathBound):
             ),
         )
 
+    @override
     def get_formula_unary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         general = self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
         enforce_domain_wall_penalty = (
@@ -722,14 +1222,25 @@ class PathIsValid(PathBound):
             ),  # TODO prove this is enough
         )
 
+    @override
     def get_formula_binary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_binary)
 
 
-class MinimisePathLength(PathBound):
+class MinimizePathLength(PathBound):
+    """A cost function that penalises paths based on their length.
+
+    A bigger total weight causes a bigger penalty."""
+
     def __init__(self, path_ids: list[int]) -> None:
+        """Initialises a MinimizePathLength cost function.
+
+        Args:
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -752,10 +1263,20 @@ class MinimisePathLength(PathBound):
         )
 
 
-class MaximisePathLength(PathBound):
+class MaximizePathLength(PathBound):
+    """A cost function that penalises paths based on their length.
+
+    A lower total weight causes a bigger penalty."""
+
     def __init__(self, path_ids: list[int]) -> None:
+        """Initialises a MaximizePathLength cost function.
+
+        Args:
+            path_ids (list[int]): The list of paths to which the cost function applies.
+        """
         super().__init__(path_ids)
 
+    @override
     def get_formula_general(
         self,
         graph: Graph,
@@ -783,4 +1304,13 @@ class MaximisePathLength(PathBound):
 
 
 def merge(cost_functions: list[CostFunction], optimisation_goals: list[CostFunction]) -> CompositeCostFunction:
+    """Merges a list of cost functions and a list of optimisation criteria into a single cost function.
+
+    Args:
+        cost_functions (list[CostFunction]): The list of cost functions.
+        optimisation_goals (list[CostFunction]): The optimisation criteria.
+
+    Returns:
+        CompositeCostFunction: The resulting cost function.
+    """
     return CompositeCostFunction(*([(f, 1) for f in cost_functions] + [(f, 1) for f in optimisation_goals]))

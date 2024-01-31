@@ -35,7 +35,7 @@ def __tsp(problem: StandardProblem, encoding_type: cost_functions.EncodingType) 
     """
     g = to_graph(problem.get_graph())
     settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices, True)
-    generator = PathFindingQUBOGenerator(cost_functions.MinimisePathLength([1]), g, settings)
+    generator = PathFindingQUBOGenerator(cost_functions.MinimizePathLength([1]), g, settings)
 
     generator.add_constraint(cost_functions.PathIsValid([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
@@ -75,7 +75,7 @@ def __sop(problem: StandardProblem, encoding_type: cost_functions.EncodingType) 
     """
     g = to_graph(problem.get_graph())
     settings = PathFindingQUBOGeneratorSettings(encoding_type, 1, g.n_vertices, False)
-    generator = PathFindingQUBOGenerator(cost_functions.MinimisePathLength([1]), g, settings)
+    generator = PathFindingQUBOGenerator(cost_functions.MinimizePathLength([1]), g, settings)
     generator.add_constraint(cost_functions.PathIsValid([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
     sop_pairs = []

@@ -3,7 +3,7 @@
   "properties": {
     "type": {
       "type": "string",
-      "const": "MinimisePathLength"
+      "const": "MaximizePathLength"
     },
     "path_ids": {
       "type": "array",

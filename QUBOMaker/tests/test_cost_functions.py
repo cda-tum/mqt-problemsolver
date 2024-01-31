@@ -249,26 +249,26 @@ class TestCostFunctions:
             [[1, 3, 4], [2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
         )
 
-        assert evaluate(pf.MinimisePathLength([1]), encoding_A, encoding_type, loop) == 18 if not loop else 20
+        assert evaluate(pf.MinimizePathLength([1]), encoding_A, encoding_type, loop) == 18 if not loop else 20
         assert (
-            evaluate(pf.MinimisePathLength([1]), encoding_B, encoding_type, loop, n_paths=2) == 10 if not loop else 12
+            evaluate(pf.MinimizePathLength([1]), encoding_B, encoding_type, loop, n_paths=2) == 10 if not loop else 12
         )
-        assert evaluate(pf.MinimisePathLength([2]), encoding_B, encoding_type, loop, n_paths=2) == 5 if not loop else 7
+        assert evaluate(pf.MinimizePathLength([2]), encoding_B, encoding_type, loop, n_paths=2) == 5 if not loop else 7
         assert (
-            evaluate(pf.MinimisePathLength([1, 2]), encoding_B, encoding_type, loop, n_paths=2) == 15
+            evaluate(pf.MinimizePathLength([1, 2]), encoding_B, encoding_type, loop, n_paths=2) == 15
             if not loop
             else 19
         )
 
-        assert evaluate(pf.MaximisePathLength([1]), encoding_A, encoding_type, loop) == -18 if not loop else -20
+        assert evaluate(pf.MaximizePathLength([1]), encoding_A, encoding_type, loop) == -18 if not loop else -20
         assert (
-            evaluate(pf.MaximisePathLength([1]), encoding_B, encoding_type, loop, n_paths=2) == -10 if not loop else -12
+            evaluate(pf.MaximizePathLength([1]), encoding_B, encoding_type, loop, n_paths=2) == -10 if not loop else -12
         )
         assert (
-            evaluate(pf.MaximisePathLength([2]), encoding_B, encoding_type, loop, n_paths=2) == -5 if not loop else -7
+            evaluate(pf.MaximizePathLength([2]), encoding_B, encoding_type, loop, n_paths=2) == -5 if not loop else -7
         )
         assert (
-            evaluate(pf.MaximisePathLength([1, 2]), encoding_B, encoding_type, loop, n_paths=2) == -15
+            evaluate(pf.MaximizePathLength([1, 2]), encoding_B, encoding_type, loop, n_paths=2) == -15
             if not loop
             else -19
         )

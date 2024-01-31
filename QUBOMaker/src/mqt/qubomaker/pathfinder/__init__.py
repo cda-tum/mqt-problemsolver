@@ -8,7 +8,7 @@ Typical usage example:
 
     graph = pf.Graph(5, [(1, 2, 5), (2, 3, 3), (3, 4, 9), (4, 5, 8), (5, 1, 6)])
     settings = pf.PathFindingQUBOGeneratorSettings(pf.EncodingType.ONE_HOT, 1, 5, True)
-    generator = pf.PathFindingQUBOGenerator(pf.MinimisePathLength([1]), graph, settings)
+    generator = pf.PathFindingQUBOGenerator(pf.MinimizePathLength([1]), graph, settings)
     generator.add_constraint(pf.PathIsValid([1]))
     generator.add_constraint(pf.PathContainsVerticesExactlyOnce(graph.all_vertices, [1]))
 
@@ -23,8 +23,8 @@ from .cost_functions import (
     CompositeCostFunction,
     CostFunction,
     EncodingType,
-    MaximisePathLength,
-    MinimisePathLength,
+    MaximizePathLength,
+    MinimizePathLength,
     PathBound,
     PathComparison,
     PathContainsEdges,
@@ -68,6 +68,6 @@ __all__ = [
     "PathsShareNoVertices",
     "PathsShareNoEdges",
     "PathIsValid",
-    "MinimisePathLength",
-    "MaximisePathLength",
+    "MinimizePathLength",
+    "MaximizePathLength",
 ]

@@ -147,8 +147,10 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         def get_constraint(constraint: dict[str, Any]) -> list[cf.CostFunction]:
             if constraint["type"] == "PathIsValid":
                 return [cf.PathIsValid(constraint.get("path_ids", [1]))]
-            if constraint["type"] == "MinimisePathLength":
-                return [cf.MinimisePathLength(constraint.get("path_ids", [1]))]
+            if constraint["type"] == "MinimizePathLength":
+                return [cf.MinimizePathLength(constraint.get("path_ids", [1]))]
+            if constraint["type"] == "MaximizePathLength":
+                return [cf.MaximizePathLength(constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathStartsAt":
                 return [cf.PathStartsAt(constraint["vertices"], constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathEndsAt":

@@ -5,7 +5,7 @@ This tool is meant to help prepare the use of VQAs to solve pathfinding problems
 - Throughout this, we assume $x_{\pi, v, i} = 0$ for $v > |V|$.
 - In cases where we want to work with loops. we assume $x_{\pi,v,i + N} = x*{\pi,v,i}$, otherwise $x*{\pi,v,j} = 0$ for $j > N$\
   - `PathIsValid`
-  - `MinimisePathLength`
+  - `MinimizePathLength`
   - `PathContainsEdgeExactlyOnce`
   - `PathsShareNoEdges`
 - Paths cannot be shorter than $N$. If there are, repeat one of the vertices to pad the length.
@@ -20,9 +20,9 @@ Ensure that $(u \rightarrow v) \in E$ for each $(u \rightarrow v) \in \pi$ and e
 - Unary: $$\sum_{(u \rightarrow v) \not \in E}\sum_{i=1}^{N} (x_{\pi,u,i}-x_{\pi,u+1,i})(x_{\pi,v,i+1}-x_{\pi,v+1,i+1})$$
 - Binary
 
-## `MinimisePathLength`
+## `MinimizePathLength`
 
-Minimise $\sum_{(u \rightarrow v) \in \pi} A_{uv}$
+Minimize $\sum_{(u \rightarrow v) \in \pi} A_{uv}$
 
 - One-Hot: $$\sum_{(u \rightarrow v) \in E} \sum_{i = 1}^{N} A_{uv}x_{\pi, u, i}x_{\pi, v, i+1}$$
 - Unary: $$\sum_{(u \rightarrow v) \in E}\sum_{i=1}^{N} A_{uv}(x_{\pi,u,i}-x_{\pi,u+1,i})(x_{\pi,v,i+1}-x_{\pi,v+1,i+1})$$

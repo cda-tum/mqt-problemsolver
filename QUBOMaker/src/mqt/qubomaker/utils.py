@@ -29,7 +29,7 @@ def print_matrix(array: Iterable[Iterable[float]]) -> None:
 
 
 @no_type_check
-def optimise_classically(
+def optimize_classically(
     qubo: npt.NDArray[np.int_ | np.float64], show_progress_bar: bool = False
 ) -> tuple[list[int], float]:
     """Classically optimizes a given QUBO problem of the form x^TQx.
