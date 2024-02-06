@@ -29,6 +29,8 @@ class QUBOGenerator:
 
     penalties: list[tuple[sp.Expr, float | None]]
 
+    expansion_cache: sp.Expr | None = None
+
     def __init__(self, objective_function: sp.Expr | None) -> None:
         """Initializes a new QUBOGenerator instance.
 
@@ -48,6 +50,7 @@ class QUBOGenerator:
             penalty_function (sp.Expr): A cost function that represents a constraint.
             lam (int | None, optional): The penalty scaling factor. Defaults to None.
         """
+        self.expansion_cache = None
         self.penalties.append((penalty_function, lam))
 
     def construct(self) -> sp.Expr:
@@ -79,12 +82,17 @@ class QUBOGenerator:
         Returns:
             sp.Expr: A mathematical representation of the QUBO formulation in expanded form.
         """
+
+        if self.expansion_cache is not None:
+            return self.expansion_cache
         expression = self.construct().expand().doit()
         if isinstance(expression, sp.Expr):
             expression = self._construct_expansion(expression).expand()
         expression = expression.doit()
         if isinstance(expression, sp.Expr):
-            return self.expand_higher_order_terms(expression)
+            expression = self.expand_higher_order_terms(expression)
+            self.expansion_cache = expression
+            return expression
         msg = "Expression is not an expression."
         raise TypeError(msg)
 
@@ -285,12 +293,14 @@ class QUBOGenerator:
         return cast(float, expansion.subs(variable_assignment).evalf())  # type: ignore[no-untyped-call]
 
     def _get_all_variables(self) -> Sequence[tuple[sp.Expr, int]]:
-        """Returns all variables used in the QUBO formulation. May be extended by subclasses.
+        """Returns all variables used in the QUBO formulation.
 
         Returns:
             Sequence[tuple[sp.Expr, int]]: A list of tuples containing the variable and its index.
         """
-        return []
+        expansion: sp.Expr = self.construct_expansion()
+        variables = list(expansion.atoms(sp.Function))  # type: ignore[no-untyped-call]
+        return [(var, i) for (i, var) in enumerate(sorted(variables, key=lambda var: str(var)))]
 
     def _select_lambdas(self) -> list[tuple[sp.Expr, float]]:
         """Computes the penalty factors for each constraint. May be extended by subclasses.

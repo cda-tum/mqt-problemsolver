@@ -6,7 +6,7 @@ import json
 import os
 from dataclasses import dataclass
 from importlib import resources as impresources
-from typing import TYPE_CHECKING, Any, Sequence, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import jsonschema
 import numpy as np
@@ -366,13 +366,3 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         """
         msg = "TODO"
         raise NotImplementedError(msg)
-
-    @override
-    def _get_all_variables(self) -> Sequence[tuple[sp.Expr, int]]:
-        result = []
-        for p in range(self.settings.n_paths):
-            for v in self.graph.all_vertices:
-                for i in range(self.settings.max_path_length):
-                    var = cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v, i + 1)
-                    result.append((var, self.get_variable_index(var)))
-        return result
