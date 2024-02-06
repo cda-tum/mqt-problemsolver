@@ -256,7 +256,7 @@ class QUBOGenerator:
         auxiliary_variables = list({var for arg in coefficients for var in self.__get_auxiliary_variables(arg)})
         auxiliary_variables.sort(key=lambda var: int(str(var)[2:]))
         result = np.zeros(
-            (self.get_qubit_count() + len(auxiliary_variables), self.get_qubit_count() + len(auxiliary_variables))
+            (self.get_variable_count() + len(auxiliary_variables), self.get_variable_count() + len(auxiliary_variables))
         )
 
         all_variables = dict(self._get_all_variables())
@@ -266,7 +266,7 @@ class QUBOGenerator:
         def get_index(variable: sp.Expr) -> int:
             if variable in all_variables:
                 return all_variables[variable] - 1
-            return auxiliary_variables.index(cast(sp.Symbol, variable)) + self.get_qubit_count()
+            return auxiliary_variables.index(cast(sp.Symbol, variable)) + self.get_variable_count()
 
         for term in coefficients:
             if isinstance(term, sp.Mul):
@@ -310,7 +310,7 @@ class QUBOGenerator:
         """
         return [(expr, weight) if weight is not None else (expr, 1.0) for (expr, weight) in self.penalties]
 
-    def get_qubit_count(self) -> int:
+    def get_variable_count(self) -> int:
         """Returns the number of binary variables required to represent the QUBO problem.
 
         Returns:
