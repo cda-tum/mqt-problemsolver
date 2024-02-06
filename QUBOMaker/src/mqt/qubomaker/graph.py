@@ -90,6 +90,22 @@ class Graph:
         np.savetxt(file, self.adjacency_matrix)
 
     @staticmethod
+    def from_adjacency_matrix(adjacency_matrix: npt.NDArray[np.int_ | np.float64] | list[list[int | float]]) -> Graph:
+        """Creates a graph from an adjacency matrix.
+
+        Args:
+            adjacency_matrix (npt.NDArray[np.int_ | np.float64]): The adjacency matrix to create the graph from.
+
+        Returns:
+            Graph: The graph created from the adjacency matrix.
+        """
+        if isinstance(adjacency_matrix, list):
+            adjacency_matrix = np.array(adjacency_matrix)
+        g = Graph(adjacency_matrix.shape[0], [])
+        g.adjacency_matrix = adjacency_matrix
+        return g
+
+    @staticmethod
     def deserialize(encoding: str) -> Graph:
         """Deserializes a graph from a string.
 
