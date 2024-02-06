@@ -6,7 +6,7 @@ import json
 import os
 from dataclasses import dataclass
 from importlib import resources as impresources
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Sequence, cast
 
 import jsonschema
 import numpy as np
@@ -152,13 +152,11 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             if constraint["type"] == "MaximizePathLength":
                 return [cf.MaximizePathLength(constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathStartsAt":
-                return [cf.PathStartsAt(constraint["vertices"], constraint.get("path_ids", [1]))]
+                return [cf.PathStartsAt(constraint["vertices"], constraint.get("path_id", 1))]
             if constraint["type"] == "PathEndsAt":
-                return [cf.PathEndsAt(constraint["vertices"], constraint.get("path_ids", [1]))]
+                return [cf.PathEndsAt(constraint["vertices"], constraint.get("path_id", 1))]
             if constraint["type"] == "PathPositionIs":
-                return [
-                    cf.PathPositionIs(constraint["position"], constraint["vertices"], constraint.get("path_ids", [1]))
-                ]
+                return [cf.PathPositionIs(constraint["position"], constraint["vertices"], constraint.get("path_id", 1))]
             if constraint["type"] == "PathContainsVerticesExactlyOnce":
                 vertices = constraint.get("vertices", [])
                 if len(vertices) == 0:
@@ -366,3 +364,16 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         """
         msg = "TODO"
         raise NotImplementedError(msg)
+
+    @override
+    def _get_all_variables(self) -> Sequence[tuple[sp.Expr, int]]:
+        result = []
+        max_v = self.graph.n_vertices
+        if self.settings.encoding_type == cf.EncodingType.BINARY:
+            max_v = int(np.ceil(np.log2(self.graph.n_vertices + 1)))
+        for p in range(self.settings.n_paths):
+            for v in range(1, max_v + 1):
+                for i in range(self.settings.max_path_length):
+                    var = cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v, i + 1)
+                    result.append((var, self.get_variable_index(var)))
+        return result

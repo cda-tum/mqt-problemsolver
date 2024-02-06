@@ -12,12 +12,9 @@
         "type": "integer"
       }
     },
-    "path_ids": {
-      "type": "array",
-      "items": {
-        "type": "integer"
-      },
-      "default": [1]
+    "path_id": {
+      "type": "integer",
+      "default": 1
     }
   },
   "required": ["type", "position", "vertices"]
