@@ -44,6 +44,7 @@ from .cost_functions import (
     PrecedenceConstraint,
 )
 from .pathfinder import PathFindingQUBOGenerator, PathFindingQUBOGeneratorSettings
+from .tsplib import from_tsplib_problem
 
 __all__ = [
     "PathFindingQUBOGenerator",
@@ -70,4 +71,5 @@ __all__ = [
     "PathIsValid",
     "MinimizePathLength",
     "MaximizePathLength",
+    "from_tsplib_problem",
 ]
