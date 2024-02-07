@@ -76,7 +76,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         results: list[tuple[cf.EncodingType, int]] = []
         for encoding in [cf.EncodingType.ONE_HOT, cf.EncodingType.UNARY, cf.EncodingType.BINARY]:
             generator = PathFindingQUBOGenerator.__from_json(json_string, graph, override_encoding=encoding)
-            results.append((encoding, generator.construct_qubo_matrix().shape[0]))
+            results.append((encoding, generator.count_required_variables()))
         return next(encoding for (encoding, size) in results if size == min([size for (_, size) in results]))
 
     @staticmethod
@@ -366,7 +366,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         raise NotImplementedError(msg)
 
     @override
-    def _get_all_variables(self) -> Sequence[tuple[sp.Expr, int]]:
+    def _get_encoding_variables(self) -> Sequence[tuple[sp.Expr, int]]:
         result = []
         max_v = self.graph.n_vertices
         if self.settings.encoding_type == cf.EncodingType.BINARY:

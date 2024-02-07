@@ -256,17 +256,17 @@ class QUBOGenerator:
         auxiliary_variables = list({var for arg in coefficients for var in self.__get_auxiliary_variables(arg)})
         auxiliary_variables.sort(key=lambda var: int(str(var)[2:]))
         result = np.zeros(
-            (self.get_variable_count() + len(auxiliary_variables), self.get_variable_count() + len(auxiliary_variables))
+            (self.get_encoding_variable_count() + len(auxiliary_variables), self.get_encoding_variable_count() + len(auxiliary_variables))
         )
 
-        all_variables = dict(self._get_all_variables())
+        all_variables = dict(self._get_encoding_variables())
         print(all_variables)
         print(auxiliary_variables)
 
         def get_index(variable: sp.Expr) -> int:
             if variable in all_variables:
                 return all_variables[variable] - 1
-            return auxiliary_variables.index(cast(sp.Symbol, variable)) + self.get_variable_count()
+            return auxiliary_variables.index(cast(sp.Symbol, variable)) + self.get_encoding_variable_count()
 
         for term in coefficients:
             if isinstance(term, sp.Mul):
@@ -291,10 +291,10 @@ class QUBOGenerator:
             float: The cost value for the assignment.
         """
         expansion = self.construct_expansion()
-        variable_assignment = [(item[0], assignment[item[1] - 1]) for item in self._get_all_variables()]
+        variable_assignment = [(item[0], assignment[item[1] - 1]) for item in self._get_encoding_variables()]
         return cast(float, expansion.subs(variable_assignment).evalf())  # type: ignore[no-untyped-call]
 
-    def _get_all_variables(self) -> Sequence[tuple[sp.Expr, int]]:
+    def _get_encoding_variables(self) -> Sequence[tuple[sp.Expr, int]]:
         """Returns all non-auxiliary variables used in the QUBO formulation.
 
         Returns:
@@ -310,13 +310,23 @@ class QUBOGenerator:
         """
         return [(expr, weight) if weight is not None else (expr, 1.0) for (expr, weight) in self.penalties]
 
-    def get_variable_count(self) -> int:
-        """Returns the number of binary variables required to represent the QUBO problem.
+    def count_required_variables(self) -> int:
+        """Returns the total number of variables required to represent the QUBO problem.
+
+        Returns:
+            int: The number of required variables.
+        """
+        coefficients = dict(self.construct_expansion().as_coefficients_dict())
+        auxiliary_variables = list({var for arg in coefficients for var in self.__get_auxiliary_variables(arg)})
+        return len(self._get_encoding_variables()) + len(auxiliary_variables)
+
+    def get_encoding_variable_count(self) -> int:
+        """Returns the number of non-auxiliary binary variables required to represent the QUBO problem.
 
         Returns:
             int: The number of required binary variables.
         """
-        return len(self._get_all_variables())
+        return len(self._get_encoding_variables())
 
     def get_variable_index(self, _variable: sp.Function) -> int:
         """For a given variable, returns its index in the QUBO matrix.
