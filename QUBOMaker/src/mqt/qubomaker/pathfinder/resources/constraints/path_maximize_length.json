@@ -13,5 +13,6 @@
       "default": [1]
     }
   },
-  "required": ["type"]
+  "required": ["type"],
+  "additionalProperties": false
 }

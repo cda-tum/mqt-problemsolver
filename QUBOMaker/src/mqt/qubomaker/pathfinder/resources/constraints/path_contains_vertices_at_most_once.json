@@ -18,7 +18,12 @@
         "type": "integer"
       },
       "default": [1]
+    },
+    "weight": {
+      "type": "number",
+      "default": null
     }
   },
-  "required": ["type"]
+  "required": ["type"],
+  "additionalProperties": false
 }

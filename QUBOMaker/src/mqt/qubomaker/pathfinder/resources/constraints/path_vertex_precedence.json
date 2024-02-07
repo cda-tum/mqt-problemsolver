@@ -10,10 +10,11 @@
       "items": {
         "type": "object",
         "properties": {
-          "before": "integer",
-          "after": "integer"
+          "before": { "type": "integer" },
+          "after": { "type": "integer" }
         },
-        "required": ["before", "after"]
+        "required": ["before", "after"],
+        "additionalProperties": false
       },
       "minItems": 1
     },
@@ -23,7 +24,12 @@
         "type": "integer"
       },
       "default": [1]
+    },
+    "weight": {
+      "type": "number",
+      "default": null
     }
   },
-  "required": ["type", "precedences"]
+  "required": ["type", "precedences"],
+  "additionalProperties": false
 }

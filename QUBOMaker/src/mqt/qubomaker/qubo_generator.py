@@ -40,7 +40,7 @@ class QUBOGenerator:
         self.objective_function = objective_function
         self.penalties = []
 
-    def add_penalty(self, penalty_function: sp.Expr, lam: int | None = None) -> None:
+    def add_penalty(self, penalty_function: sp.Expr, lam: int | float | None = None) -> None:
         """Adds a cost function for a constraint to the problem instance.
 
         A penalty factor can be specified to scale the penalty function. Otherwise, a fitting penalty factor will be

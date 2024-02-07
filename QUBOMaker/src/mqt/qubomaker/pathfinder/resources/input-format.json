@@ -12,7 +12,8 @@
         "max_path_length": { "type": "integer", "default": 0 },
         "loops": { "type": "boolean", "default": false }
       },
-      "required": ["encoding"]
+      "required": ["encoding"],
+      "additionalProperties": false
     },
     "objective_function": { "$ref": "constraint.json" },
     "constraints": {
@@ -20,5 +21,6 @@
       "items": { "$ref": "constraint.json" }
     }
   },
-  "required": ["settings"]
+  "required": ["settings"],
+  "additionalProperties": false
 }

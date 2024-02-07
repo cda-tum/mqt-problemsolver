@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from nis import cat
 import os
 from dataclasses import dataclass
 from importlib import resources as impresources
@@ -123,7 +124,11 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
 
         validator = jsonschema.Draft7Validator(main_schema, resolver=resolver)
         json_object = json.loads(json_string)
-        validator.validate(json_object)
+        
+        try:
+            validator.validate(json_object)
+        except jsonschema.ValidationError as e:
+            raise ValueError(f"Invalid JSON: {e.message}")
 
         if override_encoding is None:
             if json_object["settings"]["encoding"] == "ONE_HOT":
@@ -194,10 +199,10 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
                 ]
             if constraint["type"] == "PathsShareNoVertices":
                 paths = constraint.get("path_ids", [1])
-                return [(cf.PathsShareNoVertices(i, j)) for i in paths for j in paths if i != j]
+                return [(cf.PathsShareNoVertices(i, j)) for i in paths for j in paths if i < j]
             if constraint["type"] == "PathsShareNoEdges":
                 paths = constraint.get("path_ids", [1])
-                return [(cf.PathsShareNoEdges(i, j)) for i in paths for j in paths if i != j]
+                return [(cf.PathsShareNoEdges(i, j)) for i in paths for j in paths if i < j]
             msg = f"Constraint {constraint['type']} not supported."
             raise ValueError(msg)
 
@@ -208,13 +213,13 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         )
         if "constraints" in json_object:
             for constraint in json_object["constraints"]:
-                get_constraint(constraint)
+                weight = constraint.get("weight", None)
                 for cost_function in get_constraint(constraint):
-                    generator.add_constraint(cost_function)
+                    generator.add_constraint(cost_function, weight=weight)
 
         return generator
 
-    def add_constraint(self, constraint: cf.CostFunction) -> PathFindingQUBOGenerator:
+    def add_constraint(self, constraint: cf.CostFunction, weight: int | float | None = None) -> PathFindingQUBOGenerator:
         """Add a pathfinding constraint to the QUBO generator.
 
         Args:
@@ -223,7 +228,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         Returns:
             PathFindingQUBOGenerator: The current instance of the QUBO generator.
         """
-        self.add_penalty(constraint.get_formula(self.graph, self.settings))
+        self.add_penalty(constraint.get_formula(self.graph, self.settings), lam=weight)
         return self
 
     @override

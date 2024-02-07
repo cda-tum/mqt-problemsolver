@@ -14,7 +14,12 @@
     "path_id": {
       "type": "integer",
       "default": 1
+    },
+    "weight": {
+      "type": "number",
+      "default": null
     }
   },
-  "required": ["type", "vertices"]
+  "required": ["type", "vertices"],
+  "additionalProperties": false
 }
