@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from nis import cat
 import os
 from dataclasses import dataclass
 from importlib import resources as impresources
@@ -124,11 +123,12 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
 
         validator = jsonschema.Draft7Validator(main_schema, resolver=resolver)
         json_object = json.loads(json_string)
-        
+
         try:
             validator.validate(json_object)
         except jsonschema.ValidationError as e:
-            raise ValueError(f"Invalid JSON: {e.message}")
+            msg = f"Invalid JSON: {e.message}"
+            raise ValueError(msg) from e
 
         if override_encoding is None:
             if json_object["settings"]["encoding"] == "ONE_HOT":
@@ -219,7 +219,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
 
         return generator
 
-    def add_constraint(self, constraint: cf.CostFunction, weight: int | float | None = None) -> PathFindingQUBOGenerator:
+    def add_constraint(self, constraint: cf.CostFunction, weight: float | None = None) -> PathFindingQUBOGenerator:
         """Add a pathfinding constraint to the QUBO generator.
 
         Args:
