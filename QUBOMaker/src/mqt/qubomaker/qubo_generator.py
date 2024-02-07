@@ -256,7 +256,10 @@ class QUBOGenerator:
         auxiliary_variables = list({var for arg in coefficients for var in self.__get_auxiliary_variables(arg)})
         auxiliary_variables.sort(key=lambda var: int(str(var)[2:]))
         result = np.zeros(
-            (self.get_encoding_variable_count() + len(auxiliary_variables), self.get_encoding_variable_count() + len(auxiliary_variables))
+            (
+                self.get_encoding_variable_count() + len(auxiliary_variables),
+                self.get_encoding_variable_count() + len(auxiliary_variables),
+            )
         )
 
         all_variables = dict(self._get_encoding_variables())
@@ -316,7 +319,7 @@ class QUBOGenerator:
         Returns:
             int: The number of required variables.
         """
-        coefficients = dict(self.construct_expansion().as_coefficients_dict())
+        coefficients = dict(self.construct_expansion().as_coefficients_dict())  # type: ignore[no-untyped-call]
         auxiliary_variables = list({var for arg in coefficients for var in self.__get_auxiliary_variables(arg)})
         return len(self._get_encoding_variables()) + len(auxiliary_variables)
 
