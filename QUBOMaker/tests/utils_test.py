@@ -78,3 +78,17 @@ def __paths_to_assignment_binary(paths: list[list[int]], n_vertices: int, max_pa
         for v in range(max_index)
     ]
     return dict(result)
+
+
+def check_equal(a: pf.PathFindingQUBOGenerator, b: pf.PathFindingQUBOGenerator) -> None:
+    assert a.objective_function == b.objective_function
+    assert a.graph == b.graph
+    assert a.settings == b.settings
+
+    print(len(a.penalties), len(b.penalties))
+
+    for expr, weight in a.penalties:
+        assert len([w for (e, w) in b.penalties if e == expr and w == weight]) == 1
+
+    for expr, weight in b.penalties:
+        assert len([w for (e, w) in a.penalties if e == expr and w == weight]) == 1

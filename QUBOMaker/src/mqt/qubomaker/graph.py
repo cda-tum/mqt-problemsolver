@@ -151,3 +151,16 @@ class Graph:
         )
         ax.set_axis_off()
         plt.show()
+
+    def __eq__(self, __value: object) -> bool:
+        """Checks if two graphs are equal.
+
+        Args:
+            __value (object): The other graph to compare to.
+
+        Returns:
+            bool: True if the graphs are equal, False otherwise.
+        """
+        if not isinstance(__value, Graph):
+            return False
+        return np.array_equal(self.adjacency_matrix, __value.adjacency_matrix)

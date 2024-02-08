@@ -12,6 +12,13 @@ if TYPE_CHECKING:
     from tsplib95.models import StandardProblem
 
 
+def __check_forced_edges(problem: StandardProblem) -> cost_functions.CostFunction:
+    forced_edges: list[tuple[int, int]] = []
+    for i, j in problem.fixed_edges:
+        forced_edges.append((i + 1, j + 1))
+    return cost_functions.PathContainsEdgesExactlyOnce(forced_edges, [1])
+
+
 def to_graph(g: nx.Graph) -> mqt.qubomaker.Graph:
     """Transforms a networkx graph into a Graph object.
 
@@ -43,6 +50,9 @@ def __tsp(
     generator.add_constraint(cost_functions.PathIsValid([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
 
+    if problem.fixed_edges:
+        generator.add_constraint(__check_forced_edges(problem))
+
     return generator
 
 
@@ -64,6 +74,9 @@ def __hcp(
 
     generator.add_constraint(cost_functions.PathIsValid([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
+
+    if problem.fixed_edges:
+        generator.add_constraint(__check_forced_edges(problem))
 
     return generator
 
@@ -88,9 +101,12 @@ def __sop(
     sop_pairs = []
     for u, v, weight in problem.get_graph().edges.data("weight"):
         if weight == -1:
-            sop_pairs.append((v, u))
+            sop_pairs.append((v + 1, u + 1))
     for u, v in sop_pairs:
         generator.add_constraint(cost_functions.PrecedenceConstraint(u, v, [1]))
+
+    if problem.fixed_edges:
+        generator.add_constraint(__check_forced_edges(problem))
 
     return generator
 
@@ -122,7 +138,7 @@ def from_tsplib_problem(
             return __sop(problem, encoding_type)
         case "CVRP":
             msg = "CVRP is not supported as it is not a pure path-finding problem."
-            raise NotImplementedError(msg)
+            raise ValueError(msg)
         case _:
             msg = "Problem type not supported."
             raise ValueError(msg)

@@ -7,7 +7,7 @@ import pytest
 import mqt.qubomaker.pathfinder as pf
 import mqt.qubomaker.pathfinder.cost_functions as cf
 
-from .utils_test import get_test_graph
+from .utils_test import check_equal, get_test_graph
 
 TEST_GRAPH = get_test_graph()
 
@@ -15,20 +15,6 @@ TEST_GRAPH = get_test_graph()
 def read_from_path(path: str) -> pf.PathFindingQUBOGenerator:
     with Path.open(Path("tests") / "resources" / "json" / path) as file:
         return pf.PathFindingQUBOGenerator.from_json(file.read(), TEST_GRAPH)
-
-
-def check_equal(a: pf.PathFindingQUBOGenerator, b: pf.PathFindingQUBOGenerator) -> None:
-    assert a.objective_function == b.objective_function
-    assert a.graph == b.graph
-    assert a.settings == b.settings
-
-    print(len(a.penalties), len(b.penalties))
-
-    for expr, weight in a.penalties:
-        assert len([w for (e, w) in b.penalties if e == expr and w == weight]) == 1
-
-    for expr, weight in b.penalties:
-        assert len([w for (e, w) in a.penalties if e == expr and w == weight]) == 1
 
 
 class TestJsonInput:
