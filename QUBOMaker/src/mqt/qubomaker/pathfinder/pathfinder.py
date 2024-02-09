@@ -261,18 +261,20 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             for j in range(self.graph.n_vertices)
         ]
         assignment += [
-            (cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, self.graph.n_vertices + 1, i + 1), 0)
-            for p in range(self.settings.n_paths)
-            for i in range(self.settings.max_path_length + 1)
-        ]  # x_{p, |V| + 1, i} = 0 for all p, i
-        assignment += [
             (
                 cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v + 1, self.settings.max_path_length + 1),
-                cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v + 1, 1) if self.settings.loops else 0,
+                cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v + 1, 1)
+                if self.settings.loops
+                else sp.Integer(0),
             )
             for p in range(self.settings.n_paths)
             for v in range(self.graph.n_vertices)
         ]  # x_{p, v, N + 1} = x_{p, v, 1} for all p, v if loop, otherwise 0
+        assignment += [
+            (cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, self.graph.n_vertices + 1, i + 1), 0)
+            for p in range(self.settings.n_paths)
+            for i in range(self.settings.max_path_length + 1)
+        ]  # x_{p, |V| + 1, i} = 0 for all p, i
         result = expression.subs(dict(assignment))  # type: ignore[no-untyped-call]
         if isinstance(result, sp.Expr):
             return result

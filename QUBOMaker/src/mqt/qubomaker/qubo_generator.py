@@ -40,7 +40,7 @@ class QUBOGenerator:
         self.objective_function = objective_function
         self.penalties = []
 
-    def add_penalty(self, penalty_function: sp.Expr, lam: int | float | None = None) -> None:
+    def add_penalty(self, penalty_function: sp.Expr, lam: float | None = None) -> None:
         """Adds a cost function for a constraint to the problem instance.
 
         A penalty factor can be specified to scale the penalty function. Otherwise, a fitting penalty factor will be
@@ -85,7 +85,7 @@ class QUBOGenerator:
 
         if self.expansion_cache is not None:
             return self.expansion_cache
-        expression = self.construct().expand().doit()
+        expression = self.construct().expand().doit().doit()
         if isinstance(expression, sp.Expr):
             expression = self._construct_expansion(expression).expand()
         expression = expression.doit().expand()
@@ -263,8 +263,6 @@ class QUBOGenerator:
         )
 
         all_variables = dict(self._get_encoding_variables())
-        print(all_variables)
-        print(auxiliary_variables)
 
         def get_index(variable: sp.Expr) -> int:
             if variable in all_variables:
