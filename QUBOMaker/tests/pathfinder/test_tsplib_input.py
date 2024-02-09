@@ -14,7 +14,7 @@ TEST_GRAPH = get_test_graph()
 
 
 def read_from_path(path: str, encoding: pf.EncodingType = pf.EncodingType.ONE_HOT) -> pf.PathFindingQUBOGenerator:
-    pth = Path("tests") / "resources" / "tsplib" / path
+    pth = Path("tests") / "pathfinder" / "resources" / "tsplib" / path
     problem = tsplib95.load(str(pth))
 
     return pf.from_tsplib_problem(problem, encoding)

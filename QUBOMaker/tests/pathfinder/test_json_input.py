@@ -13,7 +13,7 @@ TEST_GRAPH = get_test_graph()
 
 
 def read_from_path(path: str) -> pf.PathFindingQUBOGenerator:
-    with Path.open(Path("tests") / "resources" / "json" / path) as file:
+    with Path.open(Path("tests") / "pathfinder" / "resources" / "json" / path) as file:
         return pf.PathFindingQUBOGenerator.from_json(file.read(), TEST_GRAPH)
 
 
