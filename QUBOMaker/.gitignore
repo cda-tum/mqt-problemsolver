@@ -5,6 +5,7 @@ __pycache__
 *.egg-info/
 build
 .mypy_cache
+/local-tests
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
