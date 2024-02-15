@@ -1,5 +1,6 @@
 ignore:
-  - "pathfinder/*"
+  - "notebooks/*"
+  - "docs/*"
 
 coverage:
   range: 60..90
