@@ -1,3 +1,5 @@
+"""Tests the correctness of the JSON input format."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,12 +15,23 @@ TEST_GRAPH = get_test_graph()
 
 
 def read_from_path(path: str) -> pf.PathFindingQUBOGenerator:
+    """Reads a JSON input file and returns the corresponding `PathFindingQUBOGenerator`.
+
+    Args:
+        path (str): The path to the JSON input file.
+
+    Returns:
+        pf.PathFindingQUBOGenerator: The corresponding `PathFindingQUBOGenerator`.
+    """
     with Path.open(Path("tests") / "pathfinder" / "resources" / "json" / path) as file:
         return pf.PathFindingQUBOGenerator.from_json(file.read(), TEST_GRAPH)
 
 
 class TestJsonInput:
+    """Tests the correctness of the JSON input format."""
+
     def test_all_constraints(self) -> None:
+        """Tests a JSON input file that includes all constraints."""
         json_generator = read_from_path("all.json")
 
         settings = pf.PathFindingQUBOGeneratorSettings(
@@ -51,6 +64,7 @@ class TestJsonInput:
         check_equal(json_generator, manual_generator)
 
     def test_alternative_options(self) -> None:
+        """Tests a JSON input file that includes alternative (non-default) options."""
         json_generator = read_from_path("alternative_options.json")
 
         settings = pf.PathFindingQUBOGeneratorSettings(
@@ -70,6 +84,7 @@ class TestJsonInput:
         check_equal(json_generator, manual_generator)
 
     def test_with_weight(self) -> None:
+        """Tests a JSON input file that includes weights for some constraints."""
         json_generator = read_from_path("with_weight.json")
 
         settings = pf.PathFindingQUBOGeneratorSettings(
@@ -87,17 +102,21 @@ class TestJsonInput:
         check_equal(json_generator, manual_generator)
 
     def test_fail_excess_field(self) -> None:
+        """Tests a JSON input file that should fail because it includes an excess field."""
         with pytest.raises(ValueError, match="JSON"):
             read_from_path("fail/excess_field.json")
 
     def test_fail_missing_field(self) -> None:
+        """Tests a JSON input file that should fail because it is missing a field."""
         with pytest.raises(ValueError, match="JSON"):
             read_from_path("fail/missing_field.json")
 
     def test_fail_too_few_elements(self) -> None:
+        """Tests a JSON input file that should fail because some options have too few elements."""
         with pytest.raises(ValueError, match="JSON"):
             read_from_path("fail/too_few_elements.json")
 
     def test_fail_unknown_type(self) -> None:
+        """Tests a JSON input file that should fail because it includes an unknown type."""
         with pytest.raises(ValueError, match="JSON"):
             read_from_path("fail/unknown_type.json")

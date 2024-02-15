@@ -1,3 +1,5 @@
+"""Tests the end-to-end performance of the pathfinder module."""
+
 from __future__ import annotations
 
 import pytest
@@ -20,7 +22,14 @@ TEST_GRAPH = get_test_graph_small()
     ],
 )
 class TestEndToEnd:
+    """Tests the end-to-end performance of the `pathfinder` module."""
+
     def test_tsp(self, encoding_type: pf.EncodingType) -> None:
+        """Test the module with a TSP problem.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to use.
+        """
         settings = pf.PathFindingQUBOGeneratorSettings(
             encoding_type=encoding_type,
             n_paths=1,
@@ -49,6 +58,12 @@ class TestEndToEnd:
         assert generator.get_cost(solution) == 20
 
     def test_2dpp(self, encoding_type: pf.EncodingType) -> None:
+        """Test the module with a 2DPP problem.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to use.
+        """
+
         settings = pf.PathFindingQUBOGeneratorSettings(
             encoding_type=encoding_type,
             n_paths=2,

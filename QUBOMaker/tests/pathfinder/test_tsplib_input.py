@@ -1,3 +1,5 @@
+"""Tests the correctness of the tsplib input format."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -14,6 +16,15 @@ TEST_GRAPH = get_test_graph()
 
 
 def read_from_path(path: str, encoding: pf.EncodingType = pf.EncodingType.ONE_HOT) -> pf.PathFindingQUBOGenerator:
+    """Reads a tsplib input file and returns the corresponding `PathFindingQUBOGenerator`.
+
+    Args:
+        path (str): The path to the tsplib input file.
+
+    Returns:
+        pf.PathFindingQUBOGenerator: The corresponding `PathFindingQUBOGenerator`.
+    """
+
     pth = Path("tests") / "pathfinder" / "resources" / "tsplib" / path
     problem = tsplib95.load(str(pth))
 
@@ -21,7 +32,10 @@ def read_from_path(path: str, encoding: pf.EncodingType = pf.EncodingType.ONE_HO
 
 
 class TestJsonInput:
+    """Tests the correctness of the tsplib input format."""
+
     def test_hcp(self) -> None:
+        """Tests a tsplib input file that represents a HCP problem."""
         json_generator = read_from_path("hcp-5.hcp")
         graph = json_generator.graph
 
@@ -39,6 +53,7 @@ class TestJsonInput:
         check_equal(json_generator, manual_generator)
 
     def test_tsp(self) -> None:
+        """Tests a tsplib input file that represents a TSP problem."""
         json_generator = read_from_path("tsp-5.tsp")
         graph = json_generator.graph
 
@@ -58,6 +73,7 @@ class TestJsonInput:
         check_equal(json_generator, manual_generator)
 
     def test_atsp(self) -> None:
+        """Tests a tsplib input file that represents an ATSP problem."""
         json_generator = read_from_path("atsp-5.atsp")
         graph = json_generator.graph
 
@@ -77,6 +93,7 @@ class TestJsonInput:
         check_equal(json_generator, manual_generator)
 
     def test_sop(self) -> None:
+        """Tests a tsplib input file that represents a SOP problem."""
         json_generator = read_from_path("sop-5.sop")
         graph = json_generator.graph
 
@@ -100,10 +117,12 @@ class TestJsonInput:
         check_equal(json_generator, manual_generator)
 
     def test_fail_cvrp(self) -> None:
+        """Tests a tsplib input file that represents a CVRP problem. This should fail."""
         with pytest.raises(ValueError, match="CVRP"):
             read_from_path("fail/cvrp-7.vrp")
 
     def test_with_forced_edges(self) -> None:
+        """Tests a tsplib input file that includes forced edges."""
         json_generator = read_from_path("forced-edges.tsp")
         graph = json_generator.graph
 

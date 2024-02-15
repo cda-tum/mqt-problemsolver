@@ -1,3 +1,5 @@
+"""This module provides utility functions for testing the pathfinder module."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,6 +15,11 @@ if TYPE_CHECKING:
 
 
 def get_test_graph() -> Graph:
+    """Generate a |V| = 5 graph for testing.
+
+    Returns:
+        Graph: The generated graph.
+    """
     return Graph(
         5,
         [
@@ -37,6 +44,11 @@ def get_test_graph() -> Graph:
 
 
 def get_test_graph_small() -> Graph:
+    """Generate a |V| = 4 graph for testing.
+
+    Returns:
+        Graph: The generated graph.
+    """
     return Graph(
         4,
         [
@@ -53,6 +65,18 @@ def get_test_graph_small() -> Graph:
 
 
 def paths_equal_with_loops(a: list[int], b: list[int]) -> bool:
+    """Check if two paths are equal, in the presence of loops.
+
+    E.g., [1, 2, 3, 4] and [2, 3, 4, 1] are considered equal,
+    but [1, 2, 3, 4] and [1, 3, 2, 4] are not.
+
+    Args:
+        a (list[int]): The first path to be compared.
+        b (list[int]): The second path to be compared.
+
+    Returns:
+        bool: True if the paths are equal, False otherwise.
+    """
     if len(a) != len(b):
         return False
     edges_a = [*list(zip(a[:-1], a[1:])), (a[-1], a[0])]
@@ -65,6 +89,17 @@ def paths_equal_with_loops(a: list[int], b: list[int]) -> bool:
 def paths_to_assignment_list(
     paths: list[list[int]], n_vertices: int, max_path_length: int, encoding: pf.EncodingType
 ) -> list[int]:
+    """Converts a list of paths to a list of binary variables for the given encoding type.
+
+    Args:
+        paths (list[list[int]]): The path(s) to be converted.
+        n_vertices (int): The number of vertices in the graph.
+        max_path_length (int): The maximum length of the path(s).
+        encoding (pf.EncodingType): The encoding type to be used.
+
+    Returns:
+        list[int]: The binary variable assignment.
+    """
     assignment = paths_to_assignment(paths, n_vertices, max_path_length, encoding)
     return [assignment[key] for key in sorted(assignment.keys(), key=lambda x: (x.args[0], x.args[2], x.args[1]))]
 
@@ -72,6 +107,17 @@ def paths_to_assignment_list(
 def paths_to_assignment(
     paths: list[list[int]], n_vertices: int, max_path_length: int, encoding: pf.EncodingType
 ) -> dict[sp.Expr, int]:
+    """Converts a list of paths to a substitution from encoding variables to binary values for the given encoding type.
+
+    Args:
+        paths (list[list[int]]): The path(s) to be converted.
+        n_vertices (int): The number of vertices in the graph.
+        max_path_length (int): The maximum length of the path(s).
+        encoding (pf.EncodingType): The encoding type to be used.
+
+    Returns:
+        dict[sp.Expr, int]: The substitution dictionary mapping each encoding variable to its value.
+    """
     if encoding == pf.EncodingType.ONE_HOT:
         return __paths_to_assignment_one_hot(paths, n_vertices, max_path_length)
     if encoding == pf.EncodingType.UNARY:
@@ -83,6 +129,16 @@ def paths_to_assignment(
 
 
 def __paths_to_assignment_one_hot(paths: list[list[int]], n_vertices: int, max_path_length: int) -> dict[sp.Expr, int]:
+    """Converts a list of paths to a substitution from one-hot encoding variables to binary values.
+
+    Args:
+        paths (list[list[int]]): The path(s) to be converted.
+        n_vertices (int): The number of vertices in the graph.
+        max_path_length (int): The maximum length of the path(s).
+
+    Returns:
+        dict[sp.Expr, int]: The substitution dictionary mapping each one-hot encoding variable to its value.
+    """
     result = [
         (cf.X(p + 1, v + 1, i + 1), 1 if len(path) > i and (path[i] == v + 1) else 0)
         for p, path in enumerate(paths)
@@ -93,6 +149,17 @@ def __paths_to_assignment_one_hot(paths: list[list[int]], n_vertices: int, max_p
 
 
 def __paths_to_assignment_unary(paths: list[list[int]], n_vertices: int, max_path_length: int) -> dict[sp.Expr, int]:
+    """Converts a list of paths to a substitution from unary encoding variables to binary values.
+
+    Args:
+        paths (list[list[int]]): The path(s) to be converted.
+        n_vertices (int): The number of vertices in the graph.
+        max_path_length (int): The maximum length of the path(s).
+
+    Returns:
+        dict[sp.Expr, int]: The substitution dictionary mapping each unary encoding variable to its value.
+    """
+
     result = [
         (cf.X(p + 1, v + 1, i + 1), 1 if len(path) > i and (path[i] >= v + 1) else 0)
         for p, path in enumerate(paths)
@@ -103,6 +170,17 @@ def __paths_to_assignment_unary(paths: list[list[int]], n_vertices: int, max_pat
 
 
 def __paths_to_assignment_binary(paths: list[list[int]], n_vertices: int, max_path_length: int) -> dict[sp.Expr, int]:
+    """Converts a list of paths to a substitution from binary encoding variables to binary values.
+
+    Args:
+        paths (list[list[int]]): The path(s) to be converted.
+        n_vertices (int): The number of vertices in the graph.
+        max_path_length (int): The maximum length of the path(s).
+
+    Returns:
+        dict[sp.Expr, int]: The substitution dictionary mapping each binary encoding variable to its value.
+    """
+
     max_index = int(np.ceil(np.log2(n_vertices + 1)))
     result = [
         (cf.X(p + 1, v + 1, i + 1), 1 if len(path) > i and (((path[i]) >> v) & 1) else 0)
@@ -114,6 +192,12 @@ def __paths_to_assignment_binary(paths: list[list[int]], n_vertices: int, max_pa
 
 
 def check_equal(a: pf.PathFindingQUBOGenerator, b: pf.PathFindingQUBOGenerator) -> None:
+    """Check if two PathFindingQUBOGenerators are equal.
+
+    Args:
+        a (pf.PathFindingQUBOGenerator): The first generator to be compared.
+        b (pf.PathFindingQUBOGenerator): The second generator to be compared.
+    """
     assert a.objective_function == b.objective_function
     assert a.graph == b.graph
     assert a.settings == b.settings

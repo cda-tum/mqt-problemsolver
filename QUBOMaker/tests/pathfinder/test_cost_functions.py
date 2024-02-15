@@ -1,3 +1,5 @@
+"""Tests for the correctness of all cost functions of the pathfinder module."""
+
 from __future__ import annotations
 
 from typing import cast
@@ -16,6 +18,19 @@ TEST_GRAPH = get_test_graph()
 def evaluate(
     cost_function: pf.CostFunction, path: dict[sp.Expr, int], encoding: pf.EncodingType, loop: bool, n_paths: int = 1
 ) -> int:
+    """Computes the cost of a given path(s) assignment for a given cost function.
+
+    Args:
+        cost_function (pf.CostFunction): The cost function to evaluate.
+        path (dict[sp.Expr, int]): The assignment of the path(s).
+        encoding (pf.EncodingType): The encoding type of the assignment.
+        loop (bool): Indicates if the path is a loop.
+        n_paths (int, optional): The number of paths. Defaults to 1.
+
+    Returns:
+        int: The cost of the assignment for the given cost function.
+    """
+
     settings = pf.PathFindingQUBOGeneratorSettings(encoding, n_paths, TEST_GRAPH.n_vertices, loop)
     formula = cost_function.get_formula(TEST_GRAPH, settings)
     assignment = [
@@ -66,7 +81,15 @@ def evaluate(
     ],
 )
 class TestCostFunctions:
+    """Tests for the correctness of all cost functions of the pathfinder module."""
+
     def test_path_position_is(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathPositionIs cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
         encoding_A = paths_to_assignment([[1, 3, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -81,6 +104,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathPositionIs(1, [1], 2), encoding_B, encoding_type, loop, n_paths=2) > 0
 
     def test_path_starts_at_ends_at(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathStartsAt and PathEndsAt cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 3, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -105,6 +135,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathEndsAt([4], 2), encoding_B, encoding_type, loop, n_paths=2) > 0
 
     def test_path_contains_vertices_exactly_once(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathContainsVerticesExactlyOnce cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 5, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 3, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -119,6 +156,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathContainsVerticesExactlyOnce([5], [1]), encoding_A, encoding_type, loop) > 0
 
     def test_path_contains_vertices_at_least_once(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathContainsVerticesAtLeastOnce cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 5, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 3, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -133,6 +177,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathContainsVerticesAtLeastOnce([4], [1, 2]), encoding_B, encoding_type, loop, n_paths=2) > 0
 
     def test_path_contains_vertices_at_most_once(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathContainsVerticesAtMostOnce cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 5, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 3, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -145,6 +196,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathContainsVerticesAtMostOnce([5], [1]), encoding_A, encoding_type, loop) > 0
 
     def test_path_contains_edges_exactly_once(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathContainsEdgesExactlyOnce cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 5, 4, 1, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 3, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -162,6 +220,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathContainsEdgesExactlyOnce([(1, 5)], [1]), encoding_A, encoding_type, loop) > 0
 
     def test_path_contains_edges_at_least_once(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathContainsEdgesAtLeastOnce cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 5, 4, 1, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 3, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -179,6 +244,13 @@ class TestCostFunctions:
         )
 
     def test_path_contains_edges_at_most_once(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathContainsEdgesAtMostOnce cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 5, 4, 1, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 3, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -199,6 +271,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathContainsEdgesAtMostOnce([(1, 5)], [1]), encoding_A, encoding_type, loop) > 0
 
     def test_precedence_constraint(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PrecedenceConstraint cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 3, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -216,6 +295,13 @@ class TestCostFunctions:
         assert evaluate(pf.PrecedenceConstraint(5, 1, [1]), encoding_A, encoding_type, loop) > 0
 
     def test_share_no_vertices(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathsShareNoVertices cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment(
             [[1, 3, 4], [2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
         )
@@ -230,6 +316,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathsShareNoVertices(1, 3), encoding_B, encoding_type, loop, n_paths=3) > 0
 
     def test_share_no_edges(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathsShareNoEdges cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment(
             [[1, 3, 4], [2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
         )
@@ -244,6 +337,13 @@ class TestCostFunctions:
         assert evaluate(pf.PathsShareNoEdges(1, 3), encoding_B, encoding_type, loop, n_paths=3) > 0
 
     def test_maximize_minimize(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the MinimizePathLength and MaximizePathLength cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 3, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
@@ -274,6 +374,13 @@ class TestCostFunctions:
         )
 
     def test_is_valid(self, encoding_type: pf.EncodingType, loop: bool) -> None:
+        """Test for the correctness of the PathIsValid cost function.
+
+        Args:
+            encoding_type (pf.EncodingType): The encoding type to be used.
+            loop (bool): Indicates if the cost function should be tested with looping paths.
+        """
+
         encoding_A = paths_to_assignment([[1, 3, 4, 2, 5]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type)
         encoding_B = paths_to_assignment(
             [[1, 3, 4], [4, 3]], TEST_GRAPH.n_vertices, TEST_GRAPH.n_vertices, encoding_type
