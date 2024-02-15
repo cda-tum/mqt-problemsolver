@@ -68,5 +68,4 @@ class TestEndToEnd:
         generator.add_constraint(cf.PathEndsAt([4], 2))
 
         solution = paths_to_assignment_list([[1, 3], [2, 4]], 4, 2, encoding_type)
-        print(solution)
         assert generator.get_cost(solution) == 9

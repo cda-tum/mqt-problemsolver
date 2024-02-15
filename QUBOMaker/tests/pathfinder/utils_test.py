@@ -66,7 +66,6 @@ def paths_to_assignment_list(
     paths: list[list[int]], n_vertices: int, max_path_length: int, encoding: pf.EncodingType
 ) -> list[int]:
     assignment = paths_to_assignment(paths, n_vertices, max_path_length, encoding)
-    print(assignment)
     return [assignment[key] for key in sorted(assignment.keys(), key=lambda x: (x.args[0], x.args[2], x.args[1]))]
 
 
@@ -118,8 +117,6 @@ def check_equal(a: pf.PathFindingQUBOGenerator, b: pf.PathFindingQUBOGenerator) 
     assert a.objective_function == b.objective_function
     assert a.graph == b.graph
     assert a.settings == b.settings
-
-    print(len(a.penalties), len(b.penalties))
 
     for expr, weight in a.penalties:
         assert len([w for (e, w) in b.penalties if e == expr and w == weight]) == 1
