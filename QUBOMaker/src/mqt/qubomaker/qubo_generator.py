@@ -31,6 +31,8 @@ class QUBOGenerator:
 
     expansion_cache: sp.Expr | None = None
 
+    auxiliary_cache: dict[sp.Expr, sp.Expr]
+
     def __init__(self, objective_function: sp.Expr | None) -> None:
         """Initializes a new QUBOGenerator instance.
 
@@ -39,6 +41,7 @@ class QUBOGenerator:
         """
         self.objective_function = objective_function
         self.penalties = []
+        self.auxiliary_cache = {}
 
     def add_penalty(self, penalty_function: sp.Expr, lam: float | None = None) -> None:
         """Adds a cost function for a constraint to the problem instance.
@@ -51,6 +54,7 @@ class QUBOGenerator:
             lam (int | None, optional): The penalty scaling factor. Defaults to None.
         """
         self.expansion_cache = None
+        self.auxiliary_cache = {}
         self.penalties.append((penalty_function, lam))
 
     def construct(self) -> sp.Expr:
@@ -120,6 +124,7 @@ class QUBOGenerator:
                 continue
             new_term = self.__decrease_order(unpowered, auxiliary_dict)
             result += new_term * coeffs[term]
+        self.auxiliary_cache = auxiliary_dict
         return cast(sp.Expr, result)
 
     def __simplify_auxiliary_variables(self, expression: sp.Expr, auxiliary_dict: dict[sp.Expr, sp.Expr]) -> sp.Expr:
@@ -285,6 +290,8 @@ class QUBOGenerator:
     def get_cost(self, assignment: list[int]) -> float:
         """Given an assignment, computes the total cost value of the corresponding cost function evaluation.
 
+        The assignment is given as a binary list, and can either contain assignments for just encoding variables
+        or encoding + auxiliary variables. In the former case, the auxiliary values are computed automatically.
         Args:
             assignment (list[int]): The assignment for each variable (either 0 or 1).
 
@@ -292,8 +299,57 @@ class QUBOGenerator:
             float: The cost value for the assignment.
         """
         expansion = self.construct_expansion()
-        variable_assignment = [(item[0], assignment[item[1] - 1]) for item in self._get_encoding_variables()]
+        auxiliary_assignment: dict[sp.Expr, int] = {}
+
+        if len(assignment) == self.get_encoding_variable_count():
+            auxiliary_assignment = self.__get_auxiliary_assignment(assignment)
+        elif len(assignment) != self.count_required_variables():
+            msg = "Invalid assignment length."
+            raise ValueError(msg)
+
+        variable_assignment = {item[0]: assignment[item[1] - 1] for item in self._get_encoding_variables()}
+        variable_assignment |= auxiliary_assignment
         return cast(float, expansion.subs(variable_assignment).evalf())  # type: ignore[no-untyped-call]
+
+    def __get_auxiliary_assignment(self, assignment: list[int]) -> dict[sp.Expr, int]:
+        """Generates the assignment of auxiliary variables based on a given encoding variable
+        assignment.
+
+        Every auxiliary variable is defined like `y_k = x_i * x_j`, `y_k = x_i * y_j` or `y_k = y_i * y_j`.
+        These definitions are stored in the `auxiliary_cache` dictionary. As there are no circular references,
+        a given set of assignments for each `x_i` is enough to compute the values of all `y_k`. This can be used to
+        compute the cost for a given QUBO encoding without requiring the user to define all auxiliary variables.
+
+        Args:
+            assignment (list[int]): The assignment for the encoding variables `x_i`.
+
+        Returns:
+            dict[sp.Expr, int]: An assignment dictionary, mappingeach `y_k` to its value in {0, 1}.
+        """
+        auxiliary_values: dict[sp.Expr, int] = {}
+        encoding_variables = dict(self._get_encoding_variables())
+        remaining_variables = set(self.auxiliary_cache.keys())
+
+        def get_var_value(var: sp.Expr) -> int | None:
+            if var in encoding_variables:
+                return assignment[encoding_variables[var] - 1]
+            if var in auxiliary_values:
+                return auxiliary_values[var]
+            return None
+
+        while remaining_variables:
+            to_remove = []
+            for aux in remaining_variables:
+                (left, right) = aux.args[0], aux.args[1]
+                left_val = get_var_value(cast(sp.Expr, left))
+                right_val = get_var_value(cast(sp.Expr, right))
+                if left_val is not None and right_val is not None:
+                    auxiliary_values[self.auxiliary_cache[aux]] = left_val * right_val
+                    to_remove.append(aux)
+            for aux in to_remove:
+                remaining_variables.remove(aux)
+
+        return auxiliary_values
 
     def _get_encoding_variables(self) -> Sequence[tuple[sp.Expr, int]]:
         """Returns all non-auxiliary variables used in the QUBO formulation.

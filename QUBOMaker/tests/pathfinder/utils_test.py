@@ -36,6 +36,40 @@ def get_test_graph() -> Graph:
     )
 
 
+def get_test_graph_small() -> Graph:
+    return Graph(
+        4,
+        [
+            (1, 2, 9),
+            (1, 3, 8),
+            (2, 4, 1),
+            (2, 3, 1),
+            (3, 4, 6),
+            (3, 1, 2),
+            (4, 2, 3),
+            (4, 1, 4),
+        ],
+    )
+
+
+def paths_equal_with_loops(a: list[int], b: list[int]) -> bool:
+    if len(a) != len(b):
+        return False
+    edges_a = [*list(zip(a[:-1], a[1:])), (a[-1], a[0])]
+    edges_b = [*list(zip(b[:-1], b[1:])), (b[-1], b[0])]
+    edges_a = sorted(edges_a)
+    edges_b = sorted(edges_b)
+    return edges_a == edges_b
+
+
+def paths_to_assignment_list(
+    paths: list[list[int]], n_vertices: int, max_path_length: int, encoding: pf.EncodingType
+) -> list[int]:
+    assignment = paths_to_assignment(paths, n_vertices, max_path_length, encoding)
+    print(assignment)
+    return [assignment[key] for key in sorted(assignment.keys(), key=lambda x: (x.args[0], x.args[2], x.args[1]))]
+
+
 def paths_to_assignment(
     paths: list[list[int]], n_vertices: int, max_path_length: int, encoding: pf.EncodingType
 ) -> dict[sp.Expr, int]:

@@ -289,16 +289,15 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             msg = "Variable subscripts must be integers."
             raise ValueError(msg)
 
+        max_v = self.graph.n_vertices
+        if self.settings.encoding_type == cf.EncodingType.BINARY:
+            max_v = int(np.ceil(np.log2(self.graph.n_vertices + 1)))
+
         p = int(cast(int, parts[0]))
         v = int(cast(int, parts[1]))
         i = int(cast(int, parts[2]))
 
-        return int(
-            (v - 1)
-            + (i - 1) * self.settings.max_path_length
-            + (p - 1) * self.settings.max_path_length * self.graph.n_vertices
-            + 1
-        )
+        return int((v - 1) + (i - 1) * max_v + (p - 1) * self.settings.max_path_length * max_v + 1)
 
     @override
     def decode_bit_array(self, _array: list[int]) -> Any:
@@ -350,15 +349,23 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         Returns:
             Any: The decoded assignment as a (set of) path(s).
         """
-        path = []
+        paths: list[list[int]] = []
+        path: list[tuple[int, int]] = []
         for i, bit in enumerate(array):
+            if i % (len(array) / self.settings.n_paths) == 0 and i != 0:
+                path.sort(key=lambda x: x[1])
+                paths.append([entry[0] + 1 for entry in path])
+                path = []
             if bit == 0:
                 continue
             v = i % self.graph.n_vertices
             s = i // self.graph.n_vertices
             path.append((v, s))
+
         path.sort(key=lambda x: x[1])
-        return [entry[0] + 1 for entry in path]
+        paths.append([entry[0] + 1 for entry in path])
+
+        return paths
 
     def decode_bit_array_binary(self, _array: list[int]) -> Any:
         """Decodes an assignment for Binary encoding.
