@@ -1,5 +1,6 @@
 ignore:
   - "tests/**/*"
+  - "resource_estimation/**/*"
 
 coverage:
   range: 60..90
