@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import os
 
-from azure.quantum import Workspace
-from azure.quantum.target.microsoft import MicrosoftEstimator, QubitParams, QECScheme
-from azure.quantum.chemistry import df_chemistry
-
 import qsharp
+from azure.quantum import Workspace
+from azure.quantum.chemistry import df_chemistry
+from azure.quantum.target.microsoft import MicrosoftEstimator, QECScheme, QubitParams
 
 resource_id = os.environ.get("AZURE_QUANTUM_RESOURCE_ID")
 location = os.environ.get("AZURE_QUANTUM_LOCATION")
@@ -82,11 +83,11 @@ print()
 
 ### Modifying error rates and operating times
 
-base_time = 50 # ns
+base_time = 50  # ns
 base_error = 1e-3
 
 error_growth = 1e-1
-time_growth = .9
+time_growth = 0.9
 
 params = estimator.make_params(num_items=5)
 params.error_budget = 0.01
