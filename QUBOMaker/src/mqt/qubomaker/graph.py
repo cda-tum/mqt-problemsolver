@@ -90,7 +90,9 @@ class Graph:
         np.savetxt(file, self.adjacency_matrix)
 
     @staticmethod
-    def from_adjacency_matrix(adjacency_matrix: npt.NDArray[np.int_ | np.float64] | list[list[int | float]]) -> Graph:
+    def from_adjacency_matrix(
+        adjacency_matrix: npt.NDArray[np.int_ | np.float64] | list[list[int]] | list[list[float]]
+    ) -> Graph:
         """Creates a graph from an adjacency matrix.
 
         Args:

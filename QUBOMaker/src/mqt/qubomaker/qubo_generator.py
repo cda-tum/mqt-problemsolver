@@ -298,6 +298,11 @@ class QUBOGenerator:
         Returns:
             float: The cost value for the assignment.
         """
+
+        if any(x not in [0, 1] for x in assignment):
+            msg = "Provided values are not binary (1/0)"
+            raise ValueError(msg)
+
         expansion = self.construct_expansion()
         auxiliary_assignment: dict[sp.Expr, int] = {}
 
