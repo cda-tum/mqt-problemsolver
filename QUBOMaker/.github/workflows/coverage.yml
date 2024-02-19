@@ -23,7 +23,7 @@ jobs:
       - name: Install MQT Pathfinder
         run: pip install .[coverage]
       - name: Generate Report
-        run: pytest -v --cov=./ --cov-report=xml
+        run: pytest -v --cov=src/mqt/qubomaker --cov-report=xml
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       - name: Upload coverage to Codecov
