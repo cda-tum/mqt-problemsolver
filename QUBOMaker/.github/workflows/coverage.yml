@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install MQT Pathfinder
-        run: pip install .[coverage]
+        run: pip install .[coverage] -e
       - name: Generate Report
         run: pytest -v --cov=src/mqt/qubomaker --cov-report=xml
         env:
