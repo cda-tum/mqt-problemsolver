@@ -21,8 +21,34 @@ TEST_GRAPH = get_test_graph_small()
         (cf.EncodingType.BINARY),
     ],
 )
-class TestEndToEnd:
+class TestPathfinder:
     """Tests the end-to-end performance of the `pathfinder` module."""
+
+    def test_decoding(self, encoding_type: pf.EncodingType) -> None:
+        """Test the decoding of a solution."""
+        generator = setup_tsp()
+        generator.settings.encoding_type = encoding_type
+        generator2 = setup_tsp()
+        generator2.settings.n_paths = 2
+        generator2.settings.encoding_type = encoding_type
+        s1 = [[1, 2, 4, 3]]
+        s2 = [[1, 3, 3, 2]]
+        s3 = [[1, 4]]
+        s4 = [[1, 2], [4, 3]]
+
+        d1 = generator.decode_bit_array(paths_to_assignment_list(s1, 4, 4, encoding_type))
+        d2 = generator.decode_bit_array(paths_to_assignment_list(s2, 4, 4, encoding_type))
+        d3 = generator.decode_bit_array(paths_to_assignment_list(s3, 4, 4, encoding_type))
+        d4 = generator2.decode_bit_array(paths_to_assignment_list(s4, 4, 4, encoding_type))
+
+        assert s1 == d1
+        assert s2 == d2
+        assert s3 == d3
+        assert s4 == d4
+        assert s1 != d2
+        assert s2 != d3
+        assert s3 != d4
+        assert s4 != d1
 
     def test_tsp(self, encoding_type: pf.EncodingType) -> None:
         """Test the module with a TSP problem.

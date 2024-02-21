@@ -149,6 +149,18 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         if settings.max_path_length == 0:
             settings.max_path_length = graph.n_vertices
 
+        def get_vertices_possibly_all(constraint: dict[str, Any]) -> list[int]:
+            vertices = constraint.get("vertices", [])
+            if len(vertices) == 0:
+                vertices = graph.all_vertices
+            return cast(list[int], vertices)
+
+        def get_edges_possibly_all(constraint: dict[str, Any]) -> list[tuple[int, int]]:
+            edges = [tuple(edge) for edge in constraint.get("edges", [])]
+            if len(edges) == 0:
+                edges = graph.all_edges
+            return edges
+
         def get_constraint(constraint: dict[str, Any]) -> list[cf.CostFunction]:
             if constraint["type"] == "PathIsValid":
                 return [cf.PathIsValid(constraint.get("path_ids", [1]))]
@@ -163,34 +175,22 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             if constraint["type"] == "PathPositionIs":
                 return [cf.PathPositionIs(constraint["position"], constraint["vertices"], constraint.get("path_id", 1))]
             if constraint["type"] == "PathContainsVerticesExactlyOnce":
-                vertices = constraint.get("vertices", [])
-                if len(vertices) == 0:
-                    vertices = graph.all_vertices
+                vertices = get_vertices_possibly_all(constraint)
                 return [cf.PathContainsVerticesExactlyOnce(vertices, constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathContainsVerticesAtLeastOnce":
-                vertices = constraint.get("vertices", [])
-                if len(vertices) == 0:
-                    vertices = graph.all_vertices
+                vertices = get_vertices_possibly_all(constraint)
                 return [cf.PathContainsVerticesAtLeastOnce(vertices, constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathContainsVerticesAtMostOnce":
-                vertices = constraint.get("vertices", [])
-                if len(vertices) == 0:
-                    vertices = graph.all_vertices
+                vertices = get_vertices_possibly_all(constraint)
                 return [cf.PathContainsVerticesAtMostOnce(vertices, constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathContainsEdgesExactlyOnce":
-                edges = [tuple(edge) for edge in constraint.get("edges", [])]
-                if len(edges) == 0:
-                    edges = graph.all_edges
+                edges = get_edges_possibly_all(constraint)
                 return [cf.PathContainsEdgesExactlyOnce(edges, constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathContainsEdgesAtLeastOnce":
-                edges = [tuple(edge) for edge in constraint.get("edges", [])]
-                if len(edges) == 0:
-                    edges = graph.all_edges
+                edges = get_edges_possibly_all(constraint)
                 return [cf.PathContainsEdgesAtLeastOnce(edges, constraint.get("path_ids", [1]))]
             if constraint["type"] == "PathContainsEdgesAtMostOnce":
-                edges = [tuple(edge) for edge in constraint.get("edges", [])]
-                if len(edges) == 0:
-                    edges = graph.all_edges
+                edges = get_edges_possibly_all(constraint)
                 return [cf.PathContainsEdgesAtMostOnce(edges, constraint.get("path_ids", [1]))]
             if constraint["type"] == "PrecedenceConstraint":
                 return [
@@ -224,12 +224,29 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
 
         Args:
             constraint (cf.CostFunction): The constraint to be added.
+            weight (float | None, optional): The desired weight of the constraint. Defaults to None.
 
         Returns:
             PathFindingQUBOGenerator: The current instance of the QUBO generator.
         """
         self.add_penalty(constraint.get_formula(self.graph, self.settings), lam=weight)
         return self
+
+    def add_constraint_if_exists(
+        self, constraint: cf.CostFunction | None, weight: float | None = None
+    ) -> PathFindingQUBOGenerator:
+        """Add a pathfinding constraint to the QUBO generator.
+
+        Args:
+            constraint (cf.CostFunction): The constraint to be added.
+            weight (float | None, optional): The desired weight of the constraint. Defaults to None.
+
+        Returns:
+            PathFindingQUBOGenerator: The current instance of the QUBO generator.
+        """
+        if constraint is None:
+            return self
+        return self.add_constraint(constraint, weight)
 
     @override
     def _select_lambdas(self) -> list[tuple[sp.Expr, float]]:
@@ -337,7 +354,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
                         v + i * self.graph.n_vertices + p * self.graph.n_vertices * self.settings.max_path_length
                     ]
                 path.append(c)
-            paths.append(path)
+            paths.append([v for v in path if v != 0])
         return paths
 
     def decode_bit_array_one_hot(self, array: list[int]) -> Any:
@@ -376,8 +393,17 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         Returns:
             Any: The decoded assignment as a (set of) path(s).
         """
-        msg = "TODO"
-        raise NotImplementedError(msg)
+        paths = []
+        max_v = int(np.ceil(np.log2(self.graph.n_vertices + 1)))
+        for p in range(self.settings.n_paths):
+            path = []
+            for i in range(self.settings.max_path_length):
+                v = 0
+                for j in range(max_v):
+                    v += 2**j * _array[j + i * max_v + p * max_v * self.settings.max_path_length]
+                path.append(v)
+            paths.append([v for v in path if v != 0])
+        return paths
 
     @override
     def _get_encoding_variables(self) -> Sequence[tuple[sp.Expr, int]]:

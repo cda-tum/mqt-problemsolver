@@ -73,6 +73,10 @@
     {
       "type": "PathsShareNoVertices",
       "path_ids": [1, 2, 3]
+    },
+    {
+      "type": "PathIsValid",
+      "path_ids": [1, 2, 3]
     }
   ]
 }

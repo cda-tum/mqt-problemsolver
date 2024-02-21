@@ -60,6 +60,7 @@ class TestJsonInput:
         manual_generator.add_constraint(cf.PathsShareNoVertices(1, 2))
         manual_generator.add_constraint(cf.PathsShareNoVertices(2, 3))
         manual_generator.add_constraint(cf.PathsShareNoVertices(1, 3))
+        manual_generator.add_constraint(cf.PathIsValid([1, 2, 3]))
 
         check_equal(json_generator, manual_generator)
 
@@ -82,6 +83,12 @@ class TestJsonInput:
         manual_generator.add_constraint(cf.PrecedenceConstraint(2, 3, [1]))
 
         check_equal(json_generator, manual_generator)
+
+    def test_suggest_encoding(self) -> None:
+        """Tests the encoding suggestion feature for a JSON input file."""
+        with Path.open(Path("tests") / "pathfinder" / "resources" / "json" / "with_weight.json") as file:
+            j = file.read()
+        assert pf.PathFindingQUBOGenerator.suggest_encoding(j, TEST_GRAPH) == pf.EncodingType.ONE_HOT
 
     def test_with_weight(self) -> None:
         """Tests a JSON input file that includes weights for some constraints."""

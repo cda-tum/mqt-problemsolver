@@ -12,7 +12,9 @@ if TYPE_CHECKING:
     from tsplib95.models import StandardProblem
 
 
-def __check_forced_edges(problem: StandardProblem) -> cost_functions.CostFunction:
+def __check_forced_edges(problem: StandardProblem) -> cost_functions.CostFunction | None:
+    if not problem.fixed_edges:
+        return None
     forced_edges: list[tuple[int, int]] = []
     for i, j in problem.fixed_edges:
         forced_edges.append((i + 1, j + 1))
@@ -50,8 +52,7 @@ def __tsp(
     generator.add_constraint(cost_functions.PathIsValid([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
 
-    if problem.fixed_edges:
-        generator.add_constraint(__check_forced_edges(problem))
+    generator.add_constraint_if_exists(__check_forced_edges(problem))
 
     return generator
 
@@ -75,8 +76,7 @@ def __hcp(
     generator.add_constraint(cost_functions.PathIsValid([1]))
     generator.add_constraint(cost_functions.PathContainsVerticesExactlyOnce(g.all_vertices, [1]))
 
-    if problem.fixed_edges:
-        generator.add_constraint(__check_forced_edges(problem))
+    generator.add_constraint_if_exists(__check_forced_edges(problem))
 
     return generator
 
@@ -105,8 +105,7 @@ def __sop(
     for u, v in sop_pairs:
         generator.add_constraint(cost_functions.PrecedenceConstraint(u, v, [1]))
 
-    if problem.fixed_edges:
-        generator.add_constraint(__check_forced_edges(problem))
+    generator.add_constraint_if_exists(__check_forced_edges(problem))
 
     return generator
 
