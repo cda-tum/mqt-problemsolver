@@ -1,113 +1,136 @@
-# Pathfinder
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![CodeCov](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml)
+[![Deploy to PyPI](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml)
+[![codecov](https://codecov.io/gh/DRovara/mqt-predictor/branch/main/graph/badge.svg?token=ZL5js1wjrB)](https://codecov.io/gh/DRovara/mqt-predictor)
+[![Documentation](https://img.shields.io/readthedocs/mqt-predictor?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/predictor)
 
-This tool is meant to help prepare the use of VQAs to solve pathfinding problems on directed graphs, by employing a set of constraints. The following constraints are currently supported (red expressions are not QUBO):
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqtpredictor/main/docs/_static/mqt_light.png" width="60%">
+  <img src="https://raw.githubusercontent.com/cda-tum/mqtpredictor/main/docs/_static/mqt_dark.png" width="60%">
+</picture>
+</p>
 
-- Throughout this, we assume $x_{\pi, v, i} = 0$ for $v > |V|$.
-- In cases where we want to work with loops. we assume $x_{\pi,v,i + N} = x*{\pi,v,i}$, otherwise $x*{\pi,v,j} = 0$ for $j > N$\
-  - `PathIsValid`
-  - `MinimizePathLength`
-  - `PathContainsEdgeExactlyOnce`
-  - `PathsShareNoEdges`
-- Paths cannot be shorter than $N$. If there are, repeat one of the vertices to pad the length.
-- As a consequence, the adjacency matrix must have $A_{ii} = 0$ for each $i$.\
-- In **unary** encoding, we assume $x_{\pi, 1, i} = 1$ for all $\pi, i$.
+# MQT QUBOMaker: Automatic generation of QUBO Formulations from optimization problem specifications.
 
-## `PathIsValid`
+MQT QUBOMaker is a framework that can be used to automatically generate QUBO formulations for various optimization problems based on a selection of constraints that define the problem.
 
-Ensure that $(u \rightarrow v) \in E$ for each $(u \rightarrow v) \in \pi$ and each position holds a vertex
+This allows users to create QUBO formulations, and, thus, interact with quantum algorithms, without requiring any background knowledge in the field of quantum computing. End-users can stay entirely within their domain of expertise while being shielded from the complex and error-prone mathematical tasks of QUBO reformulation.
 
-- One-Hot: $$\sum_{(u \rightarrow v) \not \in E} \sum_{i = 1}^{N}x_{\pi, u, i}x_{\pi, v, i+1} + \sum_{i=1}^N \left(1-\sum_{v \in V}x_{\pi,v,i} \right)^2$$
-- Unary: $$\sum_{(u \rightarrow v) \not \in E}\sum_{i=1}^{N} (x_{\pi,u,i}-x_{\pi,u+1,i})(x_{\pi,v,i+1}-x_{\pi,v+1,i+1})$$
-- Binary
+Furthermore, MQT QUBOMaker supports a variety of different encodings. End users can easily switch between the encodings for evaluation purposes without any additional effort, a task that would otherwise require a large amount of tedious mathematical reformulation.
 
-## `MinimizePathLength`
+Currently, MQT QUBOMaker provides the following sub-package:
 
-Minimize $\sum_{(u \rightarrow v) \in \pi} A_{uv}$
+- _Pathfinder_: This subpackage provides a specialization of the QUBOMaker class for the solution of optimization problems involving the search for paths in a directed graph. It provides a large set of pathfinding-related constraints that are used to define individual problem instances.
 
-- One-Hot: $$\sum_{(u \rightarrow v) \in E} \sum_{i = 1}^{N} A_{uv}x_{\pi, u, i}x_{\pi, v, i+1}$$
-- Unary: $$\sum_{(u \rightarrow v) \in E}\sum_{i=1}^{N} A_{uv}(x_{\pi,u,i}-x_{\pi,u+1,i})(x_{\pi,v,i+1}-x_{\pi,v+1,i+1})$$
-- Binary
+For more details, please refer to:
 
-## `PathPositionIs`
+<p align="center">
+  <a href="https://mqt.readthedocs.io/projects/qubomaker">
+  <img width=30% src="https://img.shields.io/badge/documentation-blue?style=for-the-badge&logo=read%20the%20docs" alt="Documentation" />
+  </a>
+</p>
 
-Given set of vertices $V' \subseteq V$, position $i$: ensure $\pi_i \in v$
+If you have any questions, feel free to create a [discussion](https://github.com/DRovara/mqt-qubomaker/discussions) or an [issue](https://github.com/DRovara/mqt-qubomaker/issues) on [GitHub](https://github.com/DRovara/mqt-qubomaker).
 
-- One-Hot: $$1 - \sum_{v \in V'} x_{\pi, v, i}$$
-- Unary: $$1 - \sum_{v\in V'}(x_{\pi, v, i} - x_{\pi, v + 1, i})$$
-- Binary
+MQT QUBOMaker is part of the Munich Quantum Toolkit (MQT) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/).
 
-## `PathContainsVertexExactlyOnce`
+## Getting Started
 
-Given $v$, ensure that: $\left| \{i: \pi_i = v \} \right| = 1$
+`mqt-qubomaker` is available via [PyPI](https://pypi.org/project/mqt.qubomaker/).
 
-- One-Hot: $$\left( 1 - \sum_{i = 1}^N x_{\pi, v, i} \right) ^2$$
-- Unary: $$\left( 1 - \sum_{i=1}^N (x_{\pi,v,i} - x_{\pi,v+1,i}) \right)^2$$
-- Binary
+```console
+(venv) $ pip install mqt.qubomaker
+```
 
-## `PathContainsVertexAtLeastOnce`
+The following code gives an example of the usage with the `pathfinder` submodule:
 
-Given $v$, ensure that: $\left| \{i: \pi_i = v \} \right| \geq 1$
+```python3
+import mqt.qubomaker as qm
+import mqt.qubomaker.pathfinder as pf
 
-- One-Hot: $$???$$
-- Unary: $$???$$
-- Binary
+# define an example graph to investigate.
+graph = qm.Graph.from_adjacency_matrix(
+    [
+        [0, 1, 3, 4],
+        [2, 0, 4, 2],
+        [1, 5, 0, 3],
+        [3, 8, 1, 0],
+    ]
+)
 
-## `PathContainsVertexAtMostOnce`
+# select the settings for the QUBO formulation.
+settings = pf.PathFindingQUBOGeneratorSettings(
+    encoding_type=pf.EncodingTypes.ONE_HOT, n_paths=1, max_path_length=4, loops=True
+)
 
-Given $v$, ensure that: $\left| \{i: \pi_i = v \} \right| \leq 1$
+# define the generator to be used for the QUBO formulation.
+generator = pf.PathFindingQUBOGenerator(
+    objective_function=pf.MinimizePathLength(path_ids=[1]),
+    graph=graph,
+    settings=settings,
+)
 
-- One-Hot: $$???$$
-- Unary: $$???$$
-- Binary
+# add the constraints that define the problem instance.
+generator.add_constraint(pf.PathIsValid(path_ids=[1]))
+generator.add_constraint(
+    pf.PathContainsVerticesExactlyOnce(vertex_ids=graph.all_vertices, path_ids=[1])
+)
 
-## `PathContainsEdgeExactlyOnce`
+# generate and view the QUBO formulation as a QUBO matrix.
+print(generator.construct_qubo_matrix())
+```
 
-Given $e = (u \rightarrow v)$, ensure that: $|\{(i, i + 1) : \pi_i = u \wedge \pi_{i+1} = v\}| = 1$\
+**Detailed documentation and examples are available at [ReadTheDocs](https://mqt.readthedocs.io/projects/qubomaker).**
 
-- One-Hot: $$\color{red} \left( 1 - \sum_{i=1}^{N}x_{\pi, u, i}x_{\pi, v, i + 1} \right)^2$$
-- Unary: $$\color{red} \left( 1 - \sum_{i=1}^{N}(x_{\pi,u,i}-x_{\pi,u+1,i})(x_{\pi,v,i+1}-x_{\pi,v+1,i+1}) \right)^2$$
-- Binary
+# Repository Structure
 
-## `PathContainsEdgeAtMostOnce`
+```
+.
+├── docs/
+├── notebooks/
+│ ├── input/
+│ ├── tsp.ipynb
+│ └── tsplib.ipynb
+├── src/
+│ ├── mqt/
+│   └── qubomaker/
+│     ├── pathfinder/
+│       ├── resources/
+│         ├── constraints/
+│         ├── constraint.json
+│         └── input-format.json
+│       ├── __init__.py
+│       ├── cost_functions.py
+│       ├── pathfinder.py
+│       └── tsplib.py
+│     ├── __init__.py
+│     ├── graph.py
+│     ├── py.typed
+│     ├── qubo_generator.py
+│     └── utils.py
+```
 
-Given $e = (u \rightarrow v)$, ensure that: $|\{(i, i + 1) : \pi_i = u \wedge \pi_{i+1} = v\}| \leq 1$\
+## Acknowledgements
 
-- One-Hot: $$???$$
-- Unary: $$???$$
-- Binary
+The Munich Quantum Toolkit has been supported by the European
+Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement
+No. 101001318), the Bavarian State Ministry for Science and Arts through the Distinguished Professorship Program, as well as the
+Munich Quantum Valley, which is supported by the Bavarian state government with funds from the Hightech Agenda Bayern Plus.
 
-## `PathContainsEdgeAtLeastOnce`
-
-Given $e = (u \rightarrow v)$, ensure that: $\left| \{(i, i + 1) : \pi_i = u \wedge \pi_{i+1} = v\} \right| \geq 1$\
-
-- One-Hot: $$???$$
-- Unary: $$???$$
-- Binary
-
-## `PathsShareNoVertices`
-
-Given two paths $\pi^{(1)}$ and $\pi^{(2)}$, $\pi^{(1)}_V \cap \pi^{(2)}_V = \emptyset$
-
-- One-Hot: $$\sum_{v \in V} \left[ \left(\sum_{i=1}^N x_{\pi^{(1)}, v, i} \right) \left(\sum_{i=1}^N x_{\pi^{(2)}, v, i} \right) \right]$$
-- Unary: $$\sum_{v \in V} \left[ \left(\sum_{i=1}^N x_{\pi^{(1)},v,i} - x_{\pi^{(1)},v+1,i} \right) \left(\sum_{i=1}^N x_{\pi^{(2)},v,i} - x_{\pi^{(2)},v+1,i} \right) \right]$$
-- Binary
-
-## `PathsShareNoEdges`
-
-Given two paths $\pi^{(1)}$ and $\pi^{(2)}$, $\pi^{(1)}_E \cap \pi^{(2)}_E = \emptyset$
-
-- One-Hot: $$\color{red} \sum_{(u \rightarrow v) \in V} \left[ \left(\sum_{i=1}^{N} x_{\pi^{(1)}, u, i} x_{\pi^{(1)}, v, i + 1} \right) \left(\sum_{i=1}^{N} x_{\pi^{(2)}, u, i} x_{\pi^{(2)}, v, i + 1} \right) \right]$$
-- Unary: $$\color{red} \sum_{(u \rightarrow v) \in V} \left[ \left(\sum_{i=1}^{N} (x_{\pi^{(1)},u,i}-x_{\pi^{(1)}u+1,i})(x_{\pi^{(1)}v,i+1}-x_{\pi^{(1)}v+1,i+1}) \right) \left(\sum_{i=1}^{N} (x_{\pi^{(2)},u,i}-x_{\pi^{(2)}u+1,i})(x_{\pi^{(2)}v,i+1}-x_{\pi^{(2)}v+1,i+1}) \right) \right]$$
-- Binary
-
-## `PrecedenceConstraint`
-
-Given a pair $(u, v)$, $v$ may not appear before $u$
-
-- One-Hot: $$???$$
-- Unary: $$???$$
-- Binary
-
----
-
----
+<p align="center">
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/tum_dark.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/tum_light.svg" width="28%">
+</picture>
+<picture>
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/logo-bavaria.svg" width="16%">
+</picture>
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/erc_dark.svg" width="24%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/erc_light.svg" width="24%">
+</picture>
+<picture>
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/logo-mqv.svg" width="28%">
+</picture>
+</p>
