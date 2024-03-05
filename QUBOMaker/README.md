@@ -1,13 +1,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![CodeCov](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml)
 [![Deploy to PyPI](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml)
-[![codecov](https://codecov.io/gh/DRovara/mqt-predictor/branch/main/graph/badge.svg?token=ZL5js1wjrB)](https://codecov.io/gh/DRovara/mqt-predictor)
-[![Documentation](https://img.shields.io/readthedocs/mqt-predictor?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/predictor)
+[![codecov](https://codecov.io/gh/DRovara/mqt-qubomaker/branch/main/graph/badge.svg?token=ZL5js1wjrB)](https://codecov.io/gh/DRovara/mqt-qubomaker)
+[![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/qubomaker)
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqtpredictor/main/docs/_static/mqt_light.png" width="60%">
-  <img src="https://raw.githubusercontent.com/cda-tum/mqtpredictor/main/docs/_static/mqt_dark.png" width="60%">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/mqt_light.png" width="60%">
+  <img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/mqt_dark.png" width="60%">
 </picture>
 </p>
 
@@ -120,17 +120,17 @@ Munich Quantum Valley, which is supported by the Bavarian state government with 
 
 <p align="center">
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/tum_dark.svg" width="28%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/tum_light.svg" width="28%">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/tum_dark.svg" width="28%">
+<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/tum_light.svg" width="28%">
 </picture>
 <picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/logo-bavaria.svg" width="16%">
+<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/logo-bavaria.svg" width="16%">
 </picture>
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/erc_dark.svg" width="24%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/erc_light.svg" width="24%">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/erc_dark.svg" width="24%">
+<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/erc_light.svg" width="24%">
 </picture>
 <picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-predictor/main/docs/_static/logo-mqv.svg" width="28%">
+<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/logo-mqv.svg" width="28%">
 </picture>
 </p>
