@@ -21,7 +21,7 @@ Furthermore, MQT QUBOMaker supports a variety of different encodings. End users 
 
 Currently, MQT QUBOMaker provides the following sub-package:
 
-- _Pathfinder_: This subpackage provides a specialization of the QUBOMaker class for the solution of optimization problems involving the search for paths in a directed graph. It provides a large set of pathfinding-related constraints that are used to define individual problem instances.
+- [_Pathfinder_](./src/mqt/qubomaker/pathfinder/README.md): This subpackage provides a specialization of the QUBOMaker class for the solution of optimization problems involving the search for paths in a directed graph. It provides a large set of pathfinding-related constraints that are used to define individual problem instances.
 
 For more details, please refer to:
 
