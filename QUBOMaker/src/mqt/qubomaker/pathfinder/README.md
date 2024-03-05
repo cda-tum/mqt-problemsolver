@@ -15,7 +15,7 @@ An example settings instance can be constructed as follows:
 import mqt.qubomaker.pathfinder as pf
 
 settings = pf.PathFindingQUBOGeneratorSettings(
-    encoding_type=pf.EncodingTypes.ONE_HOT, n_paths=1, max_path_length=4, loops=True
+    encoding_type=pf.EncodingType.ONE_HOT, n_paths=1, max_path_length=4, loops=True
 )
 ```
 

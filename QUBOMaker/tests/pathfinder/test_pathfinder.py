@@ -17,7 +17,7 @@ TEST_GRAPH = get_test_graph_small()
     ("encoding_type"),
     [
         (cf.EncodingType.ONE_HOT),
-        (cf.EncodingType.UNARY),
+        (cf.EncodingType.DOMAIN_WALL),
         (cf.EncodingType.BINARY),
     ],
 )

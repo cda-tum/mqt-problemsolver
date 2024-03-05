@@ -95,7 +95,7 @@ class TestJsonInput:
         json_generator = read_from_path("with_weight.json")
 
         settings = pf.PathFindingQUBOGeneratorSettings(
-            encoding_type=pf.EncodingType.UNARY,
+            encoding_type=pf.EncodingType.DOMAIN_WALL,
             n_paths=1,
             max_path_length=5,
             loops=False,

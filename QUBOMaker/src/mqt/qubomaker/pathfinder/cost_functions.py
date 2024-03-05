@@ -23,7 +23,7 @@ class EncodingType(Enum):
     """The encoding types supported for the QUBO generation."""
 
     ONE_HOT = 1
-    UNARY = 2
+    DOMAIN_WALL = 2
     BINARY = 3
 
 
@@ -253,9 +253,9 @@ class _FormulaHelpers:
         return cast(sp.Function, X(path, vertex, position))
 
     @staticmethod
-    def get_encoding_variable_unary(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
+    def get_encoding_variable_domain_wall(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
         """Returns anexpression representing the statement
-        "Vertex `vertex` is located at position `position` in path `path`" for Unary encoding.
+        "Vertex `vertex` is located at position `position` in path `path`" for Domain-Wall encoding.
 
         All indices can be integers, strings, or sympy expressions.
         The `_num_vertices` parameter is only included for compatibility.
@@ -267,7 +267,7 @@ class _FormulaHelpers:
             _num_vertices (int, optional): The number of vertices in the graph. Defaults to 0.
 
         Returns:
-            sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Unary encoding.
+            sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Domain-Wall encoding.
         """
         if isinstance(path, str):
             path = _FormulaHelpers.variable(path)
@@ -387,8 +387,8 @@ class CostFunction(ABC):
         """
         if settings.encoding_type == EncodingType.ONE_HOT:
             return self.get_formula_one_hot(graph, settings)
-        if settings.encoding_type == EncodingType.UNARY:
-            return self.get_formula_unary(graph, settings)
+        if settings.encoding_type == EncodingType.DOMAIN_WALL:
+            return self.get_formula_domain_wall(graph, settings)
         if settings.encoding_type == EncodingType.BINARY:
             return self.get_formula_binary(graph, settings)
         return None  # type: ignore[unreachable]
@@ -426,8 +426,8 @@ class CostFunction(ABC):
         """
         return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_one_hot)
 
-    def get_formula_unary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        """Computes the QUBO expression for the cost function for Unary encoding.
+    def get_formula_domain_wall(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        """Computes the QUBO expression for the cost function for Domain-Wall encoding.
 
         Args:
             graph (Graph): The graph on which the cost function should be applied.
@@ -436,7 +436,7 @@ class CostFunction(ABC):
         Returns:
             sp.Expr: An expression representing the cost function as a QUBO function.
         """
-        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
+        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_domain_wall)
 
     def get_formula_binary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         """Computes the QUBO expression for the cost function for Binary encoding.
@@ -1144,7 +1144,7 @@ class PathIsValid(PathBound):
         - it contains an edge that is not in the graph,
         - it has an assignment incompatible with the encoding:
             - for One-Hot encoding, multiple vertices are assigned to a single position
-            - for Unary encoding, a position bit string is of the form `1...10...1...0`
+            - for Domain-Wall encoding, a position bit string is of the form `1...10...1...0`
     """
 
     def __init__(self, path_ids: list[int]) -> None:
@@ -1197,8 +1197,8 @@ class PathIsValid(PathBound):
         )
 
     @override
-    def get_formula_unary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        general = self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_unary)
+    def get_formula_domain_wall(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
+        general = self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_domain_wall)
         enforce_domain_wall_penalty = (
             2 * settings.max_path_length * np.max(graph.adjacency_matrix) + graph.n_vertices**2
         )

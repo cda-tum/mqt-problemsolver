@@ -120,8 +120,8 @@ def paths_to_assignment(
     """
     if encoding == pf.EncodingType.ONE_HOT:
         return __paths_to_assignment_one_hot(paths, n_vertices, max_path_length)
-    if encoding == pf.EncodingType.UNARY:
-        return __paths_to_assignment_unary(paths, n_vertices, max_path_length)
+    if encoding == pf.EncodingType.DOMAIN_WALL:
+        return __paths_to_assignment_domain_wall(paths, n_vertices, max_path_length)
     if encoding == pf.EncodingType.BINARY:
         return __paths_to_assignment_binary(paths, n_vertices, max_path_length)
     msg = f"Unknown encoding type: {encoding}"  # type: ignore[unreachable]
@@ -148,8 +148,10 @@ def __paths_to_assignment_one_hot(paths: list[list[int]], n_vertices: int, max_p
     return dict(result)
 
 
-def __paths_to_assignment_unary(paths: list[list[int]], n_vertices: int, max_path_length: int) -> dict[sp.Expr, int]:
-    """Converts a list of paths to a substitution from unary encoding variables to binary values.
+def __paths_to_assignment_domain_wall(
+    paths: list[list[int]], n_vertices: int, max_path_length: int
+) -> dict[sp.Expr, int]:
+    """Converts a list of paths to a substitution from domain_wall encoding variables to binary values.
 
     Args:
         paths (list[list[int]]): The path(s) to be converted.
@@ -157,7 +159,7 @@ def __paths_to_assignment_unary(paths: list[list[int]], n_vertices: int, max_pat
         max_path_length (int): The maximum length of the path(s).
 
     Returns:
-        dict[sp.Expr, int]: The substitution dictionary mapping each unary encoding variable to its value.
+        dict[sp.Expr, int]: The substitution dictionary mapping each domain_wall encoding variable to its value.
     """
 
     result = [

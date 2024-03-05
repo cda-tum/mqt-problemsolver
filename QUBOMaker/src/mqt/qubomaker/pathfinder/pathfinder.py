@@ -74,7 +74,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             cf.EncodingType: The suggested encoding type.
         """
         results: list[tuple[cf.EncodingType, int]] = []
-        for encoding in [cf.EncodingType.ONE_HOT, cf.EncodingType.UNARY, cf.EncodingType.BINARY]:
+        for encoding in [cf.EncodingType.ONE_HOT, cf.EncodingType.DOMAIN_WALL, cf.EncodingType.BINARY]:
             generator = PathFindingQUBOGenerator.__from_json(json_string, graph, override_encoding=encoding)
             results.append((encoding, generator.count_required_variables()))
         return next(encoding for (encoding, size) in results if size == min([size for (_, size) in results]))
@@ -134,7 +134,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             if json_object["settings"]["encoding"] == "ONE_HOT":
                 encoding_type = cf.EncodingType.ONE_HOT
             elif json_object["settings"]["encoding"] in ["UNARY", "DOMAIN_WALL"]:
-                encoding_type = cf.EncodingType.UNARY
+                encoding_type = cf.EncodingType.DOMAIN_WALL
             else:
                 encoding_type = cf.EncodingType.BINARY
         else:
@@ -328,15 +328,15 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         """
         if self.settings.encoding_type == cf.EncodingType.ONE_HOT:
             return self.decode_bit_array_one_hot(_array)
-        if self.settings.encoding_type == cf.EncodingType.UNARY:
-            return self.decode_bit_array_unary(_array)
+        if self.settings.encoding_type == cf.EncodingType.DOMAIN_WALL:
+            return self.decode_bit_array_domain_wall(_array)
         if self.settings.encoding_type == cf.EncodingType.BINARY:
             return self.decode_bit_array_binary(_array)
         msg = f"Encoding type {self.settings.encoding_type} not supported."  # type: ignore[unreachable]
         raise ValueError(msg)
 
-    def decode_bit_array_unary(self, array: list[int]) -> Any:
-        """Decodes an assignment for unary encoding.
+    def decode_bit_array_domain_wall(self, array: list[int]) -> Any:
+        """Decodes an assignment for domain_wall encoding.
 
         Args:
             array (list[int]): The assignment to decode.

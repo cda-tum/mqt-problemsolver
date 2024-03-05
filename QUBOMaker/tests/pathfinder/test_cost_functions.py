@@ -73,10 +73,10 @@ def evaluate(
     ("encoding_type", "loop"),
     [
         (cf.EncodingType.ONE_HOT, False),
-        (cf.EncodingType.UNARY, False),
+        (cf.EncodingType.DOMAIN_WALL, False),
         (cf.EncodingType.BINARY, False),
         (cf.EncodingType.ONE_HOT, True),
-        (cf.EncodingType.UNARY, True),
+        (cf.EncodingType.DOMAIN_WALL, True),
         (cf.EncodingType.BINARY, True),
     ],
 )
