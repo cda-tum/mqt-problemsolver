@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![CodeCov](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml)
 [![Deploy to PyPI](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml)
-[![codecov](https://codecov.io/gh/DRovara/mqt-qubomaker/branch/main/graph/badge.svg?token=ZL5js1wjrB)](https://codecov.io/gh/DRovara/mqt-qubomaker)
+[![codecov](https://codecov.io/gh/DRovara/mqt-qubomaker/graph/badge.svg?token=WB16FSW7OZ)](https://codecov.io/gh/DRovara/mqt-qubomaker)
 [![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/qubomaker)
 
 <p align="center">
