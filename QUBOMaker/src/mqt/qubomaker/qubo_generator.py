@@ -8,6 +8,10 @@ from typing import TYPE_CHECKING, Any, Sequence, cast
 import numpy as np
 import numpy.typing as npt
 import sympy as sp
+from qiskit.algorithms.minimum_eigensolvers import QAOA
+from qiskit.algorithms.optimizers import COBYLA, Optimizer
+from qiskit.primitives import Sampler
+from qiskit.utils import algorithm_globals
 from qiskit_optimization import QuadraticProgram
 from qiskit_optimization.converters import QuadraticProgramToQubo
 
@@ -425,3 +429,30 @@ class QUBOGenerator:
         q = QuadraticProgramToQubo().convert(quadratic_task)
         operator, _ = q.to_ising()
         return operator
+
+    def construct_qaoa(
+        self, seed: int | None = None, reps: int = 2, sampler: Sampler = None, optimizer: Optimizer = None
+    ) -> tuple[QAOA, OperatorBase]:
+        """Constructs a qiskit-based QAOA instance for the QUBO problem.
+
+        Args:
+            seed (int | None, optional): The seed for the optimization. Defaults to None.
+            reps (int, optional): The number of the repetitions in the QAOA circuit. Defaults to 2.
+            sampler (Sampler, optional): The sampler to be used for the QAOA procedure. By default, uses a simple qiskit `Sampler`.
+            optimizer (Optimizer, optional): The optimizer to be used for the QAOA procedure. By default, uses a simple COBYLA optimizer.
+
+        Returns:
+            tuple[QuantumCircuit, OperatorBase]: The QAOA instance and the operator to run it on.
+        """
+
+        if seed is not None:
+            algorithm_globals.random_seed = seed
+        op = self.construct_operator()
+
+        if sampler is None:
+            sampler = Sampler()
+        if optimizer is None:
+            optimizer = COBYLA()
+        qaoa = QAOA(sampler, optimizer, reps=reps)
+
+        return (qaoa, op)
