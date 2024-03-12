@@ -19,9 +19,9 @@ This allows users to create QUBO formulations, and, thus, interact with quantum 
 
 Furthermore, MQT QUBOMaker supports a variety of different encodings. End users can easily switch between the encodings for evaluation purposes without any additional effort, a task that would otherwise require a large amount of tedious mathematical reformulation.
 
-Currently, MQT QUBOMaker provides the following sub-package:
+Currently, MQT QUBOMaker provides the following submodule:
 
-- [_Pathfinder_](./src/mqt/qubomaker/pathfinder/README.md): This subpackage provides a specialization of the QUBOMaker class for the solution of optimization problems involving the search for paths in a directed graph. It provides a large set of pathfinding-related constraints that are used to define individual problem instances.
+- [_Pathfinder_](./src/mqt/qubomaker/pathfinder/README.md): This submodule provides a specialization of the QUBOMaker class for the solution of optimization problems involving the search for paths in a directed graph. It provides a large set of pathfinding-related constraints that are used to define individual problem instances.
 
 For more details, please refer to:
 
