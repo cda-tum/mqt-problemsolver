@@ -138,6 +138,5 @@ def from_tsplib_problem(
         case "CVRP":
             msg = "CVRP is not supported as it is not a pure path-finding problem."
             raise ValueError(msg)
-        case _:
-            msg = "Problem type not supported."
-            raise ValueError(msg)
+    msg = "Problem type not supported."
+    raise ValueError(msg)
