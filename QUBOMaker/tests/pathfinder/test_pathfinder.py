@@ -80,6 +80,9 @@ class TestPathfinder:
             assert paths_equal_with_loops(path_representation[0], [4, 1, 2, 3])
             assert generator.get_cost(optimal_solution) == 20
 
+            # Test if constructing the Quantum Circuit works without a problem.
+            generator.construct_qaoa(seed=0)
+
         solution = paths_to_assignment_list([[4, 1, 2, 3]], 4, 4, encoding_type)
         assert generator.get_cost(solution) == 20
 
