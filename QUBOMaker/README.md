@@ -1,13 +1,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![CodeCov](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/coverage.yml)
-[![Deploy to PyPI](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml/badge.svg)](https://github.com/DRovara/mqt-qubomaker/actions/workflows/deploy.yml)
-[![codecov](https://codecov.io/gh/DRovara/mqt-qubomaker/graph/badge.svg?token=WB16FSW7OZ)](https://codecov.io/gh/DRovara/mqt-qubomaker)
+[![CodeCov](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/coverage.yml/badge.svg)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/coverage.yml)
+[![Deploy to PyPI](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/deploy.yml/badge.svg)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/deploy.yml)
+[![codecov](https://codecov.io/gh/cda-tum/mqt-qubomaker/graph/badge.svg?token=WB16FSW7OZ)](https://codecov.io/gh/cda-tum/mqt-qubomaker)
 [![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/qubomaker)
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/mqt_light.png" width="60%">
-  <img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/mqt_dark.png" width="60%">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_light.png" width="60%">
+  <img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_dark.png" width="60%">
 </picture>
 </p>
 
@@ -31,7 +31,7 @@ For more details, please refer to:
   </a>
 </p>
 
-If you have any questions, feel free to create a [discussion](https://github.com/DRovara/mqt-qubomaker/discussions) or an [issue](https://github.com/DRovara/mqt-qubomaker/issues) on [GitHub](https://github.com/DRovara/mqt-qubomaker).
+If you have any questions, feel free to create a [discussion](https://github.com/cda-tum/mqt-qubomaker/discussions) or an [issue](https://github.com/cda-tum/mqt-qubomaker/issues) on [GitHub](https://github.com/cda-tum/mqt-qubomaker).
 
 MQT QUBOMaker is part of the Munich Quantum Toolkit (MQT) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/).
 
@@ -120,17 +120,17 @@ Munich Quantum Valley, which is supported by the Bavarian state government with 
 
 <p align="center">
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/tum_dark.svg" width="28%">
-<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/tum_light.svg" width="28%">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/tum_dark.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/tum_light.svg" width="28%">
 </picture>
 <picture>
-<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/logo-bavaria.svg" width="16%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/logo-bavaria.svg" width="16%">
 </picture>
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/erc_dark.svg" width="24%">
-<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/erc_light.svg" width="24%">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/erc_dark.svg" width="24%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/erc_light.svg" width="24%">
 </picture>
 <picture>
-<img src="https://raw.githubusercontent.com/DRovara/mqt-qubomaker/main/docs/_static/logo-mqv.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/logo-mqv.svg" width="28%">
 </picture>
 </p>
