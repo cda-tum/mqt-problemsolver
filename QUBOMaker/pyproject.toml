@@ -20,12 +20,11 @@ requires-python = ">=3.8"
 dynamic = ["version"]
 
 dependencies = [
-    "qiskit>=0.36.0,<=1.0.2",
+    "qiskit>=1.0.0",
     "joblib",
     "numpy",
     "sympy",
     "matplotlib",
-    "mqt.ddsim",
     "networkx",
     "python_tsp",
     "docplex",
@@ -80,7 +79,7 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "typing_extensions.*"]
+module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*", "qiskit_algorithms.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "typing_extensions.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

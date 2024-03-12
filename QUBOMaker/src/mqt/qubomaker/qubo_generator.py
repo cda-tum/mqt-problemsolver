@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING, Any, Sequence, cast
 import numpy as np
 import numpy.typing as npt
 import sympy as sp
-from qiskit.algorithms.minimum_eigensolvers import QAOA
-from qiskit.algorithms.optimizers import COBYLA, Optimizer
 from qiskit.primitives import Sampler
-from qiskit.utils import algorithm_globals
+from qiskit_algorithms import QAOA
+from qiskit_algorithms.optimizers import COBYLA, Optimizer
+from qiskit_algorithms.utils import algorithm_globals
 from qiskit_optimization import QuadraticProgram
 from qiskit_optimization.converters import QuadraticProgramToQubo
 
