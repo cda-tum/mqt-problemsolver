@@ -136,6 +136,74 @@ class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
         return cast(sp.Expr, result)
 
 
+class _StringForSumSet:
+    """A string that can be stored in a SumSet object.
+
+    Required, as storing just a normal `str` is not compatible with sympy.
+    """
+
+    string: str
+    args: list[sp.Expr]
+    free_symbols: list[sp.Symbol]
+
+    def __init__(self, string: str) -> None:
+        """Initialises a _StringForSumSet.
+        Args:
+            string (str): The string to store.
+        """
+        self.string = string
+        self.args = []
+        self.free_symbols = []
+
+    def __str__(self) -> str:
+        return self.string
+
+
+class SumSet(sp.Expr):
+    """A class  that can be used to represent a sum over a set.
+
+    This is just a symbolic representation for the display of the equation. In the background,
+    it stores the actual expanded sum that is used for calculations."""
+
+    expr: sp.Expr
+    element_expr: sp.Expr
+    latex: _StringForSumSet
+
+    def __init__(self, expr: sp.Expr, element_expr: sp.Expr, latex: _StringForSumSet) -> None:
+        """Initialises a SumSet.
+
+        Args:
+            expr (sp.Expr): The expression that is represented by the SumSet.
+            element_expr (sp.Expr): The expression of an individual sum item.
+            latex (_StringForSumSet): The latex string that represents the set over which the sum is performed.
+        """
+        self._args = (expr, element_expr, latex)  # type: ignore[assignment]
+        self.expr = expr
+        self.latex = latex
+        self.element_expr = element_expr
+
+    def _latex(self, printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+        """Returns the latex representation of the expression.
+
+        Args:
+            _printer (sp.StrPrinter): The printer to use.
+
+        Returns:
+            str: The latex representation of the expression.
+        """
+        child_latex = printer.doprint(self.element_expr)  # type: ignore[no-untyped-call]
+        return f"{self.latex.string} {child_latex}"
+
+    @override
+    def doit(self, **_hints) -> sp.Expr:  # type: ignore[no-untyped-def]
+        """Replaces the sum by the actual expression it represents.
+
+        Returns:
+            sp.Expr: The expression that is represented by the sum.
+        """
+        return self.expr
+
+
 class _FormulaHelpers:
     """Provides static methods for the more efficient construction of sympy formulas."""
 
@@ -172,7 +240,7 @@ class _FormulaHelpers:
         return sp.Product(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
 
     @staticmethod
-    def sum_set(expression: sp.Expr, variables: list[str], _latex: str, callback: SetCallback) -> sp.Expr:
+    def sum_set(expression: sp.Expr, variables: list[str], latex: str, callback: SetCallback) -> sp.Expr:
         """Generates a sum of the form `\sum_{[variables] \in [callback]} [expression]`.
 
         Args:
@@ -187,7 +255,7 @@ class _FormulaHelpers:
         # TODO use latex output
         variable_symbols = [_FormulaHelpers.variable(v) for v in variables]
         assignments = [x if isinstance(x, tuple) else (x,) for x in callback()]
-        return cast(
+        expr = cast(
             sp.Expr,
             functools.reduce(
                 lambda total, new: total + expression.subs(dict(zip(variable_symbols, new))),  # type: ignore[no-untyped-call]
@@ -195,6 +263,16 @@ class _FormulaHelpers:
                 sp.Integer(0),
             ),
         )
+
+        if len(assignments) <= 1:
+            return expr
+
+        if len(variables) == 1:
+            iterator_latex = str(variables[0])
+        else:
+            iterator_latex = "(" + ", ".join([str(v) for v in variable_symbols]) + ")"
+
+        return SumSet(expr, expression, _StringForSumSet(rf"\sum_{{{iterator_latex} {latex}}}"))
 
     @staticmethod
     def adjacency(v: int | str | sp.Expr, w: int | str | sp.Expr) -> sp.Function:
