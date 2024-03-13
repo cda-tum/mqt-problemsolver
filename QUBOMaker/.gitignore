@@ -8,6 +8,7 @@ build
 /local-tests
 .pytest_cache
 /dist/*
+/docs/_build/*
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
