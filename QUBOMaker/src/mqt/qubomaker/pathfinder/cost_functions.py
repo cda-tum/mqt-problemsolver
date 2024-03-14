@@ -206,13 +206,23 @@ class SumSet(sp.Expr):
         return str(self.expr)
 
     @override
-    def doit(self, **_hints) -> sp.Expr:  # type: ignore[no-untyped-def]
+    def doit(self, **hints) -> sp.Expr:  # type: ignore[no-untyped-def]
         """Replaces the sum by the actual expression it represents.
 
         Returns:
             sp.Expr: The expression that is represented by the sum.
         """
-        return self.expr
+        return cast(sp.Expr, self.expr.doit(hints=hints))  # type: ignore[no-untyped-call]
+
+    def __eq__(self, other: object) -> bool:
+        """Overrides the default implementation."""
+        if not isinstance(other, SumSet):
+            return False
+        return cast(bool, self.expr == other.expr)
+
+    def __hash__(self) -> int:
+        """Overrides the default implementation."""
+        return hash(self.expr)
 
 
 class _FormulaHelpers:
