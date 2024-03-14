@@ -156,6 +156,11 @@ class _StringForSumSet:
         self.free_symbols = []
 
     def __str__(self) -> str:
+        """Returns a string representation of the expression.
+
+        Returns:
+            str: The string represented by this expression.
+        """
         return self.string
 
 
@@ -193,17 +198,6 @@ class SumSet(sp.Expr):
         """
         child_latex = printer.doprint(self.element_expr)  # type: ignore[no-untyped-call]
         return f"{self.latex.string} {child_latex}"
-
-    def __str__(self) -> str:
-        """Returns a string representation of the expression.
-
-        When just using str(...) we don't use the sets over sums, and instead just render the
-        actual full expression.
-
-        Returns:
-            str: _description_
-        """
-        return str(self.expr)
 
     @override
     def doit(self, **hints) -> sp.Expr:  # type: ignore[no-untyped-def]
