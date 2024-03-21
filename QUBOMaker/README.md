@@ -2,7 +2,7 @@
 [![CodeCov](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/coverage.yml/badge.svg)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/coverage.yml)
 [![Deploy to PyPI](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/deploy.yml/badge.svg)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/deploy.yml)
 [![codecov](https://codecov.io/gh/cda-tum/mqt-qubomaker/graph/badge.svg?token=WB16FSW7OZ)](https://codecov.io/gh/cda-tum/mqt-qubomaker)
-[![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/qubomaker)
+[![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt-qubomaker.readthedocs.io/en/latest/)
 
 <p align="center">
 <picture>
@@ -26,7 +26,7 @@ Currently, MQT QUBOMaker provides the following submodule:
 For more details, please refer to:
 
 <p align="center">
-  <a href="https://mqt.readthedocs.io/projects/qubomaker">
+  <a href="https://mqt-qubomaker.readthedocs.io/en/latest/">
   <img width=30% src="https://img.shields.io/badge/documentation-blue?style=for-the-badge&logo=read%20the%20docs" alt="Documentation" />
   </a>
 </p>
