@@ -81,7 +81,7 @@ generator.add_constraint(
 print(generator.construct_qubo_matrix())
 ```
 
-**Detailed documentation and examples are available at [ReadTheDocs](https://mqt.readthedocs.io/projects/qubomaker).**
+**Detailed documentation and examples are available at [ReadTheDocs](https://mqt-qubomaker.readthedocs.io/en/latest/).**
 
 # Repository Structure
 
