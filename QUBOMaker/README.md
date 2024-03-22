@@ -93,7 +93,7 @@ print(generator.construct_qubo_matrix())
 │ ├── tsp.ipynb
 │ └── tsplib.ipynb
 ├── src/
-│ ├── mqt/
+│ └── mqt/
 │   └── qubomaker/
 │     ├── pathfinder/
 │       ├── resources/
@@ -109,6 +109,22 @@ print(generator.construct_qubo_matrix())
 │     ├── py.typed
 │     ├── qubo_generator.py
 │     └── utils.py
+├── tests/
+│ ├── pathfinder/
+│   └── resources/
+│     ├── json/
+│     ├── tsplib/
+│     ├── __init__.py
+│     ├── test_cost_functions.py
+│     ├── test_json_input.py
+│     ├── test_pathfinder.py
+│     ├── test_tsplib_input.py
+│     └── utils_test.py
+│ ├── resources/
+│   └── graph/
+│     └── graph.py
+│ ├── __init__.py
+│ └── test_grah.py
 ```
 
 ## Acknowledgements
