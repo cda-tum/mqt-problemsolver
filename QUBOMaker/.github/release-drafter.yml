@@ -1,4 +1,4 @@
-name-template: "MQT Pathfinder $RESOLVED_VERSION Release"
+name-template: "MQT QUBOMaker $RESOLVED_VERSION Release"
 tag-template: "v$RESOLVED_VERSION"
 categories:
   - title: "🚀 Features and Enhancements"
