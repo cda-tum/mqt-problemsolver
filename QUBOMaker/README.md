@@ -6,8 +6,8 @@
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_light.png" width="60%">
-  <img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_dark.png" width="60%">
+  <a href="https://mqt.readthedocs.io/"><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_light.png" width="60%"></a>
+  <a href="https://mqt.readthedocs.io/"><img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_dark.png" width="60%"></a>
 </picture>
 </p>
 
