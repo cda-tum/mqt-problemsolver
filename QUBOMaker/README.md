@@ -127,6 +127,13 @@ print(generator.construct_qubo_matrix())
 │ └── test_grah.py
 ```
 
+## References
+
+MQT QUBOMaker has been developed based on methods proposed in the following papers:
+
+- D. Rovara, N. Quetschlich, and R. Wille "[A Framework to Formulate
+  Pathfinding Problems for Quantum Computing](https://todo)," arXiv, 2024
+
 ## Acknowledgements
 
 The Munich Quantum Toolkit has been supported by the European
