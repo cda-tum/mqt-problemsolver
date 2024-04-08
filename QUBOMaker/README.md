@@ -11,7 +11,7 @@
 </picture>
 </p>
 
-# MQT QUBOMaker: Automatic generation of QUBO Formulations from optimization problem specifications.
+# MQT QUBOMaker: Automatic Generation of QUBO Formulations from Optimization Problem Specifications
 
 MQT QUBOMaker is a framework that can be used to automatically generate QUBO formulations for various optimization problems based on a selection of constraints that define the problem.
 
@@ -23,6 +23,8 @@ Currently, MQT QUBOMaker provides the following submodule:
 
 - [_Pathfinder_](./src/mqt/qubomaker/pathfinder/README.md): This submodule provides a specialization of the QUBOMaker class for the solution of optimization problems involving the search for paths in a directed graph. It provides a large set of pathfinding-related constraints that are used to define individual problem instances.
 
+The _Pathfinder_ submodule also has a supporting [GUI](https://cda-tum.github.io/mqt-qubomaker/) to further facilitate its use.
+
 For more details, please refer to:
 
 <p align="center">
@@ -33,7 +35,7 @@ For more details, please refer to:
 
 If you have any questions, feel free to create a [discussion](https://github.com/cda-tum/mqt-qubomaker/discussions) or an [issue](https://github.com/cda-tum/mqt-qubomaker/issues) on [GitHub](https://github.com/cda-tum/mqt-qubomaker).
 
-MQT QUBOMaker is part of the Munich Quantum Toolkit (MQT) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/).
+MQT QUBOMaker is part of the [Munich Quantum Toolkit](https://mqt.readthedocs.io/) (MQT) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/).
 
 ## Getting Started
 
@@ -129,7 +131,7 @@ print(generator.construct_qubo_matrix())
 
 ## References
 
-MQT QUBOMaker has been developed based on methods proposed in the following papers:
+MQT QUBOMaker has been developed based on methods proposed in the following paper:
 
 - D. Rovara, N. Quetschlich, and R. Wille "[A Framework to Formulate
   Pathfinding Problems for Quantum Computing](https://todo)," arXiv, 2024
