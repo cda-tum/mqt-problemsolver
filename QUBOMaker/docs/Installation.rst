@@ -31,7 +31,7 @@ The source code for MQT QUBOMaker is available on GitHub and can be cloned and u
 
 .. code-block:: console
 
-    (venv) $ git clone
+    (venv) $ git clone https://github.com/cda-tum/mqt-qubomaker
     (venv) $ cd mqt-qubomaker
     (venv) $ pip install .
 

@@ -70,11 +70,11 @@ modindex_common_prefix = ["mqt.qubomaker."]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "typing_extensions": ("https://typing-extensions.readthedocs.io/en/latest/", None),
-    "qiskit": ("https://qiskit.org/documentation/", None),
+    "qiskit": ("https://docs.quantum.ibm.com/api/qiskit/", None),
     "mqt": ("https://mqt.readthedocs.io/en/latest/", None),
 }
 
-nbsphinx_execute = "never"
+nbsphinx_execute = "auto"
 highlight_language = "python3"
 nbsphinx_execute_arguments = [
     "--InlineBackend.figure_formats={'svg', 'pdf'}",
@@ -104,7 +104,7 @@ exclude_patterns = ["_build", "build", "**.ipynb_checkpoints", "Thumbs.db", ".DS
 class CDAStyle(UnsrtStyle):
     """Custom style for including PDF links."""
 
-    def format_url(self, _e: Entry) -> HRef:
+    def format_url(self, _e: Entry) -> HRef:  # noqa: PLR6301
         """Format URL field as a link to the PDF."""
         url = field("url", raw=True)
         return href()[url, "[PDF]"]

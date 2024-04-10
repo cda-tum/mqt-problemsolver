@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, cast
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Union, cast
 
 import numpy as np
 import sympy as sp
@@ -15,8 +15,9 @@ if TYPE_CHECKING:
     from mqt.qubomaker import Graph
     from mqt.qubomaker.pathfinder import pathfinder
 
-SetCallback = Callable[[], list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]]]
-GetVariableFunction = Callable[[Any, Any, Any, int], sp.Expr]
+    GetVariableFunction = Callable[[Any, Any, Any, int], sp.Expr]
+
+SetCallback = Callable[[], List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]]]
 
 
 class EncodingType(Enum):
@@ -96,7 +97,7 @@ class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
     """Represents a sum that is always expanded into a sum of its elements when calling `doit()`."""
 
     @override
-    def doit(self, **_hints) -> sp.Expr:  # type: ignore[no-untyped-def]
+    def doit(self, **_hints: Any) -> sp.Expr:
         expr, *limits = self.args
         limits = list(reversed(limits))
         return self.__do_expansion(expr, limits[1:], limits[0])  # type: ignore[arg-type]
@@ -148,6 +149,7 @@ class _StringForSumSet:
 
     def __init__(self, string: str) -> None:
         """Initialises a _StringForSumSet.
+
         Args:
             string (str): The string to store.
         """
@@ -168,7 +170,8 @@ class SumSet(sp.Expr):
     """A class  that can be used to represent a sum over a set.
 
     This is just a symbolic representation for the display of the equation. In the background,
-    it stores the actual expanded sum that is used for calculations."""
+    it stores the actual expanded sum that is used for calculations.
+    """
 
     expr: sp.Expr
     element_expr: sp.Expr
@@ -191,7 +194,7 @@ class SumSet(sp.Expr):
         """Returns the latex representation of the expression.
 
         Args:
-            _printer (sp.StrPrinter): The printer to use.
+            printer (sp.StrPrinter): The printer to use.
 
         Returns:
             str: The latex representation of the expression.
@@ -200,7 +203,7 @@ class SumSet(sp.Expr):
         return f"{self.latex.string} {child_latex}"
 
     @override
-    def doit(self, **hints) -> sp.Expr:  # type: ignore[no-untyped-def]
+    def doit(self, **hints: Any) -> sp.Expr:
         """Replaces the sum by the actual expression it represents.
 
         Returns:
@@ -219,7 +222,7 @@ class SumSet(sp.Expr):
         return hash(self.expr)
 
 
-class _FormulaHelpers:
+class FormulaHelpers:
     """Provides static methods for the more efficient construction of sympy formulas."""
 
     @staticmethod
@@ -256,19 +259,19 @@ class _FormulaHelpers:
 
     @staticmethod
     def sum_set(expression: sp.Expr, variables: list[str], latex: str, callback: SetCallback) -> sp.Expr:
-        """Generates a sum of the form `\sum_{[variables] \in [callback]} [expression]`.
+        r"""Generates a sum of the form `\sum_{[variables] \in [callback]} [expression]`.
 
         Args:
             expression (sp.Expr): The term inside the sum.
             variables (list[str]): A list of iteration variables of the sum as strings.
-            _latex (str): The latex representation of the set expression.
+            latex (str): The latex representation of the set expression.
             callback (SetCallback): A callback returning the set over which the sum should iterate.
 
         Returns:
             sp.Expr: The sympy sum term.
         """
         # TODO use latex output
-        variable_symbols = [_FormulaHelpers.variable(v) for v in variables]
+        variable_symbols = [FormulaHelpers.variable(v) for v in variables]
         assignments = [x if isinstance(x, tuple) else (x,) for x in callback()]
         expr = cast(
             sp.Expr,
@@ -290,7 +293,7 @@ class _FormulaHelpers:
         return SumSet(expr, expression, _StringForSumSet(rf"\sum_{{{iterator_latex} {latex}}}"))
 
     @staticmethod
-    def adjacency(v: int | str | sp.Expr, w: int | str | sp.Expr) -> sp.Function:
+    def adjacency(v: int | str | sp.Expr, w: int | str | sp.Expr) -> sp.Expr:
         """Returns an access to the adjacency matrix with indices `v` and `w`.
 
         `v` and `w` may be of type int, str, or sympy expressions.
@@ -300,13 +303,13 @@ class _FormulaHelpers:
             w (int | str | sp.Expr): The "to" index of the adjacency matrix.
 
         Returns:
-            sp.Function: A call to the adjacency matrix function.
+            sp.Expr: A call to the adjacency matrix function.
         """
         if isinstance(v, str):
-            v = _FormulaHelpers.variable(v)
+            v = FormulaHelpers.variable(v)
         if isinstance(w, str):
-            w = _FormulaHelpers.variable(w)
-        return cast(sp.Function, A(v, w))
+            w = FormulaHelpers.variable(w)
+        return cast(sp.Expr, A(v, w))
 
     @staticmethod
     def variable(name: str) -> sp.Symbol:
@@ -321,9 +324,8 @@ class _FormulaHelpers:
         return sp.Symbol(name)  # type: ignore[no-untyped-call]
 
     @staticmethod
-    def get_encoding_variable_one_hot(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Function:
-        """Returns an access to the binary variable `x_{path, vertex, position}` representing the statement
-        "Vertex `vertex` is located at position `position` in path `path`" for One-Hot encoding.
+    def get_encoding_variable_one_hot(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
+        """Returns an access to the binary variable `x_{path, vertex, position}` that represents the statement "Vertex `vertex` is located at position `position` in path `path`" for One-Hot encoding.
 
         All indices can be integers, strings, or sympy expressions.
         The `_num_vertices` parameter is only included for compatibility.
@@ -335,20 +337,19 @@ class _FormulaHelpers:
             _num_vertices (int, optional): The number of vertices in the graph. Defaults to 0.
 
         Returns:
-            sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for One-Hot encoding.
+            sp.Expr: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for One-Hot encoding.
         """
         if isinstance(path, str):
-            path = _FormulaHelpers.variable(path)
+            path = FormulaHelpers.variable(path)
         if isinstance(vertex, str):
-            vertex = _FormulaHelpers.variable(vertex)
+            vertex = FormulaHelpers.variable(vertex)
         if isinstance(position, str):
-            position = _FormulaHelpers.variable(position)
-        return cast(sp.Function, X(path, vertex, position))
+            position = FormulaHelpers.variable(position)
+        return cast(sp.Expr, X(path, vertex, position))
 
     @staticmethod
     def get_encoding_variable_domain_wall(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
-        """Returns anexpression representing the statement
-        "Vertex `vertex` is located at position `position` in path `path`" for Domain-Wall encoding.
+        """Returns an expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Domain-Wall encoding.
 
         All indices can be integers, strings, or sympy expressions.
         The `_num_vertices` parameter is only included for compatibility.
@@ -363,21 +364,20 @@ class _FormulaHelpers:
             sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Domain-Wall encoding.
         """
         if isinstance(path, str):
-            path = _FormulaHelpers.variable(path)
+            path = FormulaHelpers.variable(path)
         if isinstance(vertex, str):
-            vertex = _FormulaHelpers.variable(vertex)
+            vertex = FormulaHelpers.variable(vertex)
         if isinstance(position, str):
-            position = _FormulaHelpers.variable(position)
+            position = FormulaHelpers.variable(position)
         return cast(
             sp.Expr,
-            _FormulaHelpers.get_encoding_variable_one_hot(path, vertex, position)
-            - _FormulaHelpers.get_encoding_variable_one_hot(path, vertex + 1, position),
+            FormulaHelpers.get_encoding_variable_one_hot(path, vertex, position)
+            - FormulaHelpers.get_encoding_variable_one_hot(path, vertex + 1, position),
         )
 
     @staticmethod
     def get_encoding_variable_binary(path: Any, vertex: Any, position: Any, num_vertices: int = 0) -> sp.Expr:
-        """Returns an expression representing the statement
-        "Vertex `vertex` is located at position `position` in path `path`" for Binary encoding.
+        """Returns an expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Binary encoding.
 
         All indices can be integers, strings, or sympy expressions.
         The `_num_vertices` parameter is only included for compatibility.
@@ -386,28 +386,28 @@ class _FormulaHelpers:
             path (Any): The path index.
             vertex (Any): The vertex index.
             position (Any): The position index.
-            _num_vertices (int, optional): The number of vertices in the graph. Defaults to 0.
+            num_vertices (int, optional): The number of vertices in the graph. Defaults to 0.
 
         Returns:
             sp.Function: An expression representing the statement "Vertex `vertex` is located at position `position` in path `path`" for Binary encoding.
         """
         if isinstance(path, str):
-            path = _FormulaHelpers.variable(path)
+            path = FormulaHelpers.variable(path)
         if isinstance(vertex, str):
-            vertex = _FormulaHelpers.variable(vertex)
+            vertex = FormulaHelpers.variable(vertex)
         if isinstance(position, str):
-            position = _FormulaHelpers.variable(position)
-        index_symbol = _FormulaHelpers.variable("v")
+            position = FormulaHelpers.variable(position)
+        index_symbol = FormulaHelpers.variable("v")
         if index_symbol == vertex:
-            index_symbol = _FormulaHelpers.variable("w")
+            index_symbol = FormulaHelpers.variable("w")
         max_index = int(np.ceil(np.log2(num_vertices + 1)))
         return cast(
             sp.Expr,
             sp.Product(
                 Decompose(vertex, index_symbol)
-                * _FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)
+                * FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)
                 + (1 - Decompose(vertex, index_symbol))
-                * (1 - _FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)),
+                * (1 - FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)),
                 (index_symbol, 1, max_index),
             ),  # type: ignore[no-untyped-call]
         )
@@ -423,7 +423,7 @@ class _FormulaHelpers:
         Returns:
             sp.Expr: A sum of the expression for each path.
         """
-        return _FormulaHelpers.sum_set(
+        return FormulaHelpers.sum_set(
             expression,
             ["p"],
             rf"\in \left\{{{','.join([str(p) for p in paths])}\right\}}",
@@ -441,7 +441,7 @@ class _FormulaHelpers:
         Returns:
             sp.Expr: A sum of the expression for each position.
         """
-        return _FormulaHelpers.sum_from_to(expression, "i", 1, path_size)
+        return FormulaHelpers.sum_from_to(expression, "i", 1, path_size)
 
     @staticmethod
     def get_for_each_vertex(expression: sp.Expr, vertices: list[int]) -> sp.Expr:
@@ -454,7 +454,7 @@ class _FormulaHelpers:
         Returns:
             sp.Expr: A sum of the expression for each vertex.
         """
-        return _FormulaHelpers.sum_set(
+        return FormulaHelpers.sum_set(
             expression,
             ["v"],
             rf"\in \left\{{{','.join([str(v) for v in vertices])}\right\}}",
@@ -517,7 +517,7 @@ class CostFunction(ABC):
         Returns:
             sp.Expr: An expression representing the cost function as a QUBO function.
         """
-        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_one_hot)
+        return self.get_formula_general(graph, settings, FormulaHelpers.get_encoding_variable_one_hot)
 
     def get_formula_domain_wall(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         """Computes the QUBO expression for the cost function for Domain-Wall encoding.
@@ -529,7 +529,7 @@ class CostFunction(ABC):
         Returns:
             sp.Expr: An expression representing the cost function as a QUBO function.
         """
-        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_domain_wall)
+        return self.get_formula_general(graph, settings, FormulaHelpers.get_encoding_variable_domain_wall)
 
     def get_formula_binary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         """Computes the QUBO expression for the cost function for Binary encoding.
@@ -541,7 +541,7 @@ class CostFunction(ABC):
         Returns:
             sp.Expr: An expression representing the cost function as a QUBO function.
         """
-        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_binary)
+        return self.get_formula_general(graph, settings, FormulaHelpers.get_encoding_variable_binary)
 
     def __str__(self) -> str:
         """Returns a string representation of the cost function.
@@ -635,7 +635,7 @@ class PathPositionIs(CostFunction):
             sp.Expr,
             (
                 1
-                - _FormulaHelpers.sum_set(
+                - FormulaHelpers.sum_set(
                     get_variable_function(
                         self.path,
                         "v",
@@ -710,16 +710,16 @@ class PathEndsAt(CostFunction):
     ) -> sp.Expr:
         return cast(
             sp.Expr,
-            _FormulaHelpers.sum_from_to(
+            FormulaHelpers.sum_from_to(
                 (
                     1
-                    - _FormulaHelpers.get_for_each_vertex(
+                    - FormulaHelpers.get_for_each_vertex(
                         get_variable_function(self.path, "v", "i", graph.n_vertices), graph.all_vertices
                     )
                 )
                 ** 2
-                * _FormulaHelpers.sum_set(
-                    get_variable_function(self.path, "v", _FormulaHelpers.variable("i") - 1, graph.n_vertices),
+                * FormulaHelpers.sum_set(
+                    get_variable_function(self.path, "v", FormulaHelpers.variable("i") - 1, graph.n_vertices),
                     ["v"],
                     f"\\not \\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
                     lambda: list(set(graph.all_vertices) - set(self.vertex_ids)),
@@ -728,7 +728,7 @@ class PathEndsAt(CostFunction):
                 2,
                 settings.max_path_length,
             )
-            + _FormulaHelpers.sum_set(
+            + FormulaHelpers.sum_set(
                 get_variable_function(self.path, "v", settings.max_path_length, graph.n_vertices),
                 ["v"],
                 f"\\not \\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
@@ -798,9 +798,9 @@ class PathContainsVertices(CostFunction):
         Returns:
             sp.Expr: The wrapped expression.
         """
-        return _FormulaHelpers.get_for_each_path(
+        return FormulaHelpers.get_for_each_path(
             (
-                _FormulaHelpers.sum_set(
+                FormulaHelpers.sum_set(
                     expression,
                     ["v"],
                     f"\\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
@@ -833,7 +833,7 @@ class PathContainsVerticesExactlyOnce(PathContainsVertices):
         return self._handle_for_each(
             (
                 1
-                - _FormulaHelpers.get_for_each_position(
+                - FormulaHelpers.get_for_each_position(
                     get_variable_function("p", "v", "i", graph.n_vertices), settings.max_path_length
                 )
             )
@@ -861,7 +861,7 @@ class PathContainsVerticesAtLeastOnce(PathContainsVertices):
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
         return self._handle_for_each(
-            _FormulaHelpers.prod_from_to(
+            FormulaHelpers.prod_from_to(
                 (1 - get_variable_function("p", "v", "i", graph.n_vertices)), "i", 1, settings.max_path_length
             )
         )
@@ -887,12 +887,12 @@ class PathContainsVerticesAtMostOnce(PathContainsVertices):
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
         return self._handle_for_each(
-            _FormulaHelpers.sum_from_to(
-                _FormulaHelpers.sum_from_to(
+            FormulaHelpers.sum_from_to(
+                FormulaHelpers.sum_from_to(
                     get_variable_function("p", "v", "i", graph.n_vertices)
                     * get_variable_function("p", "v", "j", graph.n_vertices),
                     "j",
-                    _FormulaHelpers.variable("i") + 1,
+                    FormulaHelpers.variable("i") + 1,
                     settings.max_path_length,
                 ),
                 "i",
@@ -955,8 +955,8 @@ class PathContainsEdges(CostFunction):
         Returns:
             sp.Expr: The wrapped expression.
         """
-        return _FormulaHelpers.get_for_each_path(
-            _FormulaHelpers.sum_set(
+        return FormulaHelpers.get_for_each_path(
+            FormulaHelpers.sum_set(
                 expression,
                 ["v", "w"],
                 f"\\in \\left\\{{ {', '.join(['(' + str(v) + ', ' + str(w) + ')' for (v, w) in self.edges])} \\right\\}}",
@@ -988,9 +988,9 @@ class PathContainsEdgesExactlyOnce(PathContainsEdges):
         return self._handle_for_each(
             (
                 1
-                - _FormulaHelpers.sum_from_to(
+                - FormulaHelpers.sum_from_to(
                     get_variable_function("p", "v", "i", graph.n_vertices)
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
+                    * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices),
                     "i",
                     1,
                     settings.max_path_length,
@@ -1020,11 +1020,11 @@ class PathContainsEdgesAtLeastOnce(PathContainsEdges):
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
         return self._handle_for_each(
-            _FormulaHelpers.prod_from_to(
+            FormulaHelpers.prod_from_to(
                 (
                     1
                     - get_variable_function("p", "v", "i", graph.n_vertices)
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
+                    * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices)
                 ),
                 "i",
                 1,
@@ -1053,16 +1053,16 @@ class PathContainsEdgesAtMostOnce(PathContainsEdges):
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
         return self._handle_for_each(
-            _FormulaHelpers.sum_from_to(
-                _FormulaHelpers.sum_from_to(
+            FormulaHelpers.sum_from_to(
+                FormulaHelpers.sum_from_to(
                     (
                         get_variable_function("p", "v", "i", graph.n_vertices)
-                        * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
+                        * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices)
                         * get_variable_function("p", "v", "j", graph.n_vertices)
-                        * get_variable_function("p", "w", _FormulaHelpers.variable("j") + 1, graph.n_vertices)
+                        * get_variable_function("p", "w", FormulaHelpers.variable("j") + 1, graph.n_vertices)
                     ),
                     "j",
-                    _FormulaHelpers.variable("i") + 1,
+                    FormulaHelpers.variable("i") + 1,
                     settings.max_path_length,
                 ),
                 "i",
@@ -1128,14 +1128,14 @@ class PrecedenceConstraint(PathBound):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return _FormulaHelpers.get_for_each_path(
-            _FormulaHelpers.sum_from_to(
+        return FormulaHelpers.get_for_each_path(
+            FormulaHelpers.sum_from_to(
                 get_variable_function("p", self.post, "i", graph.n_vertices)
-                * _FormulaHelpers.prod_from_to(
+                * FormulaHelpers.prod_from_to(
                     (1 - get_variable_function("p", self.pre, "j", graph.n_vertices)),
                     "j",
                     1,
-                    _FormulaHelpers.variable("i") - 1,
+                    FormulaHelpers.variable("i") - 1,
                 ),
                 "i",
                 1,
@@ -1150,7 +1150,8 @@ class PathComparison(CostFunction):
 
     Attributes:
         path_one (int): The first path.
-        path_two (int): The second path."""
+    path_two (int): The second path.
+    """
 
     path_one: int
     path_two: int
@@ -1184,11 +1185,11 @@ class PathsShareNoVertices(PathComparison):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return _FormulaHelpers.get_for_each_vertex(
-            _FormulaHelpers.get_for_each_position(
+        return FormulaHelpers.get_for_each_vertex(
+            FormulaHelpers.get_for_each_position(
                 get_variable_function(self.path_one, "v", "i", graph.n_vertices), settings.max_path_length
             )
-            * _FormulaHelpers.get_for_each_position(
+            * FormulaHelpers.get_for_each_position(
                 get_variable_function(self.path_two, "v", "i", graph.n_vertices), settings.max_path_length
             ),
             graph.all_vertices,
@@ -1205,20 +1206,20 @@ class PathsShareNoEdges(PathComparison):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return _FormulaHelpers.sum_set(
-            _FormulaHelpers.sum_from_to(
+        return FormulaHelpers.sum_set(
+            FormulaHelpers.sum_from_to(
                 (
                     get_variable_function(self.path_one, "v", "i", graph.n_vertices)
-                    * get_variable_function(self.path_one, "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
+                    * get_variable_function(self.path_one, "w", FormulaHelpers.variable("i") + 1, graph.n_vertices)
                 ),
                 "i",
                 1,
                 settings.max_path_length,
             )
-            * _FormulaHelpers.sum_from_to(
+            * FormulaHelpers.sum_from_to(
                 (
                     get_variable_function(self.path_two, "v", "i", graph.n_vertices)
-                    * get_variable_function(self.path_two, "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices)
+                    * get_variable_function(self.path_two, "w", FormulaHelpers.variable("i") + 1, graph.n_vertices)
                 ),
                 "i",
                 1,
@@ -1226,7 +1227,7 @@ class PathsShareNoEdges(PathComparison):
             ),
             ["v", "w"],
             "\\in E",
-            lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.all_edges),
+            lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
         )
 
 
@@ -1255,16 +1256,16 @@ class PathIsValid(PathBound):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return _FormulaHelpers.get_for_each_path(
-            _FormulaHelpers.sum_set(
-                _FormulaHelpers.get_for_each_position(
+        return FormulaHelpers.get_for_each_path(
+            FormulaHelpers.sum_set(
+                FormulaHelpers.get_for_each_position(
                     get_variable_function("p", "v", "i", graph.n_vertices)
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
+                    * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices),
                     settings.max_path_length if settings.loops else settings.max_path_length - 1,
                 ),
                 ["v", "w"],
                 "\\not\\in E",
-                lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.non_edges),
+                lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.non_edges),
             ),
             self.path_ids,
         )
@@ -1272,17 +1273,17 @@ class PathIsValid(PathBound):
     @override
     def get_formula_one_hot(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         def get_variable_function(p: Any, v: Any, i: Any, _n: int = 0) -> sp.Expr:
-            return _FormulaHelpers.get_encoding_variable_one_hot(p, v, i)
+            return FormulaHelpers.get_encoding_variable_one_hot(p, v, i)
 
         general = self.get_formula_general(graph, settings, get_variable_function)
         return cast(
             sp.Expr,
             general
-            + _FormulaHelpers.get_for_each_path(
-                _FormulaHelpers.get_for_each_position(
-                    (1 - _FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices))
+            + FormulaHelpers.get_for_each_path(
+                FormulaHelpers.get_for_each_position(
+                    (1 - FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices))
                     * -1
-                    * (_FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices)),
+                    * (FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices)),
                     settings.max_path_length,
                 ),
                 self.path_ids,
@@ -1291,7 +1292,7 @@ class PathIsValid(PathBound):
 
     @override
     def get_formula_domain_wall(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        general = self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_domain_wall)
+        general = self.get_formula_general(graph, settings, FormulaHelpers.get_encoding_variable_domain_wall)
         enforce_domain_wall_penalty = (
             2 * settings.max_path_length * np.max(graph.adjacency_matrix) + graph.n_vertices**2
         )
@@ -1300,11 +1301,11 @@ class PathIsValid(PathBound):
             sp.Expr,
             general
             + enforce_domain_wall_penalty
-            * _FormulaHelpers.get_for_each_path(
-                _FormulaHelpers.get_for_each_position(
-                    _FormulaHelpers.sum_set(
-                        (1 - _FormulaHelpers.get_encoding_variable_one_hot("p", "v", "i"))
-                        * _FormulaHelpers.get_encoding_variable_one_hot("p", _FormulaHelpers.variable("v") + 1, "i"),
+            * FormulaHelpers.get_for_each_path(
+                FormulaHelpers.get_for_each_position(
+                    FormulaHelpers.sum_set(
+                        (1 - FormulaHelpers.get_encoding_variable_one_hot("p", "v", "i"))
+                        * FormulaHelpers.get_encoding_variable_one_hot("p", FormulaHelpers.variable("v") + 1, "i"),
                         ["v"],
                         "\\in V",
                         cast(SetCallback, lambda: graph.all_vertices),
@@ -1317,13 +1318,14 @@ class PathIsValid(PathBound):
 
     @override
     def get_formula_binary(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        return self.get_formula_general(graph, settings, _FormulaHelpers.get_encoding_variable_binary)
+        return self.get_formula_general(graph, settings, FormulaHelpers.get_encoding_variable_binary)
 
 
 class MinimizePathLength(PathBound):
     """A cost function that penalises paths based on their length.
 
-    A bigger total weight causes a bigger penalty."""
+    A bigger total weight causes a bigger penalty.
+    """
 
     def __init__(self, path_ids: list[int]) -> None:
         """Initialises a MinimizePathLength cost function.
@@ -1340,17 +1342,17 @@ class MinimizePathLength(PathBound):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return _FormulaHelpers.get_for_each_path(
-            _FormulaHelpers.sum_set(
-                _FormulaHelpers.get_for_each_position(
-                    _FormulaHelpers.adjacency("v", "w")
+        return FormulaHelpers.get_for_each_path(
+            FormulaHelpers.sum_set(
+                FormulaHelpers.get_for_each_position(
+                    FormulaHelpers.adjacency("v", "w")
                     * get_variable_function("p", "v", "i", graph.n_vertices)
-                    * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
+                    * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices),
                     settings.max_path_length,
                 ),
                 ["v", "w"],
                 "\\in E",
-                lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.all_edges),
+                lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
             ),
             self.path_ids,
         )
@@ -1359,7 +1361,8 @@ class MinimizePathLength(PathBound):
 class MaximizePathLength(PathBound):
     """A cost function that penalises paths based on their length.
 
-    A lower total weight causes a bigger penalty."""
+    A lower total weight causes a bigger penalty.
+    """
 
     def __init__(self, path_ids: list[int]) -> None:
         """Initialises a MaximizePathLength cost function.
@@ -1379,17 +1382,19 @@ class MaximizePathLength(PathBound):
         return cast(
             sp.Expr,
             -1
-            * _FormulaHelpers.get_for_each_path(
-                _FormulaHelpers.sum_set(
-                    _FormulaHelpers.get_for_each_position(
-                        _FormulaHelpers.adjacency("v", "w")
+            * FormulaHelpers.get_for_each_path(
+                FormulaHelpers.sum_set(
+                    FormulaHelpers.get_for_each_position(
+                        FormulaHelpers.adjacency("v", "w")
                         * get_variable_function("p", "v", "i", graph.n_vertices)
-                        * get_variable_function("p", "w", _FormulaHelpers.variable("i") + 1, graph.n_vertices),
+                        * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices),
                         settings.max_path_length,
                     ),
                     ["v", "w"],
                     "\\in E",
-                    lambda: cast(list[sp.Expr | int | float | tuple[sp.Expr | int | float, ...]], graph.all_edges),
+                    lambda: cast(
+                        List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges
+                    ),
                 ),
                 self.path_ids,
             ),

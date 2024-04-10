@@ -20,10 +20,9 @@ jobs:
         name: Install Python
         with:
           python-version: "3.11"
-      - name: Install dependencies
-        run: python -m pip install build
+          cache: "pip"
       - name: Build wheel
-        run: python -m build --wheel
+        run: pipx run build --wheel
       - name: Install wheel
         run: python -m pip install --verbose dist/*.whl
       - uses: actions/upload-artifact@v4
@@ -42,10 +41,9 @@ jobs:
         name: Install Python
         with:
           python-version: "3.11"
-      - name: Install dependencies
-        run: python -m pip install build
+          cache: "pip"
       - name: Build sdist
-        run: python -m build --sdist
+        run: pipx run build --sdist
       - name: Install sdist
         run: python -m pip install --verbose dist/*.tar.gz
       - uses: actions/upload-artifact@v4
@@ -56,6 +54,11 @@ jobs:
   upload_pypi:
     needs: [build_wheel, build_sdist]
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/mqt.qubomaker
+    permissions:
+      id-token: write
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v4
@@ -64,7 +67,3 @@ jobs:
           path: dist
           merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.pypi_password }}
-          skip-existing: true
-          verbose: true

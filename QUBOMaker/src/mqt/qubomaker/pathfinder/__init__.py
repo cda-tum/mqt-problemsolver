@@ -1,5 +1,6 @@
-"""This module implements the pathfinding functionalities of the QUBOMaker, including, in particular,
-all pathfinding-related cost functions and the specialized QUBO generator for pathfinding problems.
+"""This module implements the pathfinding functionalities of the QUBOMaker.
+
+This, in particular, includes all pathfinding-related cost functions and the specialized QUBO generator for pathfinding problems.
 
 Typical usage example:
 
@@ -47,29 +48,29 @@ from .pathfinder import PathFindingQUBOGenerator, PathFindingQUBOGeneratorSettin
 from .tsplib import from_tsplib_problem
 
 __all__ = [
-    "PathFindingQUBOGenerator",
-    "PathFindingQUBOGeneratorSettings",
-    "EncodingType",
-    "CostFunction",
     "CompositeCostFunction",
-    "PathPositionIs",
-    "PathStartsAt",
-    "PathEndsAt",
+    "CostFunction",
+    "EncodingType",
+    "MaximizePathLength",
+    "MinimizePathLength",
+    "PathBound",
+    "PathComparison",
+    "PathContainsEdges",
+    "PathContainsEdgesAtLeastOnce",
+    "PathContainsEdgesAtMostOnce",
+    "PathContainsEdgesExactlyOnce",
     "PathContainsVertices",
     "PathContainsVerticesAtLeastOnce",
     "PathContainsVerticesAtMostOnce",
     "PathContainsVerticesExactlyOnce",
-    "PathContainsEdges",
-    "PathContainsEdgesExactlyOnce",
-    "PathContainsEdgesAtLeastOnce",
-    "PathContainsEdgesAtMostOnce",
-    "PathBound",
-    "PrecedenceConstraint",
-    "PathComparison",
-    "PathsShareNoVertices",
-    "PathsShareNoEdges",
+    "PathEndsAt",
+    "PathFindingQUBOGenerator",
+    "PathFindingQUBOGeneratorSettings",
     "PathIsValid",
-    "MinimizePathLength",
-    "MaximizePathLength",
+    "PathPositionIs",
+    "PathStartsAt",
+    "PathsShareNoEdges",
+    "PathsShareNoVertices",
+    "PrecedenceConstraint",
     "from_tsplib_problem",
 ]

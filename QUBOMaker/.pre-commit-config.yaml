@@ -15,38 +15,40 @@ ci:
 repos:
   # Standard hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.5.0"
+    rev: v4.6.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
       - id: check-docstring-first
       - id: check-merge-conflict
-      - id: check-symlinks
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
-      - id: requirements-txt-fixer
       - id: trailing-whitespace
 
   # Handling unwanted unicode characters
   - repo: https://github.com/sirosen/texthooks
-    rev: "0.6.2"
+    rev: 0.6.6
     hooks:
       - id: fix-ligatures
       - id: fix-smartquotes
 
+  # Check for common mistakes
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: rst-backticks
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
+
   # Check for spelling
   - repo: https://github.com/codespell-project/codespell
-    rev: "v2.2.6"
+    rev: v2.2.6
     hooks:
       - id: codespell
-        args: ["-L", "wille,linz"]
-        exclude: >
-          (?x)^(
-              .*\.ipynb
-          )$
+        args: ["-L", "wille,linz", "--skip", "*.ipynb"]
 
   # Format configuration files with prettier
   - repo: https://github.com/pre-commit/mirrors-prettier
@@ -56,7 +58,7 @@ repos:
         types_or: [yaml, markdown, html, css, javascript, json]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.5
+    rev: v0.3.5
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
@@ -84,6 +86,7 @@ repos:
         files: ^(src|tests|setup.py)
         args: []
         additional_dependencies:
+          - importlib_resources
           - types-setuptools
           - python_tsp
           - networkx
@@ -93,3 +96,20 @@ repos:
           - IPython
           - tsplib95
           - types-Pillow
+          - referencing
+
+  # Catch common capitalization mistakes
+  - repo: local
+    hooks:
+      - id: disallow-caps
+        name: Disallow improper capitalization
+        language: pygrep
+        entry: PyBind|Numpy|Cmake|CCache|Github|PyTest|Mqt|Tum
+        exclude: .pre-commit-config.yaml
+
+  # Check best practices for scientific Python code
+  - repo: https://github.com/scientific-python/cookie
+    rev: 2024.03.10
+    hooks:
+      - id: sp-repo-review
+        additional_dependencies: ["repo-review[cli]"]

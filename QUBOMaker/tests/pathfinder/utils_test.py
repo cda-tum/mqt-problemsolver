@@ -161,7 +161,6 @@ def __paths_to_assignment_domain_wall(
     Returns:
         dict[sp.Expr, int]: The substitution dictionary mapping each domain_wall encoding variable to its value.
     """
-
     result = [
         (cf.X(p + 1, v + 1, i + 1), 1 if len(path) > i and (path[i] >= v + 1) else 0)
         for p, path in enumerate(paths)
@@ -182,7 +181,6 @@ def __paths_to_assignment_binary(paths: list[list[int]], n_vertices: int, max_pa
     Returns:
         dict[sp.Expr, int]: The substitution dictionary mapping each binary encoding variable to its value.
     """
-
     max_index = int(np.ceil(np.log2(n_vertices + 1)))
     result = [
         (cf.X(p + 1, v + 1, i + 1), 1 if len(path) > i and (((path[i]) >> v) & 1) else 0)

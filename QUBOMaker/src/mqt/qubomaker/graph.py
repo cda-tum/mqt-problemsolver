@@ -1,7 +1,8 @@
 """Provides a simple implementation for graphs to be used with QUBOMaker."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -11,13 +12,11 @@ from matplotlib import pyplot as plt
 if TYPE_CHECKING:
     from io import TextIOWrapper
 
-# Python 3.12:
-# type Edge = tuple[int, int] | tuple[int, int, int] | tuple[int, int, float]
-Edge = tuple[int, int] | tuple[int, int, int] | tuple[int, int, float]
+    Edge = Union[Tuple[int, int], Tuple[int, int, int], Tuple[int, int, float]]
 
 
 class Graph:
-    """Represents a graph to be used with QUBOMaker
+    """Represents a graph to be used with QUBOMaker.
 
     Attributes:
         n_vertices (int): The number of vertices in the graph.
@@ -76,7 +75,7 @@ class Graph:
         Returns:
             Graph: The graph read from the file.
         """
-        m = np.mat(np.loadtxt(file))
+        m = np.loadtxt(file)
         g = Graph(m.shape[0], [])
         g.adjacency_matrix = m
         return g
@@ -91,7 +90,7 @@ class Graph:
 
     @staticmethod
     def from_adjacency_matrix(
-        adjacency_matrix: npt.NDArray[np.int_ | np.float64] | list[list[int]] | list[list[float]]
+        adjacency_matrix: npt.NDArray[np.int_ | np.float64] | list[list[int]] | list[list[float]],
     ) -> Graph:
         """Creates a graph from an adjacency matrix.
 
@@ -117,9 +116,7 @@ class Graph:
         Returns:
             Graph: The deserialized graph.
         """
-        lines = [x.strip() for x in encoding.strip().split("\n") if x.strip()]
-        values = [[float(cell.strip()) for cell in line.split(" ") if cell.strip()] for line in lines]
-        m = np.mat(values)
+        m = np.array([[float(cell) for cell in line.split() if cell] for line in encoding.splitlines() if line.strip()])
         g = Graph(m.shape[0], [])
         g.adjacency_matrix = m
         return g
@@ -166,3 +163,11 @@ class Graph:
         if not isinstance(__value, Graph):
             return False
         return np.array_equal(self.adjacency_matrix, __value.adjacency_matrix)
+
+    def __hash__(self) -> int:
+        """Returns the hash of the graph.
+
+        Returns:
+            int: The hash of the graph.
+        """
+        return hash(self.adjacency_matrix)

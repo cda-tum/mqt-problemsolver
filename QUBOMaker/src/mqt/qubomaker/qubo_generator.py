@@ -1,9 +1,9 @@
-"""Provides a base class for QUBO generators that can be extended for different problem classes.
-"""
+"""Provides a base class for QUBO generators that can be extended for different problem classes."""
+
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, Sequence, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -90,7 +90,6 @@ class QUBOGenerator:
         Returns:
             sp.Expr: A mathematical representation of the QUBO formulation in expanded form.
         """
-
         if self.expansion_cache is not None:
             return self.expansion_cache
         expression = self.construct().expand().doit().doit()
@@ -131,7 +130,8 @@ class QUBOGenerator:
         self.auxiliary_cache = auxiliary_dict
         return cast(sp.Expr, result)
 
-    def __simplify_auxiliary_variables(self, expression: sp.Expr, auxiliary_dict: dict[sp.Expr, sp.Expr]) -> sp.Expr:
+    @staticmethod
+    def __simplify_auxiliary_variables(expression: sp.Expr, auxiliary_dict: dict[sp.Expr, sp.Expr]) -> sp.Expr:
         """Minimizes the number of requires auxiliary variables by removing products that have already been transformed in previous steps.
 
         Args:
@@ -150,8 +150,9 @@ class QUBOGenerator:
             return cast(sp.Expr, remaining_variables[0])
         return cast(sp.Expr, sp.Mul(*remaining_variables))
 
+    @staticmethod
     def __optimal_decomposition(
-        self, terms: tuple[sp.Expr, ...], auxiliary_dict: dict[sp.Expr, sp.Expr]
+        terms: tuple[sp.Expr, ...], auxiliary_dict: dict[sp.Expr, sp.Expr]
     ) -> tuple[sp.Expr, sp.Expr, sp.Expr, sp.Expr]:
         """Computes the optimal decomposition of a product of variables into terms of order 2.
 
@@ -168,13 +169,13 @@ class QUBOGenerator:
                     continue
                 if (x1 * x2) not in auxiliary_dict:
                     continue
-                return (x1, x2, auxiliary_dict[x1 * x2], sp.Mul(*[term for term in terms if term not in (x1, x2)]))
+                return x1, x2, auxiliary_dict[x1 * x2], sp.Mul(*[term for term in terms if term not in {x1, x2}])
         x1 = terms[0]
         x2 = terms[1]
         y: sp.Symbol = sp.Symbol(f"y_{len(auxiliary_dict) + 1}")  # type: ignore[no-untyped-call]
         auxiliary_dict[x1 * x2] = y
         rest = sp.Mul(*terms[2:])
-        return (x1, x2, y, rest)
+        return x1, x2, y, rest
 
     def __decrease_order(self, expression: sp.Expr, auxiliary_dict: dict[sp.Expr, sp.Expr]) -> sp.Expr:
         """Decreases the order of a product of variables by adding auxiliary variables.
@@ -241,9 +242,8 @@ class QUBOGenerator:
             return [expression]
         return []
 
-    def _construct_expansion(self, expression: sp.Expr) -> sp.Expr:
-        """A method that can be extended by classes that inherit from QUBOGenerator to transform the QUBO formulation into expanded form,
-        if that process requires additional steps.
+    def _construct_expansion(self, expression: sp.Expr) -> sp.Expr:  # noqa: PLR6301
+        """A method that can be extended by classes that inherit from QUBOGenerator to transform the QUBO formulation into expanded form, if that process requires additional steps.
 
         Args:
             expression (sp.Expr): The expression to transform.
@@ -264,12 +264,10 @@ class QUBOGenerator:
         coefficients = dict(self.construct_expansion().expand().as_coefficients_dict())
         auxiliary_variables = list({var for arg in coefficients for var in self.__get_auxiliary_variables(arg)})
         auxiliary_variables.sort(key=lambda var: int(str(var)[2:]))
-        result = np.zeros(
-            (
-                self.get_encoding_variable_count() + len(auxiliary_variables),
-                self.get_encoding_variable_count() + len(auxiliary_variables),
-            )
-        )
+        result = np.zeros((
+            self.get_encoding_variable_count() + len(auxiliary_variables),
+            self.get_encoding_variable_count() + len(auxiliary_variables),
+        ))
 
         all_variables = dict(self._get_encoding_variables())
 
@@ -296,14 +294,14 @@ class QUBOGenerator:
 
         The assignment is given as a binary list, and can either contain assignments for just encoding variables
         or encoding + auxiliary variables. In the former case, the auxiliary values are computed automatically.
+
         Args:
             assignment (list[int]): The assignment for each variable (either 0 or 1).
 
         Returns:
             float: The cost value for the assignment.
         """
-
-        if any(x not in [0, 1] for x in assignment):
+        if any(x not in {0, 1} for x in assignment):
             msg = "Provided values are not binary (1/0)"
             raise ValueError(msg)
 
@@ -317,12 +315,11 @@ class QUBOGenerator:
             raise ValueError(msg)
 
         variable_assignment = {item[0]: assignment[item[1] - 1] for item in self._get_encoding_variables()}
-        variable_assignment |= auxiliary_assignment
+        variable_assignment.update(auxiliary_assignment)
         return cast(float, expansion.subs(variable_assignment).evalf())  # type: ignore[no-untyped-call]
 
     def __get_auxiliary_assignment(self, assignment: list[int]) -> dict[sp.Expr, int]:
-        """Generates the assignment of auxiliary variables based on a given encoding variable
-        assignment.
+        """Generates the assignment of auxiliary variables based on a given encoding variable assignment.
 
         Every auxiliary variable is defined like `y_k = x_i * x_j`, `y_k = x_i * y_j` or `y_k = y_i * y_j`.
         These definitions are stored in the `auxiliary_cache` dictionary. As there are no circular references,
@@ -360,11 +357,11 @@ class QUBOGenerator:
 
         return auxiliary_values
 
-    def _get_encoding_variables(self) -> Sequence[tuple[sp.Expr, int]]:
+    def _get_encoding_variables(self) -> list[tuple[sp.Expr, int]]:  # noqa: PLR6301
         """Returns all non-auxiliary variables used in the QUBO formulation.
 
         Returns:
-            Sequence[tuple[sp.Expr, int]]: A list of tuples containing the variable and its index.
+            list[tuple[sp.Expr, int]]: A list of tuples containing the variable and its index.
         """
         return []
 
@@ -394,18 +391,18 @@ class QUBOGenerator:
         """
         return len(self._get_encoding_variables())
 
-    def get_variable_index(self, _variable: sp.Function) -> int:
+    def get_variable_index(self, _variable: sp.Expr) -> int:  # noqa: PLR6301
         """For a given variable, returns its index in the QUBO matrix.
 
         Args:
-            _variable (sp.Function): The variable to investigate.
+            _variable (sp.Expr): The variable to investigate.
 
         Returns:
             int: The index of the variable.
         """
         return 1
 
-    def decode_bit_array(self, _array: list[int]) -> Any:
+    def decode_bit_array(self, _array: list[int]) -> Any:  # noqa: PLR6301, ANN401
         """Given an assignment, decodes it into a meaningful result. May be extended by subclasses.
 
         Args:
@@ -444,7 +441,6 @@ class QUBOGenerator:
         Returns:
             tuple[QuantumCircuit, OperatorBase]: The QAOA instance and the operator to run it on.
         """
-
         if seed is not None:
             algorithm_globals.random_seed = seed
         op = self.construct_operator()

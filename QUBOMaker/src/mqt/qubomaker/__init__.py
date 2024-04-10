@@ -15,9 +15,9 @@ from .qubo_generator import QUBOGenerator
 from .utils import optimize_classically, print_matrix
 
 __all__ = [
-    "pathfinder",
     "Graph",
     "QUBOGenerator",
     "optimize_classically",
+    "pathfinder",
     "print_matrix",
 ]

@@ -1,17 +1,10 @@
-.. MQT QUBOMaker documentation master file, created by
-   sphinx-quickstart on Wed Mar 13 10:46:02 2024.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to MQT QUBOMaker's documentation!
 =========================================
 
 MQT QUBOMaker is a framework for creating QUBO formulations for diverse optimization problems. These formulations can be used with a wide range of quantum algorithms to find approximate solutions to the problems.
+It is developed by the `Chair for Design Automation <https://www.cda.cit.tum.de/>`_ at the `Technical University of Munich <https://www.tum.de>`_ as part of the :doc:`Munich Quantum Toolkit <mqt:index>` (*MQT*).
 
 The framework is designed to be user-friendly and to provide a high-level interface for creating QUBO formulations, not requiring any background knowledge in quantum computing or QUBO problems to solve domain-specific problems. It is also designed to be extensible, so that new optimization problems can be added to the framework with relative ease.
-
-MQT QUBOMaker was developed as part of the `Munich Quantum Toolkit <https://mqt.readthedocs.io>`_ (*MQT*) by the `Chair for Design Automation <https://www.cda.cit.tum.de/>`_ at the `Technical University of Munich <https://www.tum.de>`_.
-
 
 Currently, MQT QUBOMaker supports the following optimization problem types:
    - `Pathfinding Problems <pathfinder/Pathfinder.html>`_

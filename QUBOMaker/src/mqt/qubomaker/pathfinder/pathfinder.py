@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 import json
-import os
+import sys
 from dataclasses import dataclass
-from importlib import resources as impresources
-from typing import TYPE_CHECKING, Any, Sequence, cast
+from typing import TYPE_CHECKING, Any, cast
 
-import jsonschema
+if TYPE_CHECKING or sys.version_info < (3, 10, 0):
+    import importlib_resources as resources
+else:
+    from importlib import resources
+
 import numpy as np
 import sympy as sp
+from jsonschema import Draft7Validator, ValidationError
+from referencing import Registry, Resource
+from referencing.jsonschema import DRAFT7
 from typing_extensions import override
 
 from mqt.qubomaker import qubo_generator
@@ -111,29 +117,33 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         Returns:
             PathFindingQUBOGenerator: The constructed QUBO generator.
         """
-        with (impresources.files(__package__) / "resources" / "input-format.json").open("r") as f:
+        with (resources.files(__package__) / "resources" / "input-format.json").open("r") as f:
             main_schema = json.load(f)
-        with (impresources.files(__package__) / "resources" / "constraint.json").open("r") as f:
+        with (resources.files(__package__) / "resources" / "constraint.json").open("r") as f:
             constraint_schema = json.load(f)
-        resolver = jsonschema.RefResolver.from_schema(main_schema)
-        resolver.store["constraint.json"] = constraint_schema
-        for file in os.listdir(str(impresources.files(__package__) / "resources" / "constraints")):
-            with (impresources.files(__package__) / "resources" / "constraints" / file).open("r") as f:
-                resolver.store[file] = json.load(f)
 
-        validator = jsonschema.Draft7Validator(main_schema, resolver=resolver)
+        registry: Registry[dict[str, Any]] = Registry().with_resources([
+            ("main_schema", Resource.from_contents(main_schema, DRAFT7)),
+            ("constraint.json", Resource.from_contents(constraint_schema, DRAFT7)),
+        ])
+        constraints_dir = resources.files(__package__) / "resources" / "constraints"
+        for file in constraints_dir.iterdir():
+            with file.open("r") as f:
+                registry = registry.with_resource(file.name, Resource.from_contents(json.load(f), DRAFT7))
+
+        validator = Draft7Validator(main_schema, registry=registry)
         json_object = json.loads(json_string)
 
         try:
             validator.validate(json_object)
-        except jsonschema.ValidationError as e:
+        except ValidationError as e:
             msg = f"Invalid JSON: {e.message}"
             raise ValueError(msg) from e
 
         if override_encoding is None:
             if json_object["settings"]["encoding"] == "ONE_HOT":
                 encoding_type = cf.EncodingType.ONE_HOT
-            elif json_object["settings"]["encoding"] in ["UNARY", "DOMAIN_WALL"]:
+            elif json_object["settings"]["encoding"] in {"UNARY", "DOMAIN_WALL"}:
                 encoding_type = cf.EncodingType.DOMAIN_WALL
             else:
                 encoding_type = cf.EncodingType.BINARY
@@ -271,16 +281,17 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             expression (sp.Expr): The expression to transform.
 
         Returns:
-            sp.Expr: The transformed expression."""
+        sp.Expr: The transformed expression.
+        """
         assignment = [
-            (cf._FormulaHelpers.adjacency(i + 1, j + 1), self.graph.adjacency_matrix[i, j])
+            (cf.FormulaHelpers.adjacency(i + 1, j + 1), self.graph.adjacency_matrix[i, j])
             for i in range(self.graph.n_vertices)
             for j in range(self.graph.n_vertices)
         ]
         assignment += [
             (
-                cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v + 1, self.settings.max_path_length + 1),
-                cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v + 1, 1)
+                cf.FormulaHelpers.get_encoding_variable_one_hot(p + 1, v + 1, self.settings.max_path_length + 1),
+                cf.FormulaHelpers.get_encoding_variable_one_hot(p + 1, v + 1, 1)
                 if self.settings.loops
                 else sp.Integer(0),
             )
@@ -288,7 +299,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             for v in range(self.graph.n_vertices)
         ]  # x_{p, v, N + 1} = x_{p, v, 1} for all p, v if loop, otherwise 0
         assignment += [
-            (cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, self.graph.n_vertices + 1, i + 1), 0)
+            (cf.FormulaHelpers.get_encoding_variable_one_hot(p + 1, self.graph.n_vertices + 1, i + 1), 0)
             for p in range(self.settings.n_paths)
             for i in range(self.settings.max_path_length + 1)
         ]  # x_{p, |V| + 1, i} = 0 for all p, i
@@ -299,7 +310,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         raise ValueError(msg)
 
     @override
-    def get_variable_index(self, var: sp.Function) -> int:
+    def get_variable_index(self, var: sp.Expr) -> int:
         parts = var.args
 
         if any(not isinstance(part, sp.core.Integer) for part in parts):
@@ -335,7 +346,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         msg = f"Encoding type {self.settings.encoding_type} not supported."  # type: ignore[unreachable]
         raise ValueError(msg)
 
-    def decode_bit_array_domain_wall(self, array: list[int]) -> Any:
+    def decode_bit_array_domain_wall(self, array: list[int]) -> list[list[int]]:
         """Decodes an assignment for domain_wall encoding.
 
         Args:
@@ -357,7 +368,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             paths.append([v for v in path if v != 0])
         return paths
 
-    def decode_bit_array_one_hot(self, array: list[int]) -> Any:
+    def decode_bit_array_one_hot(self, array: list[int]) -> list[list[int]]:
         """Decodes an assignment for One-Hot encoding.
 
         Args:
@@ -384,7 +395,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
 
         return paths
 
-    def decode_bit_array_binary(self, _array: list[int]) -> Any:
+    def decode_bit_array_binary(self, array: list[int]) -> list[list[int]]:
         """Decodes an assignment for Binary encoding.
 
         Args:
@@ -400,13 +411,13 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             for i in range(self.settings.max_path_length):
                 v = 0
                 for j in range(max_v):
-                    v += 2**j * _array[j + i * max_v + p * max_v * self.settings.max_path_length]
+                    v += 2**j * array[j + i * max_v + p * max_v * self.settings.max_path_length]
                 path.append(v)
             paths.append([v for v in path if v != 0])
         return paths
 
     @override
-    def _get_encoding_variables(self) -> Sequence[tuple[sp.Expr, int]]:
+    def _get_encoding_variables(self) -> list[tuple[sp.Expr, int]]:
         result = []
         max_v = self.graph.n_vertices
         if self.settings.encoding_type == cf.EncodingType.BINARY:
@@ -414,6 +425,6 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         for p in range(self.settings.n_paths):
             for v in range(1, max_v + 1):
                 for i in range(self.settings.max_path_length):
-                    var = cf._FormulaHelpers.get_encoding_variable_one_hot(p + 1, v, i + 1)
+                    var = cf.FormulaHelpers.get_encoding_variable_one_hot(p + 1, v, i + 1)
                     result.append((var, self.get_variable_index(var)))
         return result
