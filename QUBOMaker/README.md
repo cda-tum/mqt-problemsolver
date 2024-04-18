@@ -89,7 +89,7 @@ print(generator.construct_qubo_matrix())
 MQT QUBOMaker has been developed based on methods proposed in the following paper:
 
 - D. Rovara, N. Quetschlich, and R. Wille "[A Framework to Formulate
-  Pathfinding Problems for Quantum Computing](https://todo)", arXiv, 2024
+  Pathfinding Problems for Quantum Computing](https://arxiv.org/abs/2404.10820)", arXiv, 2024
 
 ## Acknowledgements
 

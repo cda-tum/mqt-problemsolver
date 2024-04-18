@@ -270,7 +270,6 @@ class FormulaHelpers:
         Returns:
             sp.Expr: The sympy sum term.
         """
-        # TODO use latex output
         variable_symbols = [FormulaHelpers.variable(v) for v in variables]
         assignments = [x if isinstance(x, tuple) else (x,) for x in callback()]
         expr = cast(
@@ -1313,7 +1312,7 @@ class PathIsValid(PathBound):
                     settings.max_path_length,
                 ),
                 self.path_ids,
-            ),  # TODO prove this is enough
+            ),
         )
 
     @override
