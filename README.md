@@ -160,6 +160,21 @@ In case you are using our Satellite Mission Planning Problem approach, we would 
 which is also available on arXiv:
 [![a](https://img.shields.io/static/v1?label=arXiv&message=2308.00029&color=inactive&style=flat-square)](https://arxiv.org/abs/2308.00029)
 
+In case you are using our Resources Estimation approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@misc{quetschlich2024resource_estimation,
+    title           = {{Utilizing Resource Estimation for the Development of Quantum Computing Applications}},
+    author          = {N. Quetschlich and M. Soeken and P. Murali and R. Wille},
+    year            = {2024},
+    eprint          = {2402.12434},
+    archivePrefix   = {arXiv},
+}
+```
+
+which is also available on arXiv:
+[![a](https://img.shields.io/static/v1?label=arXiv&message=2402.12434&color=inactive&style=flat-square)](https://arxiv.org/abs/2402.12434)
+
 ## Acknowledgements
 
 The Munich Quantum Toolkit has been supported by the European
