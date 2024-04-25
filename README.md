@@ -11,7 +11,7 @@
 # MQT ProblemSolver
 
 MQT ProblemSolver is a framework to utilize quantum computing as a technology for users with little to no
-quantum computing knowledge.
+quantum computing knowledge that is part of the Munich Quantum Toolkit (MQT) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/).
 All necessary quantum parts are embedded by domain experts while the interfaces provided are similar to the ones
 classical solver provide:
 
