@@ -12,6 +12,8 @@ if TYPE_CHECKING or sys.version_info < (3, 10, 0):
 else:
     from importlib import resources
 
+import operator
+
 import numpy as np
 import sympy as sp
 from jsonschema import Draft7Validator, ValidationError
@@ -83,7 +85,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         for encoding in [cf.EncodingType.ONE_HOT, cf.EncodingType.DOMAIN_WALL, cf.EncodingType.BINARY]:
             generator = PathFindingQUBOGenerator.__from_json(json_string, graph, override_encoding=encoding)
             results.append((encoding, generator.count_required_variables()))
-        return next(encoding for (encoding, size) in results if size == min([size for (_, size) in results]))
+        return next(encoding for (encoding, size) in results if size == min(size for (_, size) in results))
 
     @staticmethod
     def from_json(json_string: str, graph: Graph) -> PathFindingQUBOGenerator:
@@ -265,7 +267,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         Returns:
             list[tuple[sp.Expr, float]]: A list of tuples containing the penalty expressions and their suggested lambda values.
         """
-        return [(expr, lam if lam else self.__optimal_lambda()) for (expr, lam) in self.penalties]
+        return [(expr, lam or self.__optimal_lambda()) for (expr, lam) in self.penalties]
 
     def __optimal_lambda(self) -> float:
         """Compute the optimal lambda value for all penalties."""
@@ -381,7 +383,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         path: list[tuple[int, int]] = []
         for i, bit in enumerate(array):
             if i % (len(array) / self.settings.n_paths) == 0 and i != 0:
-                path.sort(key=lambda x: x[1])
+                path.sort(key=operator.itemgetter(1))
                 paths.append([entry[0] + 1 for entry in path])
                 path = []
             if bit == 0:
@@ -390,7 +392,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             s = i // self.graph.n_vertices
             path.append((v, s))
 
-        path.sort(key=lambda x: x[1])
+        path.sort(key=operator.itemgetter(1))
         paths.append([entry[0] + 1 for entry in path])
 
         return paths

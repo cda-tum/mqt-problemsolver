@@ -189,7 +189,7 @@ class QUBOGenerator:
         """
         (x1, x2, y, rest) = self.__optimal_decomposition(cast(tuple[sp.Expr, ...], expression.args), auxiliary_dict)
         auxiliary_penalty = x1 * x2 - 2 * y * x1 - 2 * y * x2 + 3 * y
-        rest = rest * y
+        rest *= y
         if self.__get_order(rest) > 2:
             rest = self.__decrease_order(rest, auxiliary_dict)
         return cast(sp.Expr, auxiliary_penalty + rest)
@@ -204,7 +204,7 @@ class QUBOGenerator:
             int: The order of the expression. If the expression is not a product, 1 is returned.
         """
         if isinstance(expression, sp.Mul):
-            return sum([self.__get_order(arg) for arg in expression.args])
+            return sum(self.__get_order(arg) for arg in expression.args)
         return 1
 
     def __unpower(self, expression: sp.Expr) -> sp.Expr:
