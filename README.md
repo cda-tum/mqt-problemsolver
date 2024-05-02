@@ -3,8 +3,10 @@
 
 <p align="center">
 <picture>
+<a href="https://mqt.readthedocs.io/">
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/MQTProblemSolver/main/img/mqt_light.png" width="60%">
   <img src="https://raw.githubusercontent.com/cda-tum/MQTProblemSolver/main/img/mqt_dark.png" width="60%">
+</a>
 </picture>
 </p>
 
