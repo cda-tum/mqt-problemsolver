@@ -2,12 +2,12 @@
 [![Deploy to PyPI](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml)
 
 <p align="center">
-<picture>
-<a href="https://mqt.readthedocs.io/">
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/MQTProblemSolver/main/img/mqt_light.png" width="60%">
-  <img src="https://raw.githubusercontent.com/cda-tum/MQTProblemSolver/main/img/mqt_dark.png" width="60%">
-</a>
-</picture>
+  <a href="https://mqt.readthedocs.io">
+   <picture>
+     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/mqt_light.png" width="60%">
+     <img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/mqt_dark.png" width="60%">
+   </picture>
+  </a>
 </p>
 
 # MQT ProblemSolver
@@ -95,29 +95,6 @@ MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemso
 (venv) $ pip install mqt.problemsolver
 ```
 
-# Repository Structure
-
-```
-.
-├── src
-│ └── mqt
-│     └── problemsolver
-│        └── satelitesolver
-│        │   └── ...
-│        └── precompilation
-│        │   └── ...
-│        └── csp.py
-│        └── tsp.py
-└── notebooks
-     └── satelitesolver
-     │   └── ...
-     └── precompilation
-     │   └── ...
-     └── problemsolver_paper_figures.ipynb
-     └── csp_example.ipynb
-     └── tsp_example.ipynb
-```
-
 # References
 
 In case you are using MQT ProblemSolver in your work, we would be thankful if you referred to it by citing the following publication:
@@ -186,17 +163,17 @@ Munich Quantum Valley, which is supported by the Bavarian state government with 
 
 <p align="center">
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/tum_dark.svg" width="28%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/tum_light.svg" width="28%">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/tum_dark.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/tum_light.svg" width="28%" alt="TUM Logo">
 </picture>
 <picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/logo-bavaria.svg" width="16%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/logo-bavaria.svg" width="16%" alt="Coat of Arms of Bavaria">
 </picture>
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/erc_dark.svg" width="24%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/erc_light.svg" width="24%">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/erc_dark.svg" width="24%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/erc_light.svg" width="24%" alt="ERC Logo">
 </picture>
 <picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-problemsolver/main/img/logo-mqv.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/logo-mqv.svg" width="28%" alt="MQV Logo">
 </picture>
 </p>
