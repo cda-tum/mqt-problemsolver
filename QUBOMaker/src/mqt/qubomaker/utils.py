@@ -54,7 +54,7 @@ def optimize_classically(
         )
 
     def int_to_fixed_length_binary(number: int, length: int) -> list[int]:
-        binary_string = bin(number)[2:]
+        binary_string = f"{number:b}"
         padding_zeros = max(0, length - len(binary_string))
         binary_string = "0" * padding_zeros + binary_string
         return [int(bit) for bit in binary_string]
