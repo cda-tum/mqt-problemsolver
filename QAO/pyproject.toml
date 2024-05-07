@@ -1,0 +1,212 @@
+[build-system]
+requires = [
+    "setuptools>=61",
+    "setuptools_scm>=7",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mqt.qao"
+description = "MQT Quantum Auto Optimizer: Automatic Framework for Solving Optimization Problems with Quantum Computers"
+readme = "README.md"
+authors = [
+    { name = "Deborah Volpe", email = "deborah.volpe@polito.it"},
+    { name = "Nils Quetschlich", email = "nils.quetschlich@tum.de" },
+]
+keywords = ["MQT",  "quantum computing", "optimization", "QUBO"]
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+dynamic = ["version"]
+
+dependencies = [
+ 	"qubovert==1.2.5",
+    "sympy",
+    "numpy",
+    "pytest",
+    "dimod",
+    "dwave-samplers",
+    "dwave-system",
+    "importlib_metadata>=3.6; python_version < '3.10'",
+    "importlib_resources>=5.9; python_version < '3.10'",
+    "docplex==2.25.236",
+    "qiskit==0.34.2",
+    "qiskit_optimization=0.3.0",
+    "qiskit_ibm_provider==0.18.3",
+    "matplotlib",
+    "pandas",
+    "PyPortfolioOpt",
+    "scikit-learn"
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.2"]
+coverage = ["mqt.qao[test]", "pytest-cov>=4"]
+dev = ["mqt.qao[coverage]"]
+docs = [
+    "furo>=2023.08.17",
+    "sphinx~=7.0",
+    "setuptools-scm>=7",
+    "sphinxcontrib-bibtex>=2.4.2",
+    "sphinx-copybutton",
+    "sphinx-hoverxref",
+    "pybtex>=0.24",
+    "ipython",
+    "ipykernel",
+    "nbsphinx",
+    "sphinxext-opengraph",
+    "sphinx-autodoc-typehints",
+    "qiskit[visualization]",
+]
+
+[project.urls]
+Homepage = "https://github.com/cda-tum/mqt-qao"
+Issues = "https://github.com/cda-tum/mqt-qao/issues"
+Discussions = "https://github.com/cda-tum/mqt-qao/discussions"
+Research = "https://www.cda.cit.tum.de/research/quantum/"
+
+[tool.setuptools_scm]
+
+
+[tool.pytest.ini_options]
+minversion = "7.2"
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config", "--showlocals"]
+log_cli_level = "INFO"
+xfail_strict = true
+filterwarnings = [
+    "error",
+    "ignore:.*pkg_resources.*:DeprecationWarning:",
+    "ignore:.*sre_.*:DeprecationWarning:",
+    "ignore:.*Rigetti.*:UserWarning:",
+    "ignore:.*Values in x.*:RuntimeWarning:",
+    "ignore:.*The Rebase2QuditGatePass has moved to bqskit.passes.retarget.two.*:DeprecationWarning:",
+    "ignore:.*The least populated class in y has only 3 members, which is less than n_splits=5.*:UserWarning:",
+    "ignore:.*divide by zero encountered in det.*:RuntimeWarning:",
+    "ignore:.*invalid value encountered in det.*:RuntimeWarning:",
+    "ignore:..*env.action_masks to get variables from other wrappers is deprecated and will be removed in v1.0.*:UserWarning:",
+    "ignore::SyntaxWarning:.*(docplex).*",
+    "ignore::DeprecationWarning:.*(docplex).*",
+    "ignore:.*pytorch.*:UserWarning:",
+    "ignore::DeprecationWarning:.*(importlib).*",
+    "ignore::sklearn.exceptions.InconsistentVersionWarning:sklearn:",
+]
+
+[tool.check-wheel-contents]
+ignore = "W002"
+
+[tool.coverage]
+run.source = ["mqt.predictor"]
+report.exclude_also = [
+    '\.\.\.',
+    'if TYPE_CHECKING:',
+    'raise AssertionError',
+    'raise NotImplementedError',
+]
+
+show_missing = true
+skip_empty = true
+precision = 1
+
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+files = ["src", "tests"]
+python_version = "3.11"
+strict = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+warn_unreachable = true
+explicit_package_bases = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = ["mqt.qao.*"]
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = ["qubovert.*", "sympy.*", "dwave.samplers.*", "dwave.system.*",  "docplex.*", "qiskit.*", "qiskit_optimization.*", "qiskit_ibm_provider.*", "matplotlib.*", "pandas.*", "pypfopt.*", "sklearn.*"]
+ignore_missing_imports = true
+
+
+[tool.ruff]
+line-length = 120
+extend-include = ["*.ipynb"]
+src = ["src"]
+preview = true
+unsafe-fixes = true
+[tool.ruff.lint]
+extend-select = [
+    "A",           # flake8-builtins
+    "ANN",         # flake8-annotations
+    "ARG",         # flake8-unused-arguments
+    "ASYNC",       # flake8-async
+    "B",  "B904",  # flake8-bugbear
+    "C4",          # flake8-comprehensions
+#    "D",           # pydocstyle
+    "EM",          # flake8-errmsg
+    "EXE",         # flake8-executable
+    "FA",          # flake8-future-annotations
+    "FLY",         # flynt
+    "FURB",        # refurb
+    "I",           # isort
+    "ICN",         # flake8-import-conventions
+    "ISC",         # flake8-implicit-str-concat
+    "LOG",         # flake8-logging-format
+    "N",           # flake8-naming
+    "NPY",         # numpy
+    "PERF",        # perflint
+    "PGH",         # pygrep-hooks
+    "PIE",         # flake8-pie
+    "PL",          # pylint
+    "PT",          # flake8-pytest-style
+    "PTH",         # flake8-use-pathlib
+    "PYI",         # flake8-pyi
+    "Q",           # flake8-quotes
+    "RET",         # flake8-return
+    "RSE",         # flake8-raise
+    "RUF",         # Ruff-specific
+    "SLF",         # flake8-self
+    "SLOT",        # flake8-slots
+    "SIM",         # flake8-simplify
+    "TCH",         # flake8-type-checking
+    "TID",         # flake8-tidy-imports
+    "TRY",         # tryceratops
+    "UP",          # pyupgrade
+    "YTT",         # flake8-2020
+]
+ignore = [
+    "ANN101",  # Missing type annotation for self in method
+    "ANN102",  # Missing type annotation for cls in classmethod
+    "ISC001",  # Conflicts with formatter
+    "E501",    # Line too long (Black is enough)
+    "PLR",     # Design related pylint codes
+    "S101",    # Use of assert detected
+]
+flake8-unused-arguments.ignore-variadic-names = true
+isort.required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+"*.pyi" = ["D"]  # pydocstyle
+"*.ipynb" = [
+    "D",    # pydocstyle
+    "E402", # Allow imports to appear anywhere in Jupyter notebooks
+    "I002", # Allow missing `from __future__ import annotations` import
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

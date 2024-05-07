@@ -1,0 +1,1089 @@
+# Import of the needed libraries
+# pyqubo libraries for some steps of the problem formulation
+# numpy for matrix management
+from __future__ import annotations
+
+from math import ceil, floor, log, sqrt
+from typing import Any
+
+import numpy as np
+from qubovert import boolean_var
+
+# for managing symbols
+from sympy import Symbol, expand, symbols
+
+
+class Variables:
+    """class for declaring all the variables,
+    which are part of the problem.
+    Declaration of heterogeneous type of
+    variables is admitted and managed"""
+
+    def __init__(self) -> None:
+        """declaration of the variables dictionary
+        expected format {var_name: variable_obj,
+        matrix_var_name: matrix(variable_obj)}
+        of the binary variables"""
+        self._variables_dict: dict[str, Any] = {}
+        self._binary_variables_name_weight: dict[str, Any] = {}
+
+    def add_binary_variable(self, name: str) -> Symbol | bool:
+        """function for adding a unipolar variable in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        var = _binary()
+        symb = var._create(name)
+        if name not in self._variables_dict:
+            self._variables_dict[name] = var
+            return symb
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def add_binary_variables_array(self, name: str, shape: list[int]) -> np.ndarray[Any, np.dtype[Any]] | bool:
+        """function for adding a unipolar variable array in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+        shape -- tuple containing the size of the array (for the current moment 3D vectors are the maximum supported)
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        arr: list[Any] = []
+        symb_arr: list[Any] = []
+        if len(shape) == 1:
+            for i in range(shape[0]):
+                arr.append(_binary())
+                symb_arr.append(arr[i]._create(name + "_" + format(i)))
+        elif len(shape) == 2:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append(_binary())
+                    symb_arr[i].append(arr[i][j]._create(name + "_" + format(i) + "_" + format(j)))
+        elif len(shape) == 3:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append([])
+                    symb_arr[i].append([])
+                    for k in range(shape[2]):
+                        arr[i][j].append(_binary())
+                        symb_arr[i][j].append(
+                            arr[i][j][k]._create(name + "_" + format(i) + "_" + format(j) + "_" + format(k))
+                        )
+        else:
+            print("Arrays of dimension higher than 3 are currently not supported\n")
+            return False
+
+        if name not in self._variables_dict:
+            self._variables_dict[name] = arr
+            return np.array(symb_arr)
+
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def add_spin_variable(self, name: str) -> Symbol | bool:
+        """function for adding a bipolar binary variable in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        var = _binary()
+        symb = var._create(name, False)
+        if name not in self._variables_dict:
+            self._variables_dict[name] = var
+            return symb
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def add_spin_variables_array(self, name: str, shape: list[int]) -> np.ndarray[Any, np.dtype[Any]] | bool:
+        """function for adding a bipolar variable array in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+        shape -- tuple containing the size of the array (for the current moment 3D vectors are the maximum supported)
+
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        arr: list[Any] = []
+        symb_arr: list[Any] = []
+        if len(shape) == 1:
+            for i in range(shape[0]):
+                arr.append(_binary())
+                symb_arr.append(arr[i]._create(name + "_" + format(i), False))
+        elif len(shape) == 2:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append(_binary())
+                    symb_arr[i].append(arr[i][j]._create(name + "_" + format(i) + "_" + format(j), False))
+        elif len(shape) == 3:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append([])
+                    symb_arr[i].append([])
+                    for k in range(shape[2]):
+                        arr[i][j].append(_binary())
+                        symb_arr[i][j].append(
+                            arr[i][j][k]._create(
+                                name + "_" + format(i) + "_" + format(j) + "_" + format(k),
+                                False,
+                            )
+                        )
+        else:
+            print("Arrays of dimension higher than 3 are currently not supported\n")
+            return False
+
+        if name not in self._variables_dict:
+            self._variables_dict[name] = arr
+            return np.array(symb_arr)
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def add_discrete_variable(self, name: str, values: list[float]) -> Symbol | bool:
+        """function for adding a discrete variable in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+        values -- list of float containing the values that the variable can assume
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        var = _discrete()
+        symb = var._create(name, values)
+        if name not in self._variables_dict:
+            self._variables_dict[name] = var
+            return symb
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def add_discrete_variables_array(
+        self, name: str, shape: list[int], values: list[float]
+    ) -> np.ndarray[Any, np.dtype[Any]] | bool:
+        """function for adding a discrete variable array in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+        shape -- tuple containing the size of the array (for the current moment 3D vectors are the maximum supported)
+        values -- list of float containing the values that the variables can assume
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        arr: list[Any] = []
+        symb_arr: list[Any] = []
+        if len(shape) == 1:
+            for i in range(shape[0]):
+                arr.append(_discrete())
+                symb_arr.append(arr[i]._create(name + "_" + format(i), values))
+        elif len(shape) == 2:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append(_discrete())
+                    symb_arr[i].append(arr[i][j]._create(name + "_" + format(i) + "_" + format(j), values))
+        elif len(shape) == 3:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append([])
+                    symb_arr[i].append([])
+                    for k in range(shape[2]):
+                        arr[i][j].append(_discrete())
+                        symb_arr[i][j].append(
+                            arr[i][j][k]._create(
+                                name + "_" + format(i) + "_" + format(j) + "_" + format(k),
+                                values,
+                            )
+                        )
+        else:
+            print("Arrays of dimension higher than 3 are currently not supported\n")
+            return False
+
+        if name not in self._variables_dict:
+            self._variables_dict[name] = arr
+            return np.array(symb_arr)
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def add_continuous_variable(
+        self,
+        name: str,
+        min_val: float,
+        max_val: float,
+        precision: float,
+        distribution: str = "uniform",
+        encoding_mechanism: str = "",
+    ) -> Symbol | bool:
+        """function for adding a continuous variable in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+        min_val -- float indicating the lower bound of the variable range
+        max_val -- float indicating the upper bound of the variable range
+        precision -- integer indicating the number of elements for sampling is a non-uniform distribution
+                     is assumed and a float indicating the distance among two representable values if a
+                     uniform distribution is assumed
+        distribution -- string indicating the expected distribution of the value in the range
+        encoding_mechanism -- string for forcing a specific encoding mechanism (prevelently for debugging purpose)
+                                if empty the best encoding mechanism is decided by the toolchain
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        var = _continuous()
+        symb = var._create(name, min_val, max_val, precision, distribution, encoding_mechanism)
+        if name not in self._variables_dict:
+            self._variables_dict[name] = var
+            return symb
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def add_continuous_variables_array(
+        self,
+        name: str,
+        shape: list[int],
+        min_val: float,
+        max_val: float,
+        precision: float = 0.0,
+        distribution: str = "uniform",
+        encoding_mechanism: str = "",
+    ) -> np.ndarray[Any, np.dtype[Any]] | bool:
+        """function for adding a continuous variable array in the variable list
+
+        Keyword arguments:
+        name -- string containing the variable name
+        shape -- tuple containing the size of the array (for the current moment 3D vectors are the maximum supported)
+        min_val -- float indicating the lower bound of the variable range
+        max_val -- float indicating the upper bound of the variable range
+        precision -- integer indicating the number of elements for sampling is a non-uniform distribution
+                     is assumed and a float indicating the distance among two representable values if a
+                     uniform distribution is assumed
+        distribution -- string indicating the expected distribution of the value in the range
+        encoding_mechanism -- string for forcing a specific encoding mechanism (prevelently for debugging purpose)
+                                if empty the best encoding mechanism is decided by the toolchain
+
+        Return values:
+        symb - variable symbol or False if the variable name is not available
+        """
+        arr: list[Any] = []
+        symb_arr: list[Any] = []
+        if len(shape) == 1:
+            for i in range(shape[0]):
+                arr.append(_continuous())
+                symb_arr.append(
+                    arr[i]._create(
+                        name + "_" + format(i), min_val, max_val, precision, distribution, encoding_mechanism
+                    )
+                )
+        elif len(shape) == 2:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append(_continuous())
+                    symb_arr[i].append(
+                        arr[i][j]._create(
+                            name + "_" + format(i) + "_" + format(j),
+                            min_val,
+                            max_val,
+                            precision,
+                            distribution,
+                            encoding_mechanism,
+                        )
+                    )
+        elif len(shape) == 3:
+            for i in range(shape[0]):
+                arr.append([])
+                symb_arr.append([])
+                for j in range(shape[1]):
+                    arr[i].append([])
+                    symb_arr[i].append([])
+                    for k in range(shape[2]):
+                        arr[i][j].append(_continuous())
+                        symb_arr[i][j].append(
+                            arr[i][j][k]._create(
+                                name + "_" + format(i) + "_" + format(j) + "_" + format(k),
+                                min_val,
+                                max_val,
+                                precision,
+                                distribution,
+                                encoding_mechanism,
+                            )
+                        )
+        else:
+            print("Arrays of dimension higher than 3 are currently not supported\n")
+            return False
+
+        if name not in self._variables_dict:
+            self._variables_dict[name] = arr
+            return np.array(symb_arr)
+        else:
+            print("ERROR: the variable name is not available\n")
+            return False
+
+    def move_to_binary(
+        self, constraints: list[tuple[str, bool, bool, bool]], i: int = 0, letter: str = "b"
+    ) -> tuple[list[tuple[str, bool, bool, bool]], int]:
+        """function for writing all the declared variables
+        Binary object of the pyqubo library
+
+        Keyword arguments:
+        constraints  -- constraint object for eventually adding them if necessary
+        i -- number of binary variables required to increment, by default equal to 0 (useful if the function is called more than one time)
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        constraints  -- constraint object
+        i -- number of binary variables required
+        """
+
+        for elem in self._variables_dict.values():
+            constraints, i = self._variable_binarization(constraints, i, elem, letter)
+
+        return constraints, i
+
+    def _variable_binarization(
+        self, constraints: list[tuple[str, bool, bool, bool]], i: int, elem: Any, letter: str = "b"
+    ) -> tuple[list[tuple[str, bool, bool, bool]], int]:
+        """function for writing a declared variables
+        binary_var object of the qubovert library
+
+        Keyword arguments:
+        constraints  -- constraint object for eventually adding them if necessary
+        i -- number of binary variables required to increment, by default equal to 0 (useful if the function is called more than one time)
+        elem -- is the declared variable under observation
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        constraints  -- constraint object
+        i -- number of binary variables required
+        """
+        if not isinstance(elem, list):
+            if elem._name is not self._binary_variables_name_weight.keys():
+                if elem._type == "b":
+                    self._binary_variables_name_weight[elem._name] = (boolean_var(letter + format(i)),)
+                    i += 1
+                elif elem._type == "s":
+                    # s = 2b-1
+                    self._binary_variables_name_weight[elem._name] = (
+                        boolean_var(letter + format(i)),
+                        2,
+                        -1,
+                    )
+                    i += 1
+                elif elem._type == "d":
+                    # For the current moment, only dictionary encoding for discrete
+                    (
+                        self._binary_variables_name_weight,
+                        constraints,
+                        i,
+                    ) = elem._move_to_binary(self._binary_variables_name_weight, i, constraints, letter)
+                elif elem._type == "c":
+                    (
+                        self._binary_variables_name_weight,
+                        constraints,
+                        i,
+                    ) = elem._move_to_binary(self._binary_variables_name_weight, i, constraints, letter)
+        else:
+            for el in elem:
+                constraints, i = self._variable_binarization(constraints, i, el, letter)
+
+        return constraints, i
+
+    def _convert_simulated_annealing_solution(self, solution: dict[str, float]) -> dict[str, Any] | bool:
+        """function for converting a solution coming from simulated annealing
+
+        Keyword arguments:
+        solution -- dictionary containing binary variable-value association
+
+        Return values:
+        converted_solution -- dictionary containing the original declared variables-value association
+
+        """
+        converted_solution: dict[str, Any] = {}
+        for var in self._variables_dict:
+            if isinstance(self._variables_dict[var], _variable):
+                converted_solution[var] = 0.0
+                if var in self._binary_variables_name_weight:
+                    if isinstance(self._binary_variables_name_weight[var], list):
+                        for el in self._binary_variables_name_weight[var]:
+                            if (
+                                not isinstance(el, str)
+                                and next(iter(el[0].variables)) in solution
+                                and solution[next(iter(el[0].variables))] == 1
+                            ):
+                                if len(el) > 1:
+                                    converted_solution[var] += el[1]
+                                else:
+                                    converted_solution[var] += 1
+                            if not isinstance(el, str) and next(iter(el[0].variables)) in solution and len(el) == 3:
+                                converted_solution[var] += el[2]
+                            if not isinstance(el, str) and next(iter(el[0].variables)) not in solution:
+                                print("The variable is not found\n")
+                                return False
+                    else:
+                        if (
+                            next(iter(self._binary_variables_name_weight[var][0].variables)) in solution
+                            and solution[next(iter(self._binary_variables_name_weight[var][0].variables))] == 1
+                        ):
+                            if len(self._binary_variables_name_weight[var]) > 1:
+                                converted_solution[var] += self._binary_variables_name_weight[var][1]
+                            else:
+                                converted_solution[var] += 1
+
+                        if (
+                            next(iter(self._binary_variables_name_weight[var][0].variables)) in solution
+                            and len(self._binary_variables_name_weight[var]) == 3
+                        ):
+                            converted_solution[var] += self._binary_variables_name_weight[var][2]
+                        if next(iter(self._binary_variables_name_weight[var][0].variables)) not in solution:
+                            print("The variable is not found\n")
+                            return False
+
+                else:
+                    print("The variable is not found\n")
+                    return False
+            else:
+                converted_solution[var] = []
+                j = 0
+                for v in self._variables_dict[var]:
+                    if not isinstance(v, list) and v._name in self._binary_variables_name_weight:
+                        temp = 0.0
+                        if isinstance(self._binary_variables_name_weight[v._name], list):
+                            for el in self._binary_variables_name_weight[v._name]:
+                                if not isinstance(el, str):
+                                    if (
+                                        next(iter(el[0].variables)) in solution
+                                        and solution[next(iter(el[0].variables))] == 1
+                                    ):
+                                        if len(el) > 1:
+                                            temp += el[1]
+                                        else:
+                                            temp += 1
+                                    if next(iter(el[0].variables)) in solution and len(el) == 3:
+                                        temp += el[2]
+                                    if next(iter(el[0].variables)) not in solution:
+                                        print("The variable is not found\n")
+                                        return False
+                        else:
+                            if next(iter(self._binary_variables_name_weight[v._name][0].variables)) in solution:
+                                if (
+                                    solution[next(iter(self._binary_variables_name_weight[v._name][0].variables))] == 1
+                                ) and len(self._binary_variables_name_weight[v._name]) > 1:
+                                    temp += self._binary_variables_name_weight[v._name][1]
+                                if (
+                                    solution[next(iter(self._binary_variables_name_weight[v._name][0].variables))] == 1
+                                ) and len(self._binary_variables_name_weight[v._name]) == 1:
+                                    temp += 1
+                                if len(self._binary_variables_name_weight[v._name]) == 3:
+                                    temp += self._binary_variables_name_weight[v._name][2]
+                            else:
+                                print("The variable is not found\n")
+                                return False
+                        converted_solution[var].append(temp)
+                    elif isinstance(v, list):
+                        converted_solution[var].append([])
+                        k = 0
+                        for v1 in v:
+                            if not isinstance(v1, list):
+                                if v1._name in self._binary_variables_name_weight:
+                                    temp = 0.0
+                                    if isinstance(self._binary_variables_name_weight[v1._name], list):
+                                        for el in self._binary_variables_name_weight[v1._name]:
+                                            if not isinstance(el, str):
+                                                if (
+                                                    next(iter(el[0].variables)) in solution
+                                                    and solution[next(iter(el[0].variables))] == 1
+                                                ):
+                                                    if len(el) > 1:
+                                                        temp += el[1]
+                                                    else:
+                                                        temp += 1
+                                                if next(iter(el[0].variables)) in solution and len(el) == 3:
+                                                    temp += el[2]
+                                                if next(iter(el[0].variables)) not in solution:
+                                                    print("The variable is not found\n")
+                                                    return False
+                                    else:
+                                        if (
+                                            next(iter(self._binary_variables_name_weight[v1._name][0].variables))
+                                            in solution
+                                        ):
+                                            if (
+                                                solution[
+                                                    next(
+                                                        iter(self._binary_variables_name_weight[v1._name][0].variables)
+                                                    )
+                                                ]
+                                                == 1
+                                            ) and len(self._binary_variables_name_weight[v1._name]) > 0:
+                                                if len(self._binary_variables_name_weight[v1._name]) > 1:
+                                                    temp += self._binary_variables_name_weight[v1._name][1]
+                                                else:
+                                                    temp += 1
+                                            if len(self._binary_variables_name_weight[v1._name]) == 3:
+                                                temp += self._binary_variables_name_weight[v1._name][2]
+                                        else:
+                                            print("The variable is not found\n")
+                                            return False
+
+                                    converted_solution[var][j].append(temp)
+                            else:
+                                converted_solution[var][j].append([])
+                                for v2 in v:
+                                    if not isinstance(v2, list) and v2._name in self._binary_variables_name_weight:
+                                        temp = 0.0
+                                        if isinstance(self._binary_variables_name_weight[v2._name], list):
+                                            for el in self._binary_variables_name_weight[v2._name]:
+                                                if (
+                                                    not isinstance(el, str)
+                                                    and next(iter(el[0].variables)) in solution
+                                                    and solution[next(iter(el[0].variables))] == 1
+                                                ):
+                                                    if len(el) > 1:
+                                                        temp += el[1]
+                                                    else:
+                                                        temp += 1
+                                                if (
+                                                    not isinstance(el, str)
+                                                    and next(iter(el[0].variables)) in solution
+                                                    and len(el) == 3
+                                                ):
+                                                    temp += el[2]
+                                                if next(iter(el[0].variables)) not in solution:
+                                                    print("The variable is not found\n")
+                                                    return False
+                                        else:
+                                            if (
+                                                next(iter(self._binary_variables_name_weight[v2._name][0].variables))
+                                                in solution
+                                            ):
+                                                if (
+                                                    solution[
+                                                        next(
+                                                            iter(
+                                                                self._binary_variables_name_weight[v2._name][
+                                                                    0
+                                                                ].variables
+                                                            )
+                                                        )
+                                                    ]
+                                                    == 1
+                                                ) and len(self._binary_variables_name_weight[v2._name]) > 1:
+                                                    temp += self._binary_variables_name_weight[v2._name][1]
+                                                if len(self._binary_variables_name_weight[v2._name]) == 3:
+                                                    temp += self._binary_variables_name_weight[v2._name][2]
+                                            else:
+                                                print("The variable is not found\n")
+                                                return False
+                                        converted_solution[var][j][k].append(temp)
+                            k += 1
+                    j += 1
+
+        return converted_solution
+
+
+class _variable:
+    """parent class of variables useful
+    for defining common methods of the variable object"""
+
+    def __init__(self) -> None:
+        """declariation of common variable attributes
+        _name is a string identifying the variable
+        symbol is the symbol associated with the variable"""
+        self._name: str
+        self.symbol: Symbol
+        self._type: str
+
+    def _dictionary_encoding(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        constraints: list[tuple[str, bool, bool, bool]],
+        values: list[float],
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], list[tuple[str, bool, bool, bool]], int]:
+        """function for encoding a dictionary into binary variables.
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary in which inserting binary variables, weights and eventual offset
+        i -- starting index for the binary variable
+        constraints -- constraints object for evantually adding constraints
+        value -- a list of float containing the value to encode
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        constraints -- constraints object for eventually adding constraints
+        i --  index for the binary variable
+        """
+        var_sum = 0
+        binary_variables_name_weight[self._name] = []
+        binary_variables_name_weight[self._name].append("dictionary")
+        for val in values:
+            binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), val))
+            var_sum += symbols(letter + format(i))
+            i += 1
+
+        # Add the needed constraint
+        constraints.append((format(expand(var_sum).evalf()) + " = 1", True, False, False))  # type: ignore[no-untyped-call]
+        return binary_variables_name_weight, constraints, i
+
+    def _unitary_encoding(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        max_val: float,
+        min_val: float,
+        unitary_weight: float = 1,
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], int]:
+        """function for implementing the unitary encoding
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary in which inserting binary variables, weights and eventual offset
+        i -- starting index for the binary variable
+        max_value -- the maximum value to represent
+        min_value -- the minimum value to represent
+        unitary weight -- float for eventually weighting the unitary encoding (by default set to 1)
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        i --  index for the binary variable"""
+        samples = int((max_val - min_val) / unitary_weight)
+        binary_variables_name_weight[self._name] = []
+        binary_variables_name_weight[self._name].append("unitary")
+        for w in range(1, samples + 1):
+            if w == 1:
+                binary_variables_name_weight[self._name].append(
+                    (boolean_var(letter + format(i)), w * unitary_weight, min_val)
+                )
+            else:
+                binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), w * unitary_weight))
+            i += 1
+
+        return binary_variables_name_weight, i
+
+    def _domain_well_encoding(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        max_val: float,
+        min_val: float,
+        constraints: list[tuple[str, bool, bool, bool]],
+        unitary_weight: float = 1,
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], list[tuple[str, bool, bool, bool]], int]:
+        """function for implementing the unitary encoding
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary in which inserting binary variables, weights and eventual offset
+        i -- starting index for the binary variable
+        max_value -- the maximum value to represent
+        min_value -- the minimum value to represent
+        constraints -- constraints object for evantually adding constraints
+        unitary weight -- float for eventually weighting the unitary encoding (by default set to 1)
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        i --  index for the binary variable"""
+        samples = int((max_val - min_val) / unitary_weight)
+        binary_variables_name_weight[self._name] = []
+        binary_variables_name_weight[self._name].append("domain well")
+        for w in range(1, samples + 1):
+            if w == 1:
+                binary_variables_name_weight[self._name].append(
+                    (boolean_var(letter + format(i)), w * unitary_weight, min_val)
+                )
+            else:
+                binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), w * unitary_weight))
+                constraints.append((letter + format(i) + ">=" + letter + format(i - 1), True, False, False))
+
+            i += 1
+
+        return binary_variables_name_weight, constraints, i
+
+    def _logarithmic_encoding(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        max_val: float,
+        min_val: float,
+        base: int = 2,
+        lower_power: int = 0,
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], int]:
+        """function for implementing the logarithmic encoding
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary in which inserting binary variables, weights and eventual offset
+        i -- starting index for the binary variable
+        max_value -- the maximum value to represent
+        min_value -- the minimum value to represent
+        base  -- int indicating the basis for the logarithmic encoding (set at 2 by default)
+        lower_power -- int indicating the lower power of the base to consider (set at 0 by default), but useful for floating input or for regulating the precision
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        i --  index for the binary variable"""
+        if lower_power == 0:
+            n_power = floor(log((max_val - min_val + 1), base))
+        else:
+            n_power = floor(log(((max_val - min_val) / base**lower_power), base))
+        binary_variables_name_weight[self._name] = []
+        binary_variables_name_weight[self._name].append("logarithmic")
+        binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), base**lower_power, min_val))
+        i += 1
+        for power in range(lower_power + 1, n_power + lower_power):
+            binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), base**power))
+            i += 1
+        if log(((max_val - min_val + 1) / base**lower_power), base) > n_power:
+            val = max_val - min_val
+            for j in range(lower_power, n_power + lower_power):
+                val -= base**j
+            binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), val))
+            i += 1
+
+        return binary_variables_name_weight, i
+
+    def _arithmetic_progression_encoding(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        max_val: float,
+        min_val: float,
+        unitary_weight: float = 1,
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], int]:
+        """function for implementing the arthmetic progression encoding
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary in which inserting binary variables, weights and eventual offset
+        i -- starting index for the binary variable
+        max_value -- the maximum value to represent
+        min_value -- the minimum value to represent
+        unitary weight -- float for eventually weighting the unitary encoding (by default set to 1)
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        i --  index for the binary variable"""
+        n = (max_val - min_val) / unitary_weight
+        samples = ceil(0.5 * sqrt(1 + 8 * n) - 0.5)
+        binary_variables_name_weight[self._name] = []
+        binary_variables_name_weight[self._name].append("arithmetic progression")
+        for w in range(1, samples):
+            if w == 1:
+                binary_variables_name_weight[self._name].append(
+                    (boolean_var(letter + format(i)), w * unitary_weight, min_val)
+                )
+            else:
+                binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), w * unitary_weight))
+            i += 1
+        val = unitary_weight * (n - (samples * (samples - 1)) / 2)
+        if samples != 1:
+            binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), val))
+        else:
+            binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), val, min_val))
+        i += 1
+
+        return binary_variables_name_weight, i
+
+    def _bounded_coefficient_encoding(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        ux: int,
+        max_val: float,
+        min_val: float,
+        base: int = 2,
+        lower_power: int = 0,
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], int]:
+        """function for implementing the arthmetic progression encoding
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary in which inserting binary variables, weights and eventual offset
+        i -- starting index for the binary variable
+        ux -- int is the coefficients upper bound
+        max_value -- the maximum value to represent
+        min_value -- the minimum value to represent
+        base  -- int indicating the basis for the logarithmic encoding (set at 2 by default)
+        lower_power -- int indicating the lower power of the base to consider (set at 0 by default), but useful for floating input or for regulating the precision
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        i --  index for the binary variable"""
+        if (max_val - min_val) < base ** (floor(log(ux, base)) + 1):
+            binary_variables_name_weight, i = self._logarithmic_encoding(
+                binary_variables_name_weight, i, max_val, min_val, base, lower_power
+            )
+
+            return binary_variables_name_weight, i
+        else:  # To verify
+            ro = floor(log(ux, base)) + 1
+            v = max_val - min_val
+            for j in range(ro):
+                v -= base**j
+            eta = floor(v / ux)
+            binary_variables_name_weight[self._name] = []
+            binary_variables_name_weight[self._name].append("bounded coefficient")
+            binary_variables_name_weight[self._name].append(
+                (boolean_var(letter + format(i)), base**lower_power, min_val)
+            )
+            i += 1
+
+            for k in range(lower_power + 1, ro):
+                binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), base**k))
+                i += 1
+
+            for _ in range(ro + 1, ro + eta + 1):
+                binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), ux))
+                i += 1
+
+            if v - eta * ux != 0:
+                binary_variables_name_weight[self._name].append((boolean_var(letter + format(i)), v - eta * ux))
+                i += 1
+
+            return binary_variables_name_weight, i
+
+
+class _binary(_variable):
+    """child class of binary variables"""
+
+    def _create(self, name: str, unipolar: bool = True) -> Symbol:
+        """function for creating the new binary variable.
+
+        Keyword arguments:
+        name -- string containing the variable name
+        unipolar -- boolean variable equal to true if the variable is assumes 0 1 and
+                    equal to false if assume -1, 1
+
+        Return values:
+        self.symbol -- variable symbol
+        """
+        self._name = name
+        self.symbol = symbols(name)
+        if unipolar:
+            self._type = "b"
+        else:
+            self._type = "s"
+        return self.symbol
+
+
+class _discrete(_variable):
+    """child class of discrete variables"""
+
+    def _create(self, name: str, values: list[float]) -> Symbol:
+        """function for creating the new discrete variable.
+
+        Keyword arguments:
+        name -- string containing the variable name
+        values -- list of values that the variable can assumes
+
+        Return values:
+        self.symbol -- variable symbol
+        """
+        self._name = name
+        self.symbol = symbols(name)
+        self._values = values
+        self._type = "d"
+        return self.symbol
+
+    def _move_to_binary(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        constraints: list[tuple[str, bool, bool, bool]],
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], list[tuple[str, bool, bool, bool]], int]:
+        """function for creating the new discrete variable.
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary of all the binary variables
+        i -- int indicating the binary variable index
+        constraints -- constraints object for eventually adding constraints
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        constraints -- constraints object for evantually adding constraints
+        i --  index for the binary variable
+
+
+        I start with only the dictionary mapping methods
+        """
+        binary_variables_name_weight, constraints, i = self._dictionary_encoding(
+            binary_variables_name_weight, i, constraints, self._values, letter
+        )
+        return binary_variables_name_weight, constraints, i
+
+
+class _continuous(_variable):
+    """child class of discrete variables"""
+
+    def _create(
+        self,
+        name: str,
+        min_val: float,
+        max_val: float,
+        precision: float,
+        distribution: str = "uniform",
+        encoding_mechanism: str = "",
+    ) -> Symbol:
+        """function for creating the new discrete variable.
+
+        Keyword arguments:
+        name -- string containing the variable name
+        min_val -- float indicating the lower bound of the variable range
+        max_val -- float indicating the upper bound of the variable range
+        precision -- integer indicating the number of elements for sampling is a non-uniform distribution
+                     is assumed and a float indicating the distance among two representable values if a
+                     uniform distribution is assumed
+        distribution -- string indicating the expected distribution of the value in the range
+        encoding_mechanism -- string for forcing a specific encoding mechanism (prevelently for debugging purpose)
+                                if empty the best encoding mechanism is decided by the toolchain
+
+        Return values:
+        self.symbol -- variable symbol
+        """
+        self._name = name
+        self.symbol = symbols(name)
+        self._min = min_val
+        self._max = max_val
+        self._precision = precision
+        self._distribution = distribution
+        self._type = "c"
+        self._encoding_mechanism = encoding_mechanism
+        return self.symbol
+
+    def _move_to_binary(
+        self,
+        binary_variables_name_weight: dict[str, Any],
+        i: int,
+        constraints: list[tuple[str, bool, bool, bool]],
+        letter: str = "b",
+    ) -> tuple[dict[str, Any], list[tuple[str, bool, bool, bool]], int]:
+        """function for creating the new discrete variable.
+
+        Keyword arguments:
+        binary_variables_name_weight -- dictionary of all the binary variables
+        i -- int indicating the binary variable index
+        constraints -- constraints object for eventually adding constraints
+        letter  -- letter chosen for labeling the variable b by default by could be different for auxiliary variables
+
+        Return values:
+        binary_variables_name_weight -- dictionary
+        constraints -- constraints object for evantually adding constraints
+        i --  index for the binary variable
+
+        possible to expand the supported distributions in the future
+
+        """
+        if self._distribution == "logarithmic":
+            values = list(np.logspace(self._min, self._max, int(self._precision), endpoint=True))
+            binary_variables_name_weight, constraints, i = self._dictionary_encoding(
+                binary_variables_name_weight, i, constraints, values, letter
+            )
+            self._encoding_mechanism = "dictionary"
+        elif self._distribution == "geometric":
+            values = list(np.geomspace(self._min, self._max, int(self._precision), endpoint=True))
+            binary_variables_name_weight, constraints, i = self._dictionary_encoding(
+                binary_variables_name_weight, i, constraints, values, letter
+            )
+            self._encoding_mechanism = "dictionary"
+        else:
+            if self._encoding_mechanism == "dictionary":
+                values = list(np.arange(self._min, self._max + self._precision, self._precision))
+                binary_variables_name_weight, constraints, i = self._dictionary_encoding(
+                    binary_variables_name_weight, i, constraints, values, letter
+                )
+            elif self._encoding_mechanism == "unitary":
+                binary_variables_name_weight, i = self._unitary_encoding(
+                    binary_variables_name_weight, i, self._max, self._min, self._precision, letter
+                )
+            elif self._encoding_mechanism == "domain well":
+                binary_variables_name_weight, constraints, i = self._domain_well_encoding(
+                    binary_variables_name_weight, i, self._max, self._min, constraints, self._precision, letter
+                )
+            elif self._encoding_mechanism.startswith("logarithmic"):
+                try:
+                    base = int(self._encoding_mechanism.split(" ")[1])
+                    binary_variables_name_weight, i = self._logarithmic_encoding(
+                        binary_variables_name_weight, i, self._max, self._min, base, int(self._precision), letter
+                    )
+                    self._precision = base**self._precision
+                except TypeError:
+                    values = list(np.arange(self._min, self._max + self._precision, self._precision))
+                    binary_variables_name_weight, constraints, i = self._dictionary_encoding(
+                        binary_variables_name_weight, i, constraints, values, letter
+                    )
+                    self._encoding_mechanism = "dictionary"
+
+            elif self._encoding_mechanism == "arithmetic progression":
+                binary_variables_name_weight, i = self._arithmetic_progression_encoding(
+                    binary_variables_name_weight, i, self._max, self._min, self._precision, letter
+                )
+            elif self._encoding_mechanism.startswith("bounded coefficient"):
+                try:
+                    ux = int(self._encoding_mechanism.split(" ")[2])
+                    binary_variables_name_weight, i = self._bounded_coefficient_encoding(
+                        binary_variables_name_weight,
+                        i,
+                        ux,
+                        self._max,
+                        self._min,
+                        2,
+                        int(log(self._precision, 2)),
+                        letter,
+                    )
+                except TypeError:
+                    values = list(np.arange(self._min, self._max + self._precision, self._precision))
+                    binary_variables_name_weight, constraints, i = self._dictionary_encoding(
+                        binary_variables_name_weight, i, constraints, values, letter
+                    )
+                    self._encoding_mechanism = "dictionary"
+            else:
+                if (1 / self._precision) % 2 == 0:
+                    binary_variables_name_weight, i = self._logarithmic_encoding(
+                        binary_variables_name_weight, i, self._max, self._min, 2, int(log(self._precision, 2)), letter
+                    )
+                    self._encoding_mechanism = "logarithmic 2"
+                else:
+                    binary_variables_name_weight, i = self._arithmetic_progression_encoding(
+                        binary_variables_name_weight, i, self._max, self._min, self._precision, letter
+                    )
+                    self._encoding_mechanism = "arithmetic progression"
+
+        return binary_variables_name_weight, constraints, i
