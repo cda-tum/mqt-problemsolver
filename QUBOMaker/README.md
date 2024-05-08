@@ -5,10 +5,12 @@
 [![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt-qubomaker.readthedocs.io/en/latest/)
 
 <p align="center">
+<a href="https://mqt.readthedocs.io">
 <picture>
-  <a href="https://mqt.readthedocs.io/"><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_light.png" width="60%"></a>
-  <a href="https://mqt.readthedocs.io/"><img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/mqt_dark.png" width="60%"></a>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/mqt_light.png" width="60%">
+  <img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/mqt_dark.png" width="60%">
 </picture>
+</a>
 </p>
 
 # MQT QUBOMaker: Automatic Generation of QUBO Formulations from Optimization Problem Specifications
@@ -100,17 +102,16 @@ Munich Quantum Valley, which is supported by the Bavarian state government with 
 
 <p align="center">
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/tum_dark.svg" width="28%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/tum_light.svg" width="28%">
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/tum_dark.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/tum_light.svg" width="28%" alt="TUM Logo">
 </picture>
 <picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/logo-bavaria.svg" width="16%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/logo-bavaria.svg" width="16%" alt="Coat of Arms of Bavaria">
 </picture>
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/erc_dark.svg" width="24%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/erc_light.svg" width="24%">
-</picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/erc_dark.svg" width="24%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/erc_light.svg" width="24%" alt="ERC Logo">
 <picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt-qubomaker/main/docs/_static/logo-mqv.svg" width="28%">
+<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/logo-mqv.svg" width="28%" alt="MQV Logo">
 </picture>
 </p>
