@@ -6,8 +6,7 @@ import math
 
 import numpy as np
 from qubovert import PUBO
-from mqt.qao import Constraints, ObjectiveFunction
-from mqt.qao.variables.variables import Variables
+from src.mqt.qao import Constraints, ObjectiveFunction, Variables
 
 
 class Problem:
@@ -46,7 +45,7 @@ class Problem:
         self.constraints = constraint
         self.objective_function = objective_functions
 
-    def _write_the_final_cost_function(self, lambda_strategy: str, lambda_value: float = 1) -> PUBO:
+    def write_the_final_cost_function(self, lambda_strategy: str, lambda_value: float = 1) -> PUBO:
         """function for writing the final PUBO function
 
         Keyword arguments:
@@ -57,49 +56,49 @@ class Problem:
         final pubo function
 
         """
-        self.variables.move_to_binary(self.constraints._constraints)
-        self.constraints._translate_constraints(self.variables)
-        self.pubo = self.objective_function._rewrite_cost_functions(self.pubo, self.variables)
+        self.variables.move_to_binary(self.constraints.constraints)
+        self.constraints.translate_constraints(self.variables)
+        self.pubo = self.objective_function.rewrite_cost_functions(self.pubo, self.variables)
         self.pubo_cost_function_alone = self.pubo
         if lambda_strategy == "upper_bound_only_positive":
             lambda_val = self._upper_bound_with_only_positive_coefficient(self.pubo)
             if isinstance(lambda_val, float):
-                self.lambdas = [lambda_val] * len(self.constraints._constraints_penalty_functions)
+                self.lambdas = [lambda_val] * len(self.constraints.constraints_penalty_functions)
             else:
-                lambda_val = self._upper_lower_bound_naive_method(self.pubo)
-                self.lambdas = [lambda_val] * len(self.constraints._constraints_penalty_functions)
+                lambda_val = self.upper_lower_bound_naive_method(self.pubo)
+                self.lambdas = [lambda_val] * len(self.constraints.constraints_penalty_functions)
         elif lambda_strategy == "maximum_coefficient":
             lambda_val = self._maximum_qubo_coefficient(self.pubo)
-            self.lambdas = [lambda_val] * len(self.constraints._constraints_penalty_functions)
+            self.lambdas = [lambda_val] * len(self.constraints.constraints_penalty_functions)
         elif lambda_strategy == "VLM":
-            lambda_val = self._VLM(self.pubo)
-            self.lambdas = [lambda_val] * len(self.constraints._constraints_penalty_functions)
+            lambda_val = self._vlm(self.pubo)
+            self.lambdas = [lambda_val] * len(self.constraints.constraints_penalty_functions)
         elif lambda_strategy == "MOMC":
-            for elm in self.constraints._constraints_penalty_functions:
-                self.lambdas.append(self._MOMC(self.pubo, elm[0]))
+            for elm in self.constraints.constraints_penalty_functions:
+                self.lambdas.append(self._momc(self.pubo, elm[0]))
         elif lambda_strategy == "MOC":
-            for elm in self.constraints._constraints_penalty_functions:
-                self.lambdas.append(self._MOC(self.pubo, elm[0]))
+            for elm in self.constraints.constraints_penalty_functions:
+                self.lambdas.append(self._moc(self.pubo, elm[0]))
         elif lambda_strategy == "upper lower bound naive":
-            lambda_val = self._upper_lower_bound_naive_method(self.pubo)
-            self.lambdas = [lambda_val] * len(self.constraints._constraints_penalty_functions)
+            lambda_val = self.upper_lower_bound_naive_method(self.pubo)
+            self.lambdas = [lambda_val] * len(self.constraints.constraints_penalty_functions)
         elif lambda_strategy == "upper lower bound posiform and negaform method":
-            lambda_val = self._upper_lower_bound_posiform_and_negaform_method(self.pubo)
-            self.lambdas = [lambda_val] * len(self.constraints._constraints_penalty_functions)
+            lambda_val = self.upper_lower_bound_posiform_and_negaform_method(self.pubo)
+            self.lambdas = [lambda_val] * len(self.constraints.constraints_penalty_functions)
         elif lambda_strategy == "manual":
-            self.lambdas = [lambda_value] * len(self.constraints._constraints_penalty_functions)
+            self.lambdas = [lambda_value] * len(self.constraints.constraints_penalty_functions)
         else:
-            lambda_val = self._upper_lower_bound_naive_method(self.pubo)
-            self.lambdas = [lambda_val] * len(self.constraints._constraints_penalty_functions)
-        for j in range(len(self.constraints._constraints_penalty_functions)):
-            el = self.constraints._constraints_penalty_functions[j]
+            lambda_val = self.upper_lower_bound_naive_method(self.pubo)
+            self.lambdas = [lambda_val] * len(self.constraints.constraints_penalty_functions)
+        for j in range(len(self.constraints.constraints_penalty_functions)):
+            el = self.constraints.constraints_penalty_functions[j]
             if el[1]:  # Strong constraint
                 self.pubo += 1.1 * self.lambdas[j] * el[0]
             else:  # Weak constraint
                 self.pubo += 0.9 * self.lambdas[j] * el[0]
         return self.pubo
 
-    def _update_lambda_cost_function(
+    def update_lambda_cost_function(
         self,
         single_satisfied: list[bool],
         maximum_number_of_update: int = 1,
@@ -117,8 +116,8 @@ class Problem:
 
         """
         self.pubo = self.pubo_cost_function_alone.copy()
-        for j in range(len(self.constraints._constraints_penalty_functions)):
-            el = self.constraints._constraints_penalty_functions[j]
+        for j in range(len(self.constraints.constraints_penalty_functions)):
+            el = self.constraints.constraints_penalty_functions[j]
             if single_satisfied[j]:
                 if el[1]:  # Strong constraint
                     self.pubo += 1.1 * self.lambdas[j] * el[0]
@@ -161,16 +160,16 @@ class Problem:
         or False if the coefficients are not all positive
 
         """
-        UpperBound = 0.0
+        upperbound = 0.0
         for key in cost_function:
             if len(key) > 0:
                 if cost_function[key] > 0:
-                    UpperBound += cost_function[key]
+                    upperbound += cost_function[key]
                 elif cost_function[key] < 0:
                     return False
             else:
-                UpperBound += cost_function[key]
-        return UpperBound
+                upperbound += cost_function[key]
+        return upperbound
 
     def _maximum_qubo_coefficient(self, cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
@@ -184,19 +183,19 @@ class Problem:
         """
         max_coeff = 0.0
         offset = 0.0
-        First = True
+        first = True
         for key in cost_function:
             if len(key) > 0:
-                if First:
+                if first:
                     max_coeff = cost_function[key]
-                    First = False
+                    first = False
                 elif cost_function[key] > max_coeff:
                     max_coeff = cost_function[key]
             else:
                 offset = cost_function[key]
         return max_coeff + offset
 
-    def _VLM(self, cost_function: PUBO) -> float:
+    def _vlm(self, cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -224,7 +223,7 @@ class Problem:
                         n_sum[elem] -= cost_function[key]
         return float(np.max([np.array(list(p_sum.values())), np.array(list(n_sum.values()))]))
 
-    def _MOMC(self, cost_function: PUBO, constraint_function: PUBO) -> float:
+    def _momc(self, cost_function: PUBO, constraint_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -273,7 +272,7 @@ class Problem:
             return wc_max
         return max(1.0, wc_max / wg_min)
 
-    def _MOC(self, cost_function: PUBO, constraint_function: PUBO) -> float:
+    def _moc(self, cost_function: PUBO, constraint_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -318,26 +317,26 @@ class Problem:
                         n_sum_constrained[elem] += constraint_function[key]
 
         val = 0.0
-        First = True
+        first = True
         for key in p_sum:
             if key in p_sum_constrained and p_sum_constrained[key] != 0:
                 v = p_sum[key] / p_sum_constrained[key]
-                if v != 0 and First:
+                if v != 0 and first:
                     val = v
-                    First = False
+                    first = False
                 elif v > val:
                     val = v
 
             if key in n_sum_constrained and n_sum_constrained[key] != 0:
                 v = n_sum[key] / n_sum_constrained[key]
-                if v != 0 and First:
+                if v != 0 and first:
                     val = v
-                    First = False
+                    first = False
                 elif v > val:
                     val = v
         return max(1, val)
 
-    def _upper_lower_bound_naive_method(self, cost_function: PUBO) -> float:
+    def upper_lower_bound_naive_method(self, cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -357,7 +356,7 @@ class Problem:
                     lower_bound += cost_function[key]
         return upper_bound - lower_bound
 
-    def _upper_lower_bound_posiform_and_negaform_method(self, cost_function: PUBO) -> float:
+    def upper_lower_bound_posiform_and_negaform_method(self, cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -383,14 +382,14 @@ class Problem:
                 elif cost_function[key] > 0:
                     for elem in key:
                         n_sum[elem] += cost_function[key]
-        LowerBound = 0.0
-        UpperBound = 0.0
+        lowerbound = 0.0
+        upperbound = 0.0
         for key in p_sum:
             if p_sum[key] < 0:
-                LowerBound += p_sum[key]
+                lowerbound += p_sum[key]
             if n_sum[key] > 0:
-                UpperBound += n_sum[key]
-        return UpperBound - LowerBound
+                upperbound += n_sum[key]
+        return upperbound - lowerbound
 
     def _sequential_penalty_increase(self, current_lambda: float) -> float:
         """function for updating weights for constraints
@@ -403,7 +402,7 @@ class Problem:
         """
         return current_lambda * 10
 
-    def _scaled_sequential_penalty_increase(self, current_lambda: float, wU: float, t: int) -> float:
+    def _scaled_sequential_penalty_increase(self, current_lambda: float, wu: float, t: int) -> float:
         """function for updating weights for constraints
 
         Keyword arguments:
@@ -414,10 +413,10 @@ class Problem:
         Return values:
         lambda -- return the weight for the constraints
         """
-        scale_factor = wU ** (1 / t)
+        scale_factor = wu ** (1 / t)
         return float(round(current_lambda * scale_factor))
 
-    def _binary_search_penalty_algorithm(self, current_lambda: float, wU: float) -> float:
+    def _binary_search_penalty_algorithm(self, current_lambda: float, wu: float) -> float:
         """function for updating weights for constraints
 
         Keyword arguments:
@@ -428,4 +427,4 @@ class Problem:
         Return values:
         lambda -- return the weight for the constraints
         """
-        return float(round(math.sqrt(current_lambda * wU)))
+        return float(round(math.sqrt(current_lambda * wu)))

@@ -1,4 +1,5 @@
 """File for making some tests during the Development"""
+
 from __future__ import annotations
 
 from typing import cast
@@ -8,8 +9,9 @@ import pytest
 
 # for managing symbols
 from qubovert import PUBO, boolean_var
-from mqt.qao import Constraints, ObjectiveFunction, Problem, Solver, Variables
 from sympy import Expr
+
+from mqt.qao import Constraints, ObjectiveFunction, Problem, Solution, Solver, Variables
 
 # from dwave.cloud import Client
 
@@ -38,8 +40,8 @@ def test_binary_only() -> None:
     variables = Variables()
     variables.add_binary_variable("a")
     variables.add_binary_variables_array("A", [2])
-    variables.move_to_binary(constraint._constraints)
-    post_dict = variables._binary_variables_name_weight
+    variables.move_to_binary(constraint.constraints)
+    post_dict = variables.binary_variables_name_weight
     assert post_dict == {"a": (boolean_var("b0"),), "A_0": (boolean_var("b1"),), "A_1": (boolean_var("b2"),)}
 
 
@@ -49,8 +51,8 @@ def test_spin_only() -> None:
     variables = Variables()
     variables.add_spin_variable("a")
     variables.add_spin_variables_array("A", [2])
-    variables.move_to_binary(constraint._constraints)
-    post_dict = variables._binary_variables_name_weight
+    variables.move_to_binary(constraint.constraints)
+    post_dict = variables.binary_variables_name_weight
     assert post_dict == {
         "a": (boolean_var("b0"), 2, -1),
         "A_0": (boolean_var("b1"), 2, -1),
@@ -64,8 +66,8 @@ def test_discrete_only() -> None:
     variables = Variables()
     variables.add_discrete_variable("a", [-1, 1, 3])
     variables.add_discrete_variables_array("A", [2], [-1, 1, 3])
-    variables.move_to_binary(constraint._constraints)
-    post_dict = variables._binary_variables_name_weight
+    variables.move_to_binary(constraint.constraints)
+    post_dict = variables.binary_variables_name_weight
     assert post_dict == {
         "a": ["dictionary", (boolean_var("b0"), -1), (boolean_var("b1"), 1), (boolean_var("b2"), 3)],
         "A_0": ["dictionary", (boolean_var("b3"), -1), (boolean_var("b4"), 1), (boolean_var("b5"), 3)],
@@ -93,8 +95,8 @@ def test_continuous_only(encoding: str, distribution: str, precision: float, min
     variables = Variables()
     variables.add_continuous_variable("a", min_val, max_val, precision, distribution, encoding)
     variables.add_continuous_variables_array("A", [2], min_val, max_val, precision, distribution, encoding)
-    variables.move_to_binary(constraint._constraints)
-    post_dict = variables._binary_variables_name_weight
+    variables.move_to_binary(constraint.constraints)
+    post_dict = variables.binary_variables_name_weight
     if (encoding, distribution, precision, min_val, max_val) == ("dictionary", "uniform", 0.5, -1, 2):
         assert post_dict == {
             "a": [
@@ -308,9 +310,9 @@ def test_cost_function() -> None:
     cost_function = cast(Expr, a0 + b0 * c0 + c0**2)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
-    variables.move_to_binary(constraint._constraints)
+    variables.move_to_binary(constraint.constraints)
     qubo = PUBO()
-    qubo = objective_function._rewrite_cost_functions(qubo, variables)
+    qubo = objective_function.rewrite_cost_functions(qubo, variables)
     reference_qubo_dict = {
         ("b0",): 1.0,
         ("b1",): 2.0,
@@ -361,13 +363,13 @@ def test_cost_function_matrix() -> None:
     """Test for cost function translation"""
     variables = Variables()
     constraint = Constraints()
-    M1 = variables.add_continuous_variables_array("M1", [1, 2], -1, 2, -1, "uniform", "logarithmic 2")
-    M2 = variables.add_continuous_variables_array("M2", [2, 1], -1, 2, -1, "uniform", "logarithmic 2")
+    m1 = variables.add_continuous_variables_array("M1", [1, 2], -1, 2, -1, "uniform", "logarithmic 2")
+    m2 = variables.add_continuous_variables_array("M2", [2, 1], -1, 2, -1, "uniform", "logarithmic 2")
     objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(np.matmul(M1, M2).item(0, 0))
-    variables.move_to_binary(constraint._constraints)
+    objective_function.add_objective_function(np.matmul(m1, m2).item(0, 0))
+    variables.move_to_binary(constraint.constraints)
     qubo = PUBO()
-    qubo = objective_function._rewrite_cost_functions(qubo, variables)
+    qubo = objective_function.rewrite_cost_functions(qubo, variables)
     reference_qubo_dict = {
         ("b0", "b6"): 0.25,
         ("b0",): -0.5,
@@ -431,7 +433,7 @@ def test_cost_function_matrix() -> None:
         ("d < 1", True),
     ],
 )
-def test_constraint(Expression: str, var_precision: bool) -> None:
+def test_constraint(expression: str, var_precision: bool) -> None:
     """Test only the construction of binary variables"""
     constraint = Constraints()
     variables = Variables()
@@ -440,9 +442,9 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
     variables.add_binary_variable("c")
     variables.add_discrete_variable("d", [-1, 1, 3])
     variables.add_continuous_variable("e", -2, 2, 0.25, "", "")
-    variables.move_to_binary(constraint._constraints)
-    constraint.add_constraint(Expression, True, True, var_precision)
-    constraint._translate_constraints(variables)
+    variables.move_to_binary(constraint.constraints)
+    constraint.add_constraint(expression, True, True, var_precision)
+    constraint.translate_constraints(variables)
     dictionary_constraints_qubo = {
         ("b3",): -1.0,
         ("b4",): -1.0,
@@ -452,8 +454,8 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
         ("b4", "b5"): 2.0,
         (): 1.0,
     }
-    qubo_first = constraint._constraints_penalty_functions[0][0]
-    qubo_second = constraint._constraints_penalty_functions[1][0]
+    qubo_first = constraint.constraints_penalty_functions[0][0]
+    qubo_second = constraint.constraints_penalty_functions[1][0]
 
     qubo_first_re = {}
     for key in qubo_first:
@@ -464,21 +466,21 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
     dictionary_constraints_qubo_re = {}
     for key in dictionary_constraints_qubo:
         dictionary_constraints_qubo_re[tuple(sorted(key))] = dictionary_constraints_qubo[key]
-    if Expression == "~a = b":
+    if expression == "~a = b":
         dictionary_constraints_qubo_2 = {("b0",): -1.0, ("b1",): -1.0, ("b0", "b1"): 2.0, (): 1.0}
         dictionary_constraints_qubo_2_re = {}
         for key in dictionary_constraints_qubo_2:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "a & b = c":
+    elif expression == "a & b = c":
         dictionary_constraints_qubo_2 = {("b0", "b1"): 1.0, ("b0", "b2"): -2.0, ("b1", "b2"): -2.0, ("b2",): 3.0}
         dictionary_constraints_qubo_2_re = {}
         for key in dictionary_constraints_qubo_2:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "a | b = c":
+    elif expression == "a | b = c":
         dictionary_constraints_qubo_2 = {
             ("b0", "b1"): 1.0,
             ("b0",): 1.0,
@@ -492,7 +494,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "a ^ b = c":
+    elif expression == "a ^ b = c":
         dictionary_constraints_qubo_2 = {
             ("b0", "b1", "b2"): 4.0,
             ("b0",): 1,
@@ -507,7 +509,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "a + b >= 1":
+    elif expression == "a + b >= 1":
         dictionary_constraints_qubo_2 = {
             ("b0",): -1.0,
             ("b1",): -1.0,
@@ -522,7 +524,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "e >= 1" and not var_precision:
+    elif expression == "e >= 1" and not var_precision:
         dictionary_constraints_qubo_2 = {
             ("b6",): -1.4375,
             ("b7",): -2.75,
@@ -552,7 +554,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "e >= 1" and var_precision:
+    elif expression == "e >= 1" and var_precision:
         dictionary_constraints_qubo_2 = {
             ("b6",): -1.4375,
             ("b7",): -2.75,
@@ -597,7 +599,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "a + b <= 1":
+    elif expression == "a + b <= 1":
         dictionary_constraints_qubo_2 = {
             ("b0",): -1.0,
             ("b1",): -1.0,
@@ -612,7 +614,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "a + b > 1":
+    elif expression == "a + b > 1":
         dictionary_constraints_qubo_2 = {
             ("b0",): -3.0,
             ("b1",): -3.0,
@@ -624,7 +626,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "a + b < 1":
+    elif expression == "a + b < 1":
         dictionary_constraints_qubo_2 = {
             ("b0",): 1.0,
             ("b1",): 1.0,
@@ -635,7 +637,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "e <= 1" and not var_precision:
+    elif expression == "e <= 1" and not var_precision:
         dictionary_constraints_qubo_2 = {
             ("b6",): -1.4375,
             ("b7",): -2.75,
@@ -672,7 +674,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "e <= -1" and var_precision:
+    elif expression == "e <= -1" and var_precision:
         dictionary_constraints_qubo_2 = {
             ("b6",): -0.4375,
             ("b7",): -0.75,
@@ -716,7 +718,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "e > 1" and not var_precision:
+    elif expression == "e > 1" and not var_precision:
         dictionary_constraints_qubo_2 = {
             ("b6",): -1.9375,
             ("b7",): -3.75,
@@ -740,7 +742,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "e < 1" and not var_precision:
+    elif expression == "e < 1" and not var_precision:
         dictionary_constraints_qubo_2 = {
             ("b6",): -0.9375,
             ("b7",): -1.75,
@@ -777,7 +779,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "e > 1" and var_precision:
+    elif expression == "e > 1" and var_precision:
         dictionary_constraints_qubo_2 = {
             ("b6",): -1.5625,
             ("b7",): -3.0,
@@ -814,7 +816,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
             dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
-    elif Expression == "d < 1" and var_precision:
+    elif expression == "d < 1" and var_precision:
         dictionary_constraints_qubo_2 = {
             ("b3",): 1.0,
             ("b4",): 1.0,
@@ -838,7 +840,7 @@ def test_constraint(Expression: str, var_precision: bool) -> None:
     "Expression",
     ["~b0 = b1"],
 )
-def test_constraint_no_sub(Expression: str) -> None:
+def test_constraint_no_sub(expression: str) -> None:
     """Test only the construction of binary variables"""
     constraint = Constraints()
     variables = Variables()
@@ -847,9 +849,9 @@ def test_constraint_no_sub(Expression: str) -> None:
     variables.add_binary_variable("c")
     variables.add_discrete_variable("d", [-1, 1, 3])
     variables.add_continuous_variable("e", -2, 2, 0.25, "", "")
-    variables.move_to_binary(constraint._constraints)
-    constraint.add_constraint(Expression, True, False)
-    constraint._translate_constraints(variables)
+    variables.move_to_binary(constraint.constraints)
+    constraint.add_constraint(expression, True, False)
+    constraint.translate_constraints(variables)
     dictionary_constraints_qubo = {
         ("b3",): -1.0,
         ("b4",): -1.0,
@@ -859,8 +861,8 @@ def test_constraint_no_sub(Expression: str) -> None:
         ("b4", "b5"): 2.0,
         (): 1.0,
     }
-    qubo_first = constraint._constraints_penalty_functions[0][0]
-    qubo_second = constraint._constraints_penalty_functions[1][0]
+    qubo_first = constraint.constraints_penalty_functions[0][0]
+    qubo_second = constraint.constraints_penalty_functions[1][0]
     qubo_first_re = {}
     for key in qubo_first:
         qubo_first_re[tuple(sorted(key))] = qubo_first[key]
@@ -870,7 +872,7 @@ def test_constraint_no_sub(Expression: str) -> None:
     dictionary_constraints_qubo_re = {}
     for key in dictionary_constraints_qubo:
         dictionary_constraints_qubo_re[tuple(sorted(key))] = dictionary_constraints_qubo[key]
-    if Expression == "~b0 = b1":
+    if expression == "~b0 = b1":
         dictionary_constraints_qubo_2 = {("b0",): -1, ("b1",): -1, ("b0", "b1"): 2, (): 1}
         dictionary_constraints_qubo_2_re = {}
         for key in dictionary_constraints_qubo_2:
@@ -904,7 +906,7 @@ def test_problem(lambda_strategy: str) -> None:
     constraint.add_constraint("c >= 1", True, True, False)
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
-    qubo = problem._write_the_final_cost_function(lambda_strategy)
+    qubo = problem.write_the_final_cost_function(lambda_strategy)
     lambdas_or = problem.lambdas
     lambdas = [1.1 * el for el in lambdas_or]
     reference_qubo_dict = {
@@ -1002,7 +1004,7 @@ def test_simulated_annealer_solver(lambda_strategy: str) -> None:
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
     solution = solver.solve_simulated_annealing(problem, lambda_strategy=lambda_strategy)
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 0.0, "b": 3.0, "c": -1.5}
         assert solution.best_energy < -2.24  # (the range if for having no issues with numerical errors)
@@ -1450,10 +1452,10 @@ def test_simulated_annealing_cost_function_matrix(
 ) -> None:
     """Test for cost function translation"""
     variables = Variables()
-    M1 = variables.add_continuous_variables_array("M1", [1, 2], -1, 2, -1, "uniform", "logarithmic 2")
-    M2 = variables.add_continuous_variables_array("M2", [2, 1], -1, 2, -1, "uniform", "logarithmic 2")
+    m1 = variables.add_continuous_variables_array("M1", [1, 2], -1, 2, -1, "uniform", "logarithmic 2")
+    m2 = variables.add_continuous_variables_array("M2", [2, 1], -1, 2, -1, "uniform", "logarithmic 2")
     objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(np.matmul(M1, M2).item(0, 0))
+    objective_function.add_objective_function(np.matmul(m1, m2).item(0, 0))
     constraint = Constraints()
     constraint.add_constraint(constraint_expr, variable_precision=True)
     problem = Problem()
@@ -1477,110 +1479,6 @@ def test_simulated_annealing_cost_function_matrix(
                 solution.optimal_solution_cost_functions_values() == {"M1_0_0*M2_0_0 + M1_0_1*M2_1_0": -4.0}
                 or not all_satisfy
             )
-
-
-def test_QAOA_solver_pubo_basic() -> None:
-    """Test for the problem constructions"""
-    variables = Variables()
-    constraint = Constraints()
-    a0 = variables.add_binary_variable("a")
-    b0 = variables.add_binary_variable("b")
-    c0 = variables.add_binary_variable("c")
-    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * b0 * c0 - 1 * b0 * c0)
-    objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cost_function)
-    problem = Problem()
-    problem.create_problem(variables, constraint, objective_function)
-    solver = Solver()
-    solution = solver.solve_QAOA_pubo(problem, num_runs=2, reps=10)
-    if not isinstance(solution, bool):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
-        assert solution.best_solution == {"a": 1.0, "b": 1.0, "c": 1.0}
-        print(solution.best_solution)
-        assert solution.best_energy < -4.9  # (the range if for having no issues with numerical errors)
-        assert solution.best_energy > -5.1
-        print(solution.optimal_solution_cost_functions_values())
-        assert solution.optimal_solution_cost_functions_values() == {"-2.0*a*b*c - a - b*c + 2.0*b - 3.0*c": -5.0}
-        assert all_satisfy
-    else:
-        assert solution
-
-
-def test_QAOA_pubo_solver() -> None:
-    """Test for the problem constructions"""
-    variables = Variables()
-    constraint = Constraints()
-    a0 = variables.add_binary_variable("a")
-    b0 = variables.add_discrete_variable("b", [-1, 1, 3])
-    c0 = variables.add_continuous_variable("c", -2, 2, 0.25, "", "")
-    cost_function = cast(Expr, a0 + b0 * c0**2 + c0**2 + c0)
-    objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cost_function)
-    problem = Problem()
-    problem.create_problem(variables, constraint, objective_function)
-    solver = Solver()
-    solution = solver.solve_QAOA_pubo(problem, num_runs=3, reps=10)
-    if not isinstance(solution, bool):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
-        assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": -2.0}
-        assert solution.best_energy < -1.9  # (the range if for having no issues with numerical errors)
-        assert solution.best_energy > -2.1
-        assert solution.optimal_solution_cost_functions_values() == {"a + b*c**2 + c**2 + c": -2.0}
-        assert all_satisfy
-    else:
-        assert solution
-
-
-def test_VQE_solver_pubo_basic() -> None:
-    """Test for the problem constructions"""
-    variables = Variables()
-    constraint = Constraints()
-    a0 = variables.add_binary_variable("a")
-    b0 = variables.add_binary_variable("b")
-    c0 = variables.add_binary_variable("c")
-    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * b0 * c0 - 1 * b0 * c0)
-    objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cost_function)
-    problem = Problem()
-    problem.create_problem(variables, constraint, objective_function)
-    solver = Solver()
-    solution = solver.solve_VQE_pubo(problem, num_runs=10)
-    if not isinstance(solution, bool):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
-        assert solution.best_solution == {"a": 1.0, "b": 1.0, "c": 1.0}
-        print(solution.best_solution)
-        assert solution.best_energy < -4.9  # (the range if for having no issues with numerical errors)
-        assert solution.best_energy > -5.1
-        print(solution.optimal_solution_cost_functions_values())
-        assert solution.optimal_solution_cost_functions_values() == {"-2.0*a*b*c - a - b*c + 2.0*b - 3.0*c": -5.0}
-        assert all_satisfy
-    else:
-        assert solution
-
-
-def test_VQE_pubo_solver() -> None:
-    """Test for the problem constructions"""
-    variables = Variables()
-    constraint = Constraints()
-    a0 = variables.add_binary_variable("a")
-    b0 = variables.add_discrete_variable("b", [-1, 1, 3])
-    c0 = variables.add_continuous_variable("c", -2, 2, 0.25, "", "")
-    cost_function = cast(Expr, a0 + b0 * c0**2 + c0**2 + c0)
-    objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cost_function)
-    problem = Problem()
-    problem.create_problem(variables, constraint, objective_function)
-    solver = Solver()
-    solution = solver.solve_VQE_pubo(problem, num_runs=10)
-    if not isinstance(solution, bool):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
-        assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": -2.0}
-        assert solution.best_energy < -1.9  # (the range if for having no issues with numerical errors)
-        assert solution.best_energy > -2.1
-        assert solution.optimal_solution_cost_functions_values() == {"a + b*c**2 + c**2 + c": -2.0}
-        assert all_satisfy
-    else:
-        assert solution
 
 
 '''
@@ -1652,7 +1550,7 @@ def test_quantum_annealer_solver_constrained_lambda_update_mechanism_and_strateg
 '''
 
 
-def test_GAS_solver_basic() -> None:
+def test_gas_solver_basic() -> None:
     """Test for the problem constructions"""
     variables = Variables()
     constraint = Constraints()
@@ -1679,7 +1577,7 @@ def test_GAS_solver_basic() -> None:
         assert solution
 
 
-def test_QAOA_solver_qubo_basic() -> None:
+def test_qaoa_solver_qubo_basic() -> None:
     """Test for the problem constructions"""
     variables = Variables()
     constraint = Constraints()
@@ -1692,7 +1590,7 @@ def test_QAOA_solver_qubo_basic() -> None:
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
-    solution = solver.solve_QAOA_qubo(
+    solution = solver.solve_qaoa_qubo(
         problem,
         num_runs=10,
     )
@@ -1709,7 +1607,7 @@ def test_QAOA_solver_qubo_basic() -> None:
         assert solution
 
 
-def test_VQE_solver_qubo_basic() -> None:
+def test_vqe_solver_qubo_basic() -> None:
     """Test for the problem constructions"""
     variables = Variables()
     constraint = Constraints()
@@ -1722,7 +1620,7 @@ def test_VQE_solver_qubo_basic() -> None:
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
-    solution = solver.solve_VQE_qubo(
+    solution = solver.solve_vqe_qubo(
         problem,
         num_runs=10,
     )
@@ -1745,7 +1643,7 @@ def test_VQE_solver_qubo_basic() -> None:
         "upper_bound_only_positive",
     ],
 )
-def test_QAOA_solver(lambda_strategy: str) -> None:
+def test_qaoa_solver(lambda_strategy: str) -> None:
     """Test for the problem constructions"""
     variables = Variables()
     constraint = Constraints()
@@ -1758,7 +1656,7 @@ def test_QAOA_solver(lambda_strategy: str) -> None:
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
-    solution = solver.solve_QAOA_qubo(problem, num_runs=10, lambda_strategy=lambda_strategy)
+    solution = solver.solve_qaoa_qubo(problem, num_runs=10, lambda_strategy=lambda_strategy)
     if not isinstance(solution, bool):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 0.0, "b": 3.0, "c": -1.5}
@@ -1776,7 +1674,7 @@ def test_QAOA_solver(lambda_strategy: str) -> None:
         "upper_bound_only_positive",
     ],
 )
-def test_VQE_solver(lambda_strategy: str) -> None:
+def test_vqe_solver(lambda_strategy: str) -> None:
     """Test for the problem constructions"""
     variables = Variables()
     constraint = Constraints()
@@ -1789,7 +1687,7 @@ def test_VQE_solver(lambda_strategy: str) -> None:
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
-    solution = solver.solve_VQE_qubo(problem, num_runs=10, lambda_strategy=lambda_strategy)
+    solution = solver.solve_vqe_qubo(problem, num_runs=10, lambda_strategy=lambda_strategy)
     if not isinstance(solution, bool):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 0.0, "b": 3.0, "c": -1.5}
@@ -1932,7 +1830,7 @@ def test_VQE_solver(lambda_strategy: str) -> None:
         ("upper lower bound posiform and negaform method", "binary search penalty algorithm", "a = 1"),
     ],
 )
-def test_QAOA_constrained_lambda_update_mechanism_and_strategy(
+def test_qaoa_constrained_lambda_update_mechanism_and_strategy(
     lambda_strategy: str, lambda_update: str, constraint_expr: str
 ) -> None:
     """Test for the problem constructions"""
@@ -1947,7 +1845,7 @@ def test_QAOA_constrained_lambda_update_mechanism_and_strategy(
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
-    solution = solver.solve_QAOA_qubo(
+    solution = solver.solve_qaoa_qubo(
         problem,
         num_runs=10,
         max_lambda_update=10,
@@ -2138,7 +2036,7 @@ def test_QAOA_constrained_lambda_update_mechanism_and_strategy(
         ("upper lower bound posiform and negaform method", "binary search penalty algorithm", "a = 1"),
     ],
 )
-def test_VQE_constrained_lambda_update_mechanism_and_strategy(
+def test_vqe_constrained_lambda_update_mechanism_and_strategy(
     lambda_strategy: str, lambda_update: str, constraint_expr: str
 ) -> None:
     """Test for the problem constructions"""
@@ -2153,7 +2051,7 @@ def test_VQE_constrained_lambda_update_mechanism_and_strategy(
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
-    solution = solver.solve_VQE_qubo(
+    solution = solver.solve_vqe_qubo(
         problem,
         num_runs=10,
         max_lambda_update=10,
@@ -2213,82 +2111,13 @@ def test_VQE_constrained_lambda_update_mechanism_and_strategy(
         assert solution
 
 
-def test_GAS_solver_pubo_basic() -> None:
-    """Test for the problem constructions"""
-    variables = Variables()
-    constraint = Constraints()
-    a0 = variables.add_binary_variable("a")
-    b0 = variables.add_binary_variable("b")
-    c0 = variables.add_binary_variable("c")
-    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * b0 * c0 - 1 * b0 * c0)
-    objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cost_function)
-    problem = Problem()
-    problem.create_problem(variables, constraint, objective_function)
-    solver = Solver()
-    solution = solver.solve_grover_adaptive_search_pubo(
-        problem,
-        qubit_values=5,
-        num_runs=10,
-        coeff_precision=1.0,
-    )
-    if not isinstance(solution, bool):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
-        assert solution.best_solution == {"a": 1.0, "b": 1.0, "c": 1.0}
-        print(solution.best_solution)
-        assert solution.best_energy < -4.9  # (the range if for having no issues with numerical errors)
-        assert solution.best_energy > -5.1
-        print(solution.optimal_solution_cost_functions_values())
-        assert solution.optimal_solution_cost_functions_values() == {"-2.0*a*b*c - a - b*c + 2.0*b - 3.0*c": -5.0}
-        assert all_satisfy
-    else:
-        assert solution
-
-
 @pytest.mark.parametrize(
     "lambda_strategy",
     [
         "upper_bound_only_positive",
     ],
 )
-def test_GAS_pubo_solver(lambda_strategy: str) -> None:
-    """Test for the problem constructions"""
-    variables = Variables()
-    constraint = Constraints()
-    # a0 = variables.add_binary_variable("a")
-    b0 = variables.add_discrete_variable("b", [-1, 3])
-    c0 = variables.add_continuous_variable("c", -1, 1, 0.5, "", "")
-    cost_function = cast(Expr, b0 * c0**2 + c0**2 + c0)
-    objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cost_function)
-    problem = Problem()
-    problem.create_problem(variables, constraint, objective_function)
-    solver = Solver()
-    solution = solver.solve_grover_adaptive_search_pubo(
-        problem, qubit_values=7, num_runs=10, coeff_precision=0.5, lambda_strategy=lambda_strategy
-    )
-    if not isinstance(solution, bool):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
-        assert solution.best_solution == {"b": -1.0, "c": -1.0}
-        assert solution.best_energy < -0.9  # (the range if for having no issues with numerical errors)
-        assert solution.best_energy > -1.1
-        assert solution.optimal_solution_cost_functions_values() == {"b*c**2 + c**2 + c": -1.0}
-        assert all_satisfy
-    else:
-        assert solution
-
-
-"""
-"""
-
-
-@pytest.mark.parametrize(
-    "lambda_strategy",
-    [
-        "upper_bound_only_positive",
-    ],
-)
-def test_GAS_solver(lambda_strategy: str) -> None:
+def test_gas_solver(lambda_strategy: str) -> None:
     """Test for the problem constructions"""
     variables = Variables()
     constraint = Constraints()

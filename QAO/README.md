@@ -15,7 +15,6 @@
   </a>
 </p>
 
-
 # MQT Quantum Auto Optimizer: Automatic Framework for Solving Optimization Problems with Quantum Computers
 
 MQT Quantum Auto Optimizer is a framework that allows one to automatically translate an optimization problem into a quantum-compliant formulation and to solve it with one of the main quantum solvers (Quantum Annelar, QAOA, VQE and GAS)
@@ -23,7 +22,6 @@ MQT Quantum Auto Optimizer is a framework that allows one to automatically trans
 MQT Quantum Auto Optimizer is part of the [Munich Quantum Toolkit (MQT)](https://mqt.readthedocs.io/) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/). This framework has been developed in collaboration with the [VLSI Lab](https://www.vlsilab.polito.it/) of [Politecnico di Torino](https://www.polito.it).
 
 If you have any questions, feel free to create a [discussion](https://github.com/cda-tum/mqt-qao/discussions) or an [issue](https://github.com/cda-tum/mqt-qao/issues) on [GitHub](https://github.com/cda-tum/mqt-qao).
-
 
 ## Getting Started
 
@@ -46,9 +44,9 @@ c = var.add_continuous_variable("c", -2, 2, 0.25)
 
 # declaration of the objective functions involved in the problem
 obj_func = ObjectiveFunction()
-obj_func.add_objective_function( a + b * c + c**2)
+obj_func.add_objective_function(a + b * c + c**2)
 
-# Declaration of the constraints 
+# Declaration of the constraints
 cst = Constraints()
 cst.add_constraint("b + c >= 2", variable_precision=True)
 
@@ -57,7 +55,7 @@ prb = Problem()
 prb.create_problem(var, cst, obj_func)
 
 # Solve the problem with the Dwave Quantum Annealer
-solution = Solver().solve_Dwave_quantum_annealer(prb,token=token)
+solution = Solver().solve_Dwave_quantum_annealer(prb, token=token)
 ```
 
 **Detailed documentation and examples are available at [ReadTheDocs](https://mqt.readthedocs.io/projects/qao).**

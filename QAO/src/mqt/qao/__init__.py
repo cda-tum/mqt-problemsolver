@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import logging
 
-from mqt.qao.constraints import Constraints
-from mqt.qao.objectivefunction import ObjectiveFunction
-from mqt.qao.problem import Problem
-from mqt.qao.solvers import Solver
-from mqt.qao.variables import Variables
+from src.mqt.qao.constraints import Constraints
+from src.mqt.qao.objectivefunction import ObjectiveFunction
+from src.mqt.qao.problem import Problem
+from src.mqt.qao.solvers import Solver
+from src.mqt.qao.variables import Variables
 
 __all__ = [
     "Variables",

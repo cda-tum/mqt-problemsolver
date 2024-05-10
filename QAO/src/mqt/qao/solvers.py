@@ -19,7 +19,6 @@ from qiskit.algorithms import QAOA, VQE
 from qiskit.circuit import Parameter, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
 from qiskit.exceptions import QiskitError
-from qiskit.utils import QuantumInstance
 from qiskit_optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer, OptimizationResult
 from qiskit_optimization.translators import from_docplex_mp
 from qubovert import PUBO, QUBO
@@ -33,6 +32,9 @@ if TYPE_CHECKING:
         OperatorBase,
     )
     from qiskit_optimization.problems import QuadraticProgram
+
+
+from mqt.qao.problem import Problem
 
 
 class Solver:
@@ -60,7 +62,7 @@ class Solver:
         num_sweeps_per_beta: int = 1,
         beta_schedule_type: str = "geometric",
         seed: int | None = None,
-        initial_states: SampleSet | Any = None,
+        initial_states: SampleSet | None = None,
         initial_states_generator: str = "random",
         max_lambda_update: int = 5,
         lambda_update_mechanism: str = "sequential penalty increase",
@@ -68,7 +70,7 @@ class Solver:
         lambda_value: float = 1.0,
         save_time: bool = False,
         save_compilation_time: bool = False,
-    ) -> solution | bool:
+    ) -> Solution | bool | None:
         """function for creating to define the solver characteristic
 
         Keyword arguments:
@@ -94,13 +96,13 @@ class Solver:
         if save_compilation_time:
             start = time_ns()
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             stop = time_ns()
             compilation_time = float(stop - start)
         else:
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             compilation_time = -1
         if auto_setting:  # To change with the experience
@@ -141,22 +143,20 @@ class Solver:
             )
             time = -1.0
 
-        sol = solution()
-        sol._create_problem(self.problem)
+        sol = Solution()
+        sol.create_problem(self.problem)
         solver_info: dict[str, Any] = {}
         solver_info["solver name"] = "Simulated annealer"
         solver_info["num reads"] = num_reads
         solver_info["annealing time"] = annealing_time
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
-        sol._create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
+        sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
         all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
 
-        if all_satisfied or self._number_of_lambda_update == max_lambda_update:
-            return sol
-        else:
+        if not all_satisfied and self._number_of_lambda_update < max_lambda_update:
             while self._number_of_lambda_update != max_lambda_update and not all_satisfied:
-                self.pubo = self.problem._update_lambda_cost_function(
+                self.pubo = self.problem.update_lambda_cost_function(
                     single_satisfied, max_lambda_update, lambda_update_mechanism
                 )
                 self.qubo = self.pubo.to_qubo()
@@ -188,8 +188,8 @@ class Solver:
                         initial_states_generator=initial_states_generator,
                     )
                     time = -1.0
-                sol = solution()
-                sol._create_problem(self.problem)
+                sol = Solution()
+                sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
                 solver_info = {}
                 solver_info["solver name"] = "Simulated annealer"
@@ -198,12 +198,13 @@ class Solver:
                 solver_info["annealing time"] = annealing_time
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
-                sol._create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
+                sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
 
             return sol
+        return None
 
-    def solve_Dwave_quantum_annealer(
+    def solve_dwave_quantum_annealer(
         self,
         problem: Problem,
         token: str,
@@ -226,7 +227,7 @@ class Solver:
         lambda_value: float = 1.0,
         save_time: bool = False,
         save_compilation_time: bool = False,
-    ) -> solution | bool:
+    ) -> Solution | bool | None:
         """function for creating to define the solver characteristic
 
         Keyword arguments:
@@ -256,13 +257,13 @@ class Solver:
         if save_compilation_time:
             start = time_ns()
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             stop = time_ns()
             compilation_time = float(stop - start)
         else:
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             compilation_time = -1
         if auto_setting:  # To change with the experience
@@ -331,8 +332,8 @@ class Solver:
         if save_time:
             time = samples.info["timing"]["qpu_anneal_time_per_sample"] * 1000  # for moving to ns
 
-        sol = solution()
-        sol._create_problem(self.problem)
+        sol = Solution()
+        sol.create_problem(self.problem)
         solver_info: dict[str, Any] = {}
         solver_info["solver name"] = "Dwave annealer"
         solver_info["num reads"] = num_reads
@@ -340,14 +341,12 @@ class Solver:
         solver_info["qpu annealing time"] = time
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
-        sol._create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
+        sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
         all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
 
-        if all_satisfied or self._number_of_lambda_update == max_lambda_update:
-            return sol
-        else:
+        if not all_satisfied and self._number_of_lambda_update < max_lambda_update:
             while self._number_of_lambda_update != max_lambda_update and not all_satisfied:
-                self.pubo = self.problem._update_lambda_cost_function(
+                self.pubo = self.problem.update_lambda_cost_function(
                     single_satisfied, max_lambda_update, lambda_update_mechanism
                 )
                 self.qubo = self.pubo.to_qubo()
@@ -361,8 +360,8 @@ class Solver:
                     return False
                 if save_time:
                     time = samples.info["qpu_anneal_time_per_sample"] * 1000  # for moving to ns
-                sol = solution()
-                sol._create_problem(self.problem)
+                sol = Solution()
+                sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
                 solver_info = {}
                 solver_info["solver name"] = "Dwave annealer"
@@ -372,9 +371,10 @@ class Solver:
                 solver_info["qpu annealing time"] = time
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
-                sol._create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
+                sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
             return sol
+        return None
 
     def solve_grover_adaptive_search_qubo(
         self,
@@ -382,7 +382,7 @@ class Solver:
         auto_setting: bool = False,
         simulator: bool = True,
         backend_name: str = "qasm_simulator",
-        IBMaccount: str = "",
+        ibmaccount: str = "",
         qubit_values: int = 0,
         coeff_precision: float = 1.0,
         threshold: int = 10,
@@ -394,7 +394,7 @@ class Solver:
         lambda_value: float = 1.0,
         save_time: bool = False,
         save_compilation_time: bool = False,
-    ) -> solution | bool:
+    ) -> Solution | bool | None:
         """function for creating to define the solver characteristic
 
         Keyword arguments:
@@ -419,7 +419,7 @@ class Solver:
         if save_compilation_time:
             start = time_ns()
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             scaled_qubo_c = round((self.qubo.copy() - self.qubo.offset) / (coeff_precision))
             min_coeff = abs(min(scaled_qubo_c.values(), key=abs))
@@ -429,7 +429,7 @@ class Solver:
             compilation_time = float(stop - start)
         else:
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             scaled_qubo_c = round((self.qubo.copy() - self.qubo.offset) / (coeff_precision))
             min_coeff = abs(min(scaled_qubo_c.values(), key=abs))
@@ -444,7 +444,7 @@ class Solver:
             threshold = 2 * len(self.qubo.variables)
             qubit_values = ceil(
                 log(
-                    abs(self.problem._upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
+                    abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
                     2,
                 )
             )
@@ -452,38 +452,21 @@ class Solver:
             if boundaries_estimation_method == "upper lower bound posiform and negaform method":
                 qubit_values = ceil(
                     log(
-                        abs(self.problem._upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
+                        abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
                         2,
                     )
                 )
             elif boundaries_estimation_method == "naive":
                 qubit_values = ceil(
                     log(
-                        abs(self.problem._upper_lower_bound_naive_method(scaled_qubo)),
+                        abs(self.problem.upper_lower_bound_naive_method(scaled_qubo)),
                         2,
                     )
                 )
 
-        print(
-            ceil(
-                log(
-                    abs(self.problem._upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
-                    2,
-                )
-            )
-        )
-        print(
-            ceil(
-                log(
-                    abs(self.problem._upper_lower_bound_naive_method(scaled_qubo)),
-                    2,
-                )
-            )
-        )
-
         if simulator:
             try:
-                IBMQ.enable_account(IBMaccount)
+                IBMQ.enable_account(ibmaccount)
                 provider = IBMQ.get_provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
@@ -491,13 +474,13 @@ class Solver:
                 backend = BasicAer.get_backend("qasm_simulator")
         else:
             try:
-                IBMQ.enable_account(IBMaccount)
+                IBMQ.enable_account(ibmaccount)
                 provider = IBMQ.get_provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
                 print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
                 backend = BasicAer.get_backend("qasm_simulator")
-        grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
+        grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, sampler=backend)
 
         if save_time:
             start = time_ns()
@@ -512,8 +495,8 @@ class Solver:
                 res.append(results)
             time = -1.0
 
-        sol = solution()
-        sol._create_problem(self.problem)
+        sol = Solution()
+        sol.create_problem(self.problem)
         solver_info: dict[str, Any] = {}
         solver_info["solver name"] = "GAS qubo"
         solver_info["qubit values"] = qubit_values
@@ -522,14 +505,12 @@ class Solver:
         solver_info["time"] = time
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
-        sol._create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+        sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
         all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
 
-        if all_satisfied or self._number_of_lambda_update == max_lambda_update:
-            return sol
-        else:
+        if not all_satisfied and self._number_of_lambda_update < max_lambda_update:
             while self._number_of_lambda_update != max_lambda_update and not all_satisfied:
-                self.pubo = self.problem._update_lambda_cost_function(
+                self.pubo = self.problem.update_lambda_cost_function(
                     single_satisfied, max_lambda_update, lambda_update_mechanism
                 )
                 self.qubo = self.pubo.to_qubo()
@@ -541,7 +522,7 @@ class Solver:
                 if auto_setting:
                     qubit_values = ceil(
                         log(
-                            abs(self.problem._upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
+                            abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
                             2,
                         )
                     )
@@ -549,19 +530,19 @@ class Solver:
                     if boundaries_estimation_method == "upper lower bound posiform and negaform method":
                         qubit_values = ceil(
                             log(
-                                abs(self.problem._upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
+                                abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
                                 2,
                             )
                         )
                     elif boundaries_estimation_method == "naive":
                         qubit_values = ceil(
                             log(
-                                abs(self.problem._upper_lower_bound_naive_method(scaled_qubo)),
+                                abs(self.problem.upper_lower_bound_naive_method(scaled_qubo)),
                                 2,
                             )
                         )
 
-                grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
+                grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, sampler=backend)
 
                 if save_time:
                     start = time_ns()
@@ -575,8 +556,8 @@ class Solver:
                         results = grover_optimizer.solve(qp)
                         res.append(results)
                     time = -1.0
-                sol = solution()
-                sol._create_problem(self.problem)
+                sol = Solution()
+                sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
                 solver_info = {}
                 solver_info["solver name"] = "GAS qubo"
@@ -587,17 +568,18 @@ class Solver:
                 solver_info["time"] = time
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
-                sol._create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+                sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
             return sol
+        return None
 
-    def solve_QAOA_qubo(
+    def solve_qaoa_qubo(
         self,
         problem: Problem,
         auto_setting: bool = False,
         simulator: bool = True,
         backend_name: str = "qasm_simulator",
-        IBMaccount: str = "",
+        ibmaccount: str = "",
         num_runs: int = 10,
         optimizer: Optimizer = None,
         reps: int = 1,
@@ -615,7 +597,7 @@ class Solver:
         lambda_value: float = 1.0,
         save_time: bool = False,
         save_compilation_time: bool = False,
-    ) -> solution | bool:
+    ) -> Solution | bool | None:
         """function for creating to define the solver characteristic
 
         Keyword arguments:
@@ -638,14 +620,14 @@ class Solver:
         if save_compilation_time:
             start = time_ns()
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             qp = self._from_qubovert_to_qiskit_model(self.qubo)
             stop = time_ns()
             compilation_time = float(stop - start)
         else:
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             qp = self._from_qubovert_to_qiskit_model(self.qubo)
             compilation_time = -1
@@ -667,8 +649,8 @@ class Solver:
                 initial_state.h(_idx)
         if simulator:
             try:
-                if IBMaccount != "":
-                    IBMQ.enable_account(IBMaccount)
+                if ibmaccount:
+                    IBMQ.enable_account(ibmaccount)
                 provider = IBMQ.get_provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
@@ -676,7 +658,7 @@ class Solver:
                 backend = BasicAer.get_backend("qasm_simulator")
         else:
             try:
-                IBMQ.enable_account(IBMaccount)
+                IBMQ.enable_account(ibmaccount)
                 provider = IBMQ.get_provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
@@ -710,8 +692,8 @@ class Solver:
                 res.append(results)
             time = -1.0
 
-        sol = solution()
-        sol._create_problem(self.problem)
+        sol = Solution()
+        sol.create_problem(self.problem)
         solver_info: dict[str, Any] = {}
         solver_info["solver name"] = "QAOA qubo"
         solver_info["num runs"] = num_runs
@@ -719,14 +701,12 @@ class Solver:
         solver_info["time"] = time
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
-        sol._create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+        sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
         all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
 
-        if all_satisfied or self._number_of_lambda_update == max_lambda_update:
-            return sol
-        else:
+        if not all_satisfied and self._number_of_lambda_update < max_lambda_update:
             while self._number_of_lambda_update != max_lambda_update and not all_satisfied:
-                self.pubo = self.problem._update_lambda_cost_function(
+                self.pubo = self.problem.update_lambda_cost_function(
                     single_satisfied, max_lambda_update, lambda_update_mechanism
                 )
                 self.qubo = self.pubo.to_qubo()
@@ -744,8 +724,8 @@ class Solver:
                         results = qaoa.solve(qp)
                         res.append(results)
                     time = -1.0
-                sol = solution()
-                sol._create_problem(self.problem)
+                sol = Solution()
+                sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
                 solver_info = {}
                 solver_info["solver name"] = "QAOA qubo"
@@ -755,18 +735,18 @@ class Solver:
                 solver_info["time"] = time
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
-                sol._create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+                sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
             return sol
+        return None
 
-
-    def solve_VQE_qubo(
+    def solve_vqe_qubo(
         self,
         problem: Problem,
         auto_setting: bool = False,
         simulator: bool = True,
         backend_name: str = "qasm_simulator",
-        IBMaccount: str = "",
+        ibmaccount: str = "",
         num_runs: int = 10,
         optimizer: Optimizer | None = None,
         ansatz: QuantumCircuit | OperatorBase | None = None,
@@ -782,7 +762,7 @@ class Solver:
         lambda_value: float = 1.0,
         save_time: bool = False,
         save_compilation_time: bool = False,
-    ) -> solution | bool:
+    ) -> Solution | bool | None:
         """function for creating to define the solver characteristic
 
         Keyword arguments:
@@ -805,14 +785,14 @@ class Solver:
         if save_compilation_time:
             start = time_ns()
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             qp = self._from_qubovert_to_qiskit_model(self.qubo)
             stop = time_ns()
             compilation_time = float(stop - start)
         else:
             self.problem = problem
-            self.pubo = self.problem._write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
             self.qubo = self.pubo.to_qubo()
             qp = self._from_qubovert_to_qiskit_model(self.qubo)
             compilation_time = -1
@@ -823,8 +803,8 @@ class Solver:
 
         if simulator:
             try:
-                if IBMaccount != "":
-                    IBMQ.enable_account(IBMaccount)
+                if ibmaccount:
+                    IBMQ.enable_account(ibmaccount)
                 provider = IBMQ.get_provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
@@ -832,7 +812,7 @@ class Solver:
                 backend = BasicAer.get_backend("qasm_simulator")
         else:
             try:
-                IBMQ.enable_account(IBMaccount)
+                IBMQ.enable_account(ibmaccount)
                 provider = IBMQ.get_provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
@@ -864,22 +844,20 @@ class Solver:
                 res.append(results)
             time = -1.0
 
-        sol = solution()
-        sol._create_problem(self.problem)
+        sol = Solution()
+        sol.create_problem(self.problem)
         solver_info: dict[str, Any] = {}
         solver_info["solver name"] = "VQE qubo"
         solver_info["num runs"] = num_runs
         solver_info["time"] = time
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
-        sol._create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+        sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
         all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
 
-        if all_satisfied or self._number_of_lambda_update == max_lambda_update:
-            return sol
-        else:
+        if not all_satisfied or self._number_of_lambda_update < max_lambda_update:
             while self._number_of_lambda_update != max_lambda_update and not all_satisfied:
-                self.pubo = self.problem._update_lambda_cost_function(
+                self.pubo = self.problem.update_lambda_cost_function(
                     single_satisfied, max_lambda_update, lambda_update_mechanism
                 )
                 self.qubo = self.pubo.to_qubo()
@@ -897,8 +875,8 @@ class Solver:
                         results = vqe.solve(qp)
                         res.append(results)
                     time = -1.0
-                sol = solution()
-                sol._create_problem(self.problem)
+                sol = Solution()
+                sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
                 solver_info = {}
                 solver_info["solver name"] = "VQE qubo"
@@ -907,10 +885,10 @@ class Solver:
                 solver_info["time"] = time
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
-                sol._create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+                sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
             return sol
-
+        return None
 
     def get_lambda_updates(self) -> int:
         return self._number_of_lambda_update
@@ -924,8 +902,8 @@ class Solver:
         Return values:
         QuadraticProgram -- qiskit compliant formulation
         """
-        dpModel = Model()
-        docplex_variables = {var: dpModel.binary_var(name=f"x{var}") for var in qubo.variables}
+        dpmodel = Model()
+        docplex_variables = {var: dpmodel.binary_var(name=f"x{var}") for var in qubo.variables}
         objective_expr = 0
         min(qubo.values(), key=abs)
         for key in qubo:
@@ -933,11 +911,11 @@ class Solver:
                 objective_expr += qubo[key] * docplex_variables[key[0]] * docplex_variables[key[1]]
             elif len(key) == 1:
                 objective_expr += qubo[key] * docplex_variables[key[0]]
-        dpModel.minimize(objective_expr)
-        return from_docplex_mp(dpModel)
+        dpmodel.minimize(objective_expr)
+        return from_docplex_mp(dpmodel)
 
 
-class solution:
+class Solution:
     """class of the solution
     It contains the solutions, the energy value
     and can provide some statistics"""
@@ -961,7 +939,7 @@ class solution:
         self.pubo: PUBO
         self.qubo: QUBO
 
-    def _create_problem(self, problem: Problem) -> None:
+    def create_problem(self, problem: Problem) -> None:
         """function for saving problem information
 
         Keyword arguments:
@@ -982,7 +960,7 @@ class solution:
         dict[str, float] -- containing the cost function-value couples
 
         """
-        temp = self.problem.objective_function._substitute_values(self.best_solution, self.problem.variables)
+        temp = self.problem.objective_function.substitute_values(self.best_solution, self.problem.variables)
         if not isinstance(temp, bool):
             self.cost_functions_best_energy = temp
         return self.cost_functions_best_energy
@@ -997,7 +975,7 @@ class solution:
         single_constraint_satisfy -- list of bool, saying which are the satisfied constraint and which are not
 
         """
-        self.constraints_satisfy, self.single_constraint_satisfy = self.problem.constraints._check_constraint(
+        self.constraints_satisfy, self.single_constraint_satisfy = self.problem.constraints.check_constraint(
             self.best_solution, self.best_solution_original_var, self.problem.variables, weak
         )
         return self.constraints_satisfy, self.single_constraint_satisfy
@@ -1015,14 +993,14 @@ class solution:
         all_satisfied = []
         single_satisfied = []
         for j in range(len(self.solutions)):
-            all_c, single = self.problem.constraints._check_constraint(
+            all_c, single = self.problem.constraints.check_constraint(
                 self.solutions[j], self.solutions_original_var[j], self.problem.variables, weak
             )
             all_satisfied.append(all_c)
             single_satisfied.append(single)
         return all_satisfied, single_satisfied
 
-    def _create_dwave_annealing_solution(
+    def create_dwave_annealing_solution(
         self,
         samples: SampleSet,
         pubo: PUBO,
@@ -1054,7 +1032,7 @@ class solution:
         self.best_energy = samples.first.energy + offset
 
         for sample in list(samples.samples()):  # type: ignore[no-untyped-call]
-            converted_sol = self.problem.variables._convert_simulated_annealing_solution(pubo.convert_solution(sample))
+            converted_sol = self.problem.variables.convert_simulated_annealing_solution(pubo.convert_solution(sample))
             if isinstance(converted_sol, dict):
                 self.solutions.append(converted_sol)
             sol = pubo.convert_solution(sample)
@@ -1062,7 +1040,7 @@ class solution:
             for var in sol:
                 temp[var] = float(sol[var])
             self.solutions_original_var.append(temp)
-        converted_sol = self.problem.variables._convert_simulated_annealing_solution(
+        converted_sol = self.problem.variables.convert_simulated_annealing_solution(
             pubo.convert_solution(samples.first.sample)
         )
         sol = pubo.convert_solution(samples.first.sample)
@@ -1073,7 +1051,7 @@ class solution:
             self.best_solution = converted_sol
         self.time = time
 
-    def _create_qiskit_qubo_solution(
+    def create_qiskit_qubo_solution(
         self,
         res: list[OptimizationResult],
         pubo: PUBO,
@@ -1095,7 +1073,7 @@ class solution:
         if solver_info is None:
             solver_info = {}
         self.solver_info = solver_info
-        First: bool = True
+        first: bool = True
         val: float = 0.0
         self.qubo = qubo
         self.pubo = pubo
@@ -1105,18 +1083,18 @@ class solution:
                 for i in range(len(elem.x)):
                     s[i] = elem.x[i]
                 sol = pubo.convert_solution(s)
-                converted_sol = self.problem.variables._convert_simulated_annealing_solution(sol)
+                converted_sol = self.problem.variables.convert_simulated_annealing_solution(sol)
                 self.solutions_original_var.append(sol)
                 if isinstance(converted_sol, dict):
                     self.solutions.append(converted_sol)
                 val = pubo.value(sol)
                 self.energies.append(val)
-                if First:
+                if first:
                     self.best_energy = val
                     self.best_solution_original_var = sol
                     if isinstance(converted_sol, dict):
                         self.best_solution = converted_sol
-                    First = False
+                    first = False
                 elif val < self.best_energy:
                     self.best_energy = val
                     self.best_solution_original_var = sol
@@ -1147,22 +1125,22 @@ class solution:
         self.solver_info = solver_info
         self.solve_qubo = False
         self.pubo = pubo
-        First: bool = True
+        first: bool = True
         val: float = 0.0
         for elem in res:
             sol = elem[0]
-            converted_sol = self.problem.variables._convert_simulated_annealing_solution(sol)
+            converted_sol = self.problem.variables.convert_simulated_annealing_solution(sol)
             self.solutions_original_var.append(sol)
             if isinstance(converted_sol, dict):
                 self.solutions.append(converted_sol)
             val = pubo.value(sol)
             self.energies.append(val)
-            if First:
+            if first:
                 self.best_energy = val
                 self.best_solution_original_var = sol
                 if isinstance(converted_sol, dict):
                     self.best_solution = converted_sol
-                First = False
+                first = False
             elif val < self.best_energy:
                 self.best_energy = val
                 self.best_solution_original_var = sol
@@ -1189,7 +1167,7 @@ class solution:
         if latex:
             rc("text", usetex=True)
             plt.rc("text", usetex=True)
-            if label != "":
+            if label:
                 n, bins, patches = plt.hist(
                     self.energies,
                     cumulative=True,
@@ -1204,7 +1182,7 @@ class solution:
             plt.xlabel(r"\textit{Energy}", fontsize=20)
             plt.ylabel(r"\textit{occurrence}", fontsize=20)
         else:
-            if label != "":
+            if label:
                 n, bins, patches = plt.hist(
                     self.energies, cumulative=True, histtype="step", linewidth=2, bins=100, label=label
                 )
@@ -1213,11 +1191,11 @@ class solution:
             plt.title("Cumulative distribution", fontsize=20)
             plt.xlabel("Energy", fontsize=20)
             plt.ylabel("occurrence", fontsize=20)
-        if label != "":
+        if label:
             leg = plt.legend(loc="lower right", frameon=True, fontsize=15)
             leg.get_frame().set_facecolor("white")
         if save:
-            if filename == "":
+            if not filename:
                 print("The file name field is empty. Default name is given to the file\n")
                 plt.savefig("Test.eps", format="eps")
                 plt.savefig("Test.png", format="png")
@@ -1272,16 +1250,17 @@ class solution:
         float -- probability of obtaining a value lower than the reference
         """
         if ref_value is None:
-            return self.energies.count(self.best_energy) / len(self.energies)
+            ret = self.energies.count(self.best_energy) / len(self.energies)
         else:
             count = 0
             for val in self.energies:
                 if val <= ref_value:
                     count += 1
 
-            return count / len(self.energies)
+            ret = count / len(self.energies)
+        return ret
 
-    def TTS(self, ref_value: float | None = None, target_probability: float = 0.99) -> float:
+    def tts(self, ref_value: float | None = None, target_probability: float = 0.99) -> float:
         """function for  computing the Time-To_Solution of obtaining a wanted results with a certain probability
 
 
@@ -1298,18 +1277,19 @@ class solution:
                 print(
                     "The reference value or values lower than it were not obtained. It is not possible to compute TTS\n"
                 )
-                return -1.0
+                t = -1.0
             elif p == 1:
-                return self.time
+                t = self.time
             else:
                 try:
-                    return self.time * (log(1 - target_probability) / log(1 - p))
+                    t = self.time * (log(1 - target_probability) / log(1 - p))
                 except ZeroDivisionError:
                     return -1
 
         else:
             print("The execution time is not available. It is not possible to compute TTS\n")
-            return -1.0
+            t = -1.0
+        return t
 
     def wring_json_reports(
         self,
@@ -1355,9 +1335,9 @@ class solution:
         p = self.p_range(ref_value)
         if p > 0:
             data["p range"] = p
-        tts = self.TTS(ref_value, target_probability)
-        if tts > 0:
-            data["TTS"] = tts
+        tts_v = self.tts(ref_value, target_probability)
+        if tts_v > 0:
+            data["TTS"] = tts_v
         if problem_features:
             num_elm: dict[int, int]
             if self.solve_qubo:

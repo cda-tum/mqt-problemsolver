@@ -87,18 +87,18 @@ repos:
         args: []
         additional_dependencies:
           - importlib_resources
-          - qubovert==1.2.5
+          - qubovert
           - pytest
           - types-setuptools
           - setuptools<=65.6.3
-          - sympy==1.12
-          - numpy==1.23.5
+          - sympy
+          - numpy
           - dwave-samplers
           - dwave.system
           - docplex==2.25.236
-          - qiskit==0.34.2
-          - qiskit_optimization==0.3.0
-          - qiskit_ibmq_provider==0.18.3
+          - qiskit
+          - qiskit_optimization
+          - qiskit_ibmq_provider
           - matplotlib
           - pandas
           - PyPortfolioOpt

@@ -7,6 +7,7 @@ from sympy import Expr, expand
 
 if TYPE_CHECKING:
     from qubovert import PUBO
+
     from mqt.qao.variables import Variables
 
 
@@ -33,7 +34,7 @@ class ObjectiveFunction:
             objective_function = -objective_function
         self.objective_functions.append((cast(Expr, expand(objective_function).evalf()), weight))  # type: ignore[no-untyped-call]
 
-    def _rewrite_cost_functions(self, pubo: PUBO, var: Variables) -> PUBO | bool:
+    def rewrite_cost_functions(self, pubo: PUBO, var: Variables) -> PUBO | bool:
         """function for rewriting the cost functions according with the variable structure
 
         Keyword arguments:
@@ -65,13 +66,13 @@ class ObjectiveFunction:
                                 print("Expression not supported\n")
                                 return False
                             key = powers[0]
-                            if key not in var._binary_variables_name_weight:
+                            if key not in var.binary_variables_name_weight:
                                 print("Expression not supported\n")
                                 return False
-                            if isinstance(var._binary_variables_name_weight[key], list):
-                                encoding = var._binary_variables_name_weight[key][0]
+                            if isinstance(var.binary_variables_name_weight[key], list):
+                                encoding = var.binary_variables_name_weight[key][0]
                                 if encoding == "dictionary":
-                                    for elem in var._binary_variables_name_weight[key]:
+                                    for elem in var.binary_variables_name_weight[key]:
                                         if not isinstance(elem, str):
                                             t = 1.0
                                             t *= elem[0]
@@ -81,7 +82,7 @@ class ObjectiveFunction:
                                                 t = t * elem[1] ** power + elem[2] ** power
                                             temp += t
                                 else:
-                                    for elem in var._binary_variables_name_weight[key]:
+                                    for elem in var.binary_variables_name_weight[key]:
                                         if not isinstance(elem, str):
                                             t = 1.0
                                             t *= elem[0]
@@ -91,31 +92,31 @@ class ObjectiveFunction:
                                                 t = t * elem[1] + elem[2]
                                             temp += t
                                     temp = temp**power
-                            elif isinstance(var._binary_variables_name_weight[key], tuple):
+                            elif isinstance(var.binary_variables_name_weight[key], tuple):
                                 t = 1.0
-                                t *= var._binary_variables_name_weight[key][0]
-                                if len(var._binary_variables_name_weight[key]) == 2:
-                                    t *= (var._binary_variables_name_weight[key][1]) ** power
-                                elif len(var._binary_variables_name_weight[key]) == 3:
+                                t *= var.binary_variables_name_weight[key][0]
+                                if len(var.binary_variables_name_weight[key]) == 2:
+                                    t *= (var.binary_variables_name_weight[key][1]) ** power
+                                elif len(var.binary_variables_name_weight[key]) == 3:
                                     t = (
-                                        t * var._binary_variables_name_weight[key][1]
-                                        + var._binary_variables_name_weight[key][2]
+                                        t * var.binary_variables_name_weight[key][1]
+                                        + var.binary_variables_name_weight[key][2]
                                     ) ** power
                                 temp += t
                             else:
-                                temp = var._binary_variables_name_weight[key]
+                                temp = var.binary_variables_name_weight[key]
                             to_add *= temp
                         else:
                             key = poly_field
-                            if key not in var._binary_variables_name_weight:
+                            if key not in var.binary_variables_name_weight:
                                 try:
                                     to_add *= float(key)
                                 except TypeError:
                                     print("Expression not supported\n")
                                     return False
                             else:
-                                if isinstance(var._binary_variables_name_weight[key], list):
-                                    for elem in var._binary_variables_name_weight[key]:
+                                if isinstance(var.binary_variables_name_weight[key], list):
+                                    for elem in var.binary_variables_name_weight[key]:
                                         if not isinstance(elem, str):
                                             t = 1.0
                                             t *= elem[0]
@@ -124,19 +125,19 @@ class ObjectiveFunction:
                                             elif len(elem) == 3:
                                                 t = t * elem[1] + elem[2]
                                             temp += t
-                                elif isinstance(var._binary_variables_name_weight[key], tuple):
+                                elif isinstance(var.binary_variables_name_weight[key], tuple):
                                     t = 1.0
-                                    t *= var._binary_variables_name_weight[key][0]
-                                    if len(var._binary_variables_name_weight[key]) == 2:
-                                        t *= var._binary_variables_name_weight[key][1]
-                                    elif len(var._binary_variables_name_weight[key]) == 3:
+                                    t *= var.binary_variables_name_weight[key][0]
+                                    if len(var.binary_variables_name_weight[key]) == 2:
+                                        t *= var.binary_variables_name_weight[key][1]
+                                    elif len(var.binary_variables_name_weight[key]) == 3:
                                         t = (
-                                            t * var._binary_variables_name_weight[key][1]
-                                            + var._binary_variables_name_weight[key][2]
+                                            t * var.binary_variables_name_weight[key][1]
+                                            + var.binary_variables_name_weight[key][2]
                                         )
                                     temp += t
                                 else:
-                                    temp += var._binary_variables_name_weight[key]
+                                    temp += var.binary_variables_name_weight[key]
                                 to_add *= temp
 
                     if sign == "+":
@@ -148,7 +149,7 @@ class ObjectiveFunction:
             pubo += func * obj[1]
         return pubo
 
-    def _substitute_values(self, solution: dict[str, Any], variables: Variables) -> dict[str, float] | bool:
+    def substitute_values(self, solution: dict[str, Any], variables: Variables) -> dict[str, float] | bool:
         """function for substituting solutions into the cost functions expressions
 
         Keyword arguments:
@@ -164,9 +165,9 @@ class ObjectiveFunction:
             objective_functions_values[str(obj[0])] = 0.0
             temp_expression = obj[0]
             for var in solution:
-                if var in variables._variables_dict:
+                if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        temp_expression = temp_expression.subs({variables._variables_dict[var].symbol: solution[var]})  # type: ignore[no-untyped-call]
+                        temp_expression = temp_expression.subs({variables.variables_dict[var].symbol: solution[var]})  # type: ignore[no-untyped-call]
                     elif isinstance(solution[var], list):
                         for i in range(len(solution[var])):
                             if isinstance(solution[var][i], list):
@@ -174,15 +175,15 @@ class ObjectiveFunction:
                                     if isinstance(solution[var][i][j], list):
                                         for k in range(len(solution[var][i][j])):
                                             temp_expression = temp_expression.subs(  # type: ignore[no-untyped-call]
-                                                {variables._variables_dict[var][i][j][k].symbol: solution[var][i][j][k]}
+                                                {variables.variables_dict[var][i][j][k].symbol: solution[var][i][j][k]}
                                             )
                                     else:
                                         temp_expression = temp_expression.subs(  # type: ignore[no-untyped-call]
-                                            {variables._variables_dict[var][i][j].symbol: solution[var][i][j]}
+                                            {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
                                         )
                             else:
                                 temp_expression = temp_expression.subs(  # type: ignore[no-untyped-call]
-                                    {variables._variables_dict[var][i].symbol: solution[var][i]}
+                                    {variables.variables_dict[var][i].symbol: solution[var][i]}
                                 )
             try:
                 objective_functions_values[str(obj[0])] = float(temp_expression)
