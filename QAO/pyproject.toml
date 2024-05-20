@@ -84,6 +84,7 @@ Research = "https://www.cda.cit.tum.de/research/quantum/"
 
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 minversion = "7.2"
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--showlocals"]
