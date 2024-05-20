@@ -19,7 +19,12 @@ from qiskit.algorithms import QAOA, VQE
 from qiskit.circuit import Parameter, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
 from qiskit.exceptions import QiskitError
-from qiskit_optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer, OptimizationResult
+from qiskit_optimization.algorithms import (
+    GroverOptimizer,
+    MinimumEigenOptimizationResult,
+    MinimumEigenOptimizer,
+    OptimizationResult,
+)
 from qiskit_optimization.translators import from_docplex_mp
 from qubovert import PUBO, QUBO
 
@@ -1053,7 +1058,7 @@ class Solution:
 
     def create_qiskit_qubo_solution(
         self,
-        res: list[OptimizationResult],
+        res: list[MinimumEigenOptimizationResult] | list[OptimizationResult],
         pubo: PUBO,
         qubo: QUBO,
         time: float = -1.0,

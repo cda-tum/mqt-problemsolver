@@ -1073,7 +1073,7 @@ def test_simulated_annealer_solver_constrained(lambda_strategy: str, constraint_
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
     solution = solver.solve_simulated_annealing(problem, lambda_strategy=lambda_strategy)
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
@@ -1167,7 +1167,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism(
         problem, max_lambda_update=10, lambda_update_mechanism=lambda_update, lambda_strategy="manual", lambda_value=5.0
     )
     solver.get_lambda_updates()
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
@@ -1369,7 +1369,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism_and_strat
         problem, max_lambda_update=10, lambda_update_mechanism=lambda_update, lambda_strategy=lambda_strategy
     )
     solver.get_lambda_updates()
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
@@ -1465,7 +1465,7 @@ def test_simulated_annealing_cost_function_matrix(
         problem, max_lambda_update=10, lambda_update_mechanism=lambda_update, lambda_strategy=lambda_strategy
     )
     solver.get_lambda_updates()
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "M1_0_1 >= 1":
             assert (
@@ -1564,7 +1564,7 @@ def test_gas_solver_basic() -> None:
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
     solution = solver.solve_grover_adaptive_search_qubo(problem, qubit_values=6, num_runs=10)
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 1.0, "b": 0.0, "c": 1.0}
         print(solution.best_solution)
@@ -1594,7 +1594,7 @@ def test_qaoa_solver_qubo_basic() -> None:
         problem,
         num_runs=10,
     )
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 1.0, "b": 0.0, "c": 1.0}
         print(solution.best_solution)
@@ -1624,7 +1624,7 @@ def test_vqe_solver_qubo_basic() -> None:
         problem,
         num_runs=10,
     )
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 1.0, "b": 0.0, "c": 1.0}
         print(solution.best_solution)
@@ -1657,7 +1657,7 @@ def test_qaoa_solver(lambda_strategy: str) -> None:
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
     solution = solver.solve_qaoa_qubo(problem, num_runs=10, lambda_strategy=lambda_strategy)
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 0.0, "b": 3.0, "c": -1.5}
         assert solution.best_energy < -2.24  # (the range if for having no issues with numerical errors)
@@ -1688,7 +1688,7 @@ def test_vqe_solver(lambda_strategy: str) -> None:
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
     solution = solver.solve_vqe_qubo(problem, num_runs=10, lambda_strategy=lambda_strategy)
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 0.0, "b": 3.0, "c": -1.5}
         assert solution.best_energy < -2.24  # (the range if for having no issues with numerical errors)
@@ -1853,7 +1853,7 @@ def test_qaoa_constrained_lambda_update_mechanism_and_strategy(
         lambda_strategy=lambda_strategy,
     )
     solver.get_lambda_updates()
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
@@ -2059,7 +2059,7 @@ def test_vqe_constrained_lambda_update_mechanism_and_strategy(
         lambda_strategy=lambda_strategy,
     )
     solver.get_lambda_updates()
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
@@ -2133,7 +2133,7 @@ def test_gas_solver(lambda_strategy: str) -> None:
     solution = solver.solve_grover_adaptive_search_qubo(
         problem, qubit_values=7, num_runs=10, coeff_precision=0.5, lambda_strategy=lambda_strategy
     )
-    if not isinstance(solution, bool):
+    if isinstance(solution, Solution):
         all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"b": 3.0, "c": -1.0}
         assert solution.best_energy < -1.9  # (the range if for having no issues with numerical errors)
