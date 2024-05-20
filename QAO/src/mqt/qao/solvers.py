@@ -24,8 +24,8 @@ from qiskit_optimization.algorithms import (
     MinimumEigenOptimizer,
     OptimizationResult,
 )
+from qiskit.providers import Provider
 from qiskit_optimization.translators import from_docplex_mp
-from qiskit import IBMQ, BasicAer
 from qubovert import PUBO, QUBO
 
 if TYPE_CHECKING:
@@ -468,20 +468,20 @@ class Solver:
 
         if simulator:
             try:
-                IBMQ.enable_account(ibmaccount)
-                provider = IBMQ.get_provider()
+                provider = Provider(token=ibmaccount)
                 backend = provider.get_backend(backend_name)
             except QiskitError:
                 print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
+                provider = Provider()
+                backend = provider.get_backend("ibmq_qasm_simulator")
         else:
             try:
-                IBMQ.enable_account(ibmaccount)
-                provider = IBMQ.get_provider()
+                provider = Provider(token=ibmaccount)
                 backend = provider.get_backend(backend_name)
             except QiskitError:
                 print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
+                provider = Provider()
+                backend = provider.get_backend("ibmq_qasm_simulator")
         grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
 
         if save_time:
@@ -650,21 +650,20 @@ class Solver:
                 initial_state.h(_idx)
         if simulator:
             try:
-                if ibmaccount:
-                    IBMQ.enable_account(ibmaccount)
-                provider = IBMQ.get_provider()
+                provider = Provider(token=ibmaccount) if ibmaccount else Provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
                 print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
+                provider = Provider()
+                backend = provider.get_backend("ibmq_qasm_simulator")
         else:
             try:
-                IBMQ.enable_account(ibmaccount)
-                provider = IBMQ.get_provider()
+                provider = Provider(token=ibmaccount)
                 backend = provider.get_backend(backend_name)
             except QiskitError:
                 print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
+                provider = Provider()
+                backend = provider.get_backend("ibmq_qasm_simulator")
         qaoa_mes = QAOA(
             quantum_instance=backend,
             optimizer=optimizer,
@@ -803,21 +802,20 @@ class Solver:
 
         if simulator:
             try:
-                if ibmaccount:
-                    IBMQ.enable_account(ibmaccount)
-                provider = IBMQ.get_provider()
+                provider = Provider(token=ibmaccount) if ibmaccount else Provider()
                 backend = provider.get_backend(backend_name)
             except QiskitError:
                 print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
+                provider = Provider()
+                backend = provider.get_backend("ibmq_qasm_simulator")
         else:
             try:
-                IBMQ.enable_account(ibmaccount)
-                provider = IBMQ.get_provider()
+                provider = Provider(token=ibmaccount)
                 backend = provider.get_backend(backend_name)
             except QiskitError:
                 print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
+                provider = Provider()
+                backend = provider.get_backend("ibmq_qasm_simulator")
         vqe_mes = VQE(
             quantum_instance=backend,
             optimizer=optimizer,

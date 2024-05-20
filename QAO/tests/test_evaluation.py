@@ -79,6 +79,7 @@ def test_discrete_only() -> None:
         "A_1": ["dictionary", (boolean_var("b6"), -1), (boolean_var("b7"), 1), (boolean_var("b8"), 3)],
     }
 
+
 @pytest.mark.parametrize(
     ("encoding", "distribution", "precision", "min_val", "max_val"),
     [
@@ -302,6 +303,7 @@ def test_continuous_only(encoding: str, distribution: str, precision: float, min
                 (boolean_var("b17"), 1),
             ],
         }
+
 
 def test_cost_function() -> None:
     """Test for cost function translation"""
@@ -883,6 +885,7 @@ def test_constraint_no_sub(expression: str) -> None:
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
 
+
 @pytest.mark.parametrize(
     "lambda_strategy",
     [
@@ -979,6 +982,7 @@ def test_problem(lambda_strategy: str) -> None:
     elif lambda_strategy == "upper lower bound posiform and negaform method":
         assert [31.625 * 1.1] * 2 == lambdas
         assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
+
 
 @pytest.mark.parametrize(
     "lambda_strategy",
@@ -1482,6 +1486,7 @@ def test_simulated_annealing_cost_function_matrix(
                 or not all_satisfy
             )
 
+
 '''
 @pytest.mark.parametrize(
     ("lambda_strategy", "lambda_update", "constraint_expr"),
@@ -1549,7 +1554,7 @@ def test_quantum_annealer_solver_constrained_lambda_update_mechanism_and_strateg
     else:
         assert solution
 '''
-'''
+
 
 def test_gas_solver_basic() -> None:
     """Test for the problem constructions"""
@@ -1578,6 +1583,7 @@ def test_gas_solver_basic() -> None:
         assert solution
 
 
+'''
 def test_qaoa_solver_qubo_basic() -> None:
     """Test for the problem constructions"""
     variables = Variables()
