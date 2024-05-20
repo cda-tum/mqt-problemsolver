@@ -6,7 +6,8 @@ import math
 
 import numpy as np
 from qubovert import PUBO
-from src.mqt.qao import Constraints, ObjectiveFunction, Variables
+
+from mqt.qao import Constraints, ObjectiveFunction, Variables
 
 
 class Problem:
