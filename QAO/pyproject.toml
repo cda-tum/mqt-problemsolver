@@ -84,7 +84,7 @@ Research = "https://www.cda.cit.tum.de/research/quantum/"
 
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["./src"]
 minversion = "7.2"
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--showlocals"]
@@ -133,6 +133,7 @@ strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 warn_unreachable = true
 explicit_package_bases = true
+no_implicit_reexport = true
 pretty = true
 
 
@@ -194,6 +195,7 @@ ignore = [
     "E501",    # Line too long (Black is enough)
     "PLR",     # Design related pylint codes
     "S101",    # Use of assert detected
+    "I001",   # isort: Missing import
 ]
 flake8-unused-arguments.ignore-variadic-names = true
 isort.required-imports = ["from __future__ import annotations"]
@@ -204,6 +206,7 @@ isort.required-imports = ["from __future__ import annotations"]
     "D",    # pydocstyle
     "E402", # Allow imports to appear anywhere in Jupyter notebooks
     "I002", # Allow missing `from __future__ import annotations` import
+    "I001", # Allow missing unsorted import
 ]
 
 [tool.ruff.lint.pydocstyle]

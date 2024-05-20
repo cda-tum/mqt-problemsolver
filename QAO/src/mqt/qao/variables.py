@@ -910,7 +910,7 @@ class Binary(Variable):
         Return values:
         self.symbol -- variable symbol
         """
-        self._name = name
+        self.name = name
         self.symbol = symbols(name)
         if unipolar:
             self.type = "b"
@@ -932,7 +932,7 @@ class Discrete(Variable):
         Return values:
         self.symbol -- variable symbol
         """
-        self._name = name
+        self.name = name
         self.symbol = symbols(name)
         self._values = values
         self.type = "d"

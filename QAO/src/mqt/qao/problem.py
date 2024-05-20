@@ -379,10 +379,10 @@ class Problem:
             elif len(key) > 1:
                 if cost_function[key] < 0:
                     for elem in key:
-                        p_sum[elem] += cost_function[key]
+                        p_sum[elem] += cost_function[key]/len(key)
                 elif cost_function[key] > 0:
                     for elem in key:
-                        n_sum[elem] += cost_function[key]
+                        n_sum[elem] += cost_function[key]/len(key)
         lowerbound = 0.0
         upperbound = 0.0
         for key in p_sum:

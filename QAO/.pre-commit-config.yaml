@@ -15,7 +15,7 @@ ci:
 repos:
   # Standard hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.6.0"
+    rev: "v4.5.0"
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -30,7 +30,7 @@ repos:
 
   # Handling unwanted unicode characters
   - repo: https://github.com/sirosen/texthooks
-    rev: "0.6.6"
+    rev: "0.6.2"
     hooks:
       - id: fix-ligatures
       - id: fix-smartquotes
@@ -45,7 +45,7 @@ repos:
 
   # Clean jupyter notebooks
   - repo: https://github.com/srstevenson/nb-clean
-    rev: "3.2.0"
+    rev: "3.1.0"
     hooks:
       - id: nb-clean
   # Check for spelling
@@ -80,7 +80,7 @@ repos:
         additional_dependencies: [black==23.*]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.6.1
     hooks:
       - id: mypy
         files: ^(src|tests)
@@ -91,14 +91,14 @@ repos:
           - pytest
           - types-setuptools
           - setuptools<=65.6.3
-          - sympy
-          - numpy
+          - sympy==1.12
+          - numpy==1.23.5
           - dwave-samplers
           - dwave.system
           - docplex==2.25.236
-          - qiskit
-          - qiskit_optimization
-          - qiskit_ibmq_provider
+          - qiskit==0.40.0
+          - qiskit_optimization==0.4.0
+          - qiskit_ibmq_provider==0.19.2
           - matplotlib
           - pandas
           - PyPortfolioOpt

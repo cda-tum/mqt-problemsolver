@@ -14,7 +14,6 @@ from docplex.mp.model import Model
 from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import DWaveSampler, EmbeddingComposite
 from matplotlib import rc
-from qiskit import IBMQ, BasicAer
 from qiskit.algorithms import QAOA, VQE
 from qiskit.circuit import Parameter, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
@@ -26,6 +25,7 @@ from qiskit_optimization.algorithms import (
     OptimizationResult,
 )
 from qiskit_optimization.translators import from_docplex_mp
+from qiskit import IBMQ, BasicAer
 from qubovert import PUBO, QUBO
 
 if TYPE_CHECKING:
@@ -147,7 +147,6 @@ class Solver:
                 initial_states_generator=initial_states_generator,
             )
             time = -1.0
-
         sol = Solution()
         sol.create_problem(self.problem)
         solver_info: dict[str, Any] = {}
@@ -158,7 +157,7 @@ class Solver:
             solver_info["compilation time"] = compilation_time
         sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
         all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
-
+        print(all_satisfied)
         if not all_satisfied and self._number_of_lambda_update < max_lambda_update:
             while self._number_of_lambda_update != max_lambda_update and not all_satisfied:
                 self.pubo = self.problem.update_lambda_cost_function(
@@ -206,8 +205,7 @@ class Solver:
                 sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
 
-            return sol
-        return None
+        return sol
 
     def solve_dwave_quantum_annealer(
         self,
@@ -378,8 +376,7 @@ class Solver:
                     solver_info["compilation time"] = compilation_time
                 sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
-            return sol
-        return None
+        return sol
 
     def solve_grover_adaptive_search_qubo(
         self,
@@ -485,7 +482,7 @@ class Solver:
             except QiskitError:
                 print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
                 backend = BasicAer.get_backend("qasm_simulator")
-        grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, sampler=backend)
+        grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
 
         if save_time:
             start = time_ns()
@@ -547,7 +544,7 @@ class Solver:
                             )
                         )
 
-                grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, sampler=backend)
+                grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
 
                 if save_time:
                     start = time_ns()
@@ -575,8 +572,7 @@ class Solver:
                     solver_info["compilation time"] = compilation_time
                 sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
-            return sol
-        return None
+        return sol
 
     def solve_qaoa_qubo(
         self,
@@ -742,8 +738,7 @@ class Solver:
                     solver_info["compilation time"] = compilation_time
                 sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
-            return sol
-        return None
+        return sol
 
     def solve_vqe_qubo(
         self,
