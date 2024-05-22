@@ -1485,8 +1485,9 @@ def test_simulated_annealing_cost_function_matrix(
                 solution.optimal_solution_cost_functions_values() == {"M1_0_0*M2_0_0 + M1_0_1*M2_1_0": -4.0}
                 or not all_satisfy
             )
-        else:
-            assert solution
+    else:
+        assert solution
+
 
 def test_gas_solver_basic() -> None:
     """Test for the problem constructions"""
@@ -1513,7 +1514,6 @@ def test_gas_solver_basic() -> None:
         assert all_satisfy
     else:
         assert solution
-
 
 
 def test_qaoa_solver_qubo_basic() -> None:
@@ -1574,6 +1574,3 @@ def test_vqe_solver_qubo_basic() -> None:
         assert all_satisfy
     else:
         assert solution
-
-
-

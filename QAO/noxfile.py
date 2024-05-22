@@ -21,9 +21,9 @@ BUILD_REQUIREMENTS = [
     "setuptools>=66.1",
     "setuptools_scm>=7",
     "wheel>=0.40",
-    "qiskit==0.45.3"
-    "qiskit_optimization==0.4.0"
-    "qiskit_ibm_runtime==0.14.0"
+    "qiskit==0.45.3",
+    "qiskit_optimization==0.4.0",
+    "qiskit_ibm_runtime==0.14.0",
 ]
 
 if os.environ.get("CI", None):
