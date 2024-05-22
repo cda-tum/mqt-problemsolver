@@ -1583,7 +1583,7 @@ def test_gas_solver_basic() -> None:
         assert solution
 
 
-'''
+
 def test_qaoa_solver_qubo_basic() -> None:
     """Test for the problem constructions"""
     variables = Variables()
@@ -1643,7 +1643,7 @@ def test_vqe_solver_qubo_basic() -> None:
     else:
         assert solution
 
-
+'''
 @pytest.mark.parametrize(
     "lambda_strategy",
     [

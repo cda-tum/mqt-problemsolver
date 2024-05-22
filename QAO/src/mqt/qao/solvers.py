@@ -15,7 +15,7 @@ from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import DWaveSampler, EmbeddingComposite
 from matplotlib import rc
 from qiskit.algorithms import QAOA, VQE
-from qiskit.circuit import Parameter, QuantumCircuit
+from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.circuit.library import TwoLocal
 from qiskit.exceptions import QiskitError
 from qiskit_optimization.algorithms import (
@@ -24,8 +24,9 @@ from qiskit_optimization.algorithms import (
     MinimumEigenOptimizer,
     OptimizationResult,
 )
-from qiskit.providers import Provider
+from qiskit_ibm_runtime import QiskitRuntimeService  # type: ignore[import-untyped]
 from qiskit_optimization.translators import from_docplex_mp
+from qiskit.providers.basicaer import BasicAer
 from qubovert import PUBO, QUBO
 
 if TYPE_CHECKING:
@@ -384,7 +385,9 @@ class Solver:
         auto_setting: bool = False,
         simulator: bool = True,
         backend_name: str = "qasm_simulator",
-        ibmaccount: str = "",
+        channel: str = "",
+        token: str = "",
+        instance: str = "",
         qubit_values: int = 0,
         coeff_precision: float = 1.0,
         threshold: int = 10,
@@ -467,21 +470,19 @@ class Solver:
                 )
 
         if simulator:
-            try:
-                provider = Provider(token=ibmaccount)
-                backend = provider.get_backend(backend_name)
+            try:  # Load your IBM Quantum account
+                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
+                backend = QiskitRuntimeService().backend(backend_name)
             except QiskitError:
                 print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                provider = Provider()
-                backend = provider.get_backend("ibmq_qasm_simulator")
+                backend = BasicAer.get_backend("qasm_simulator")
         else:
             try:
-                provider = Provider(token=ibmaccount)
-                backend = provider.get_backend(backend_name)
+                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
+                backend = QiskitRuntimeService().backend(backend_name)
             except QiskitError:
                 print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                provider = Provider()
-                backend = provider.get_backend("ibmq_qasm_simulator")
+                backend = BasicAer.get_backend("qasm_simulator")
         grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
 
         if save_time:
@@ -580,7 +581,9 @@ class Solver:
         auto_setting: bool = False,
         simulator: bool = True,
         backend_name: str = "qasm_simulator",
-        ibmaccount: str = "",
+        channel: str = "",
+        token: str = "",
+        instance: str = "",
         num_runs: int = 10,
         optimizer: Optimizer = None,
         reps: int = 1,
@@ -650,20 +653,18 @@ class Solver:
                 initial_state.h(_idx)
         if simulator:
             try:
-                provider = Provider(token=ibmaccount) if ibmaccount else Provider()
-                backend = provider.get_backend(backend_name)
+                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
+                backend = QiskitRuntimeService().backend(backend_name)
             except QiskitError:
-                print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                provider = Provider()
-                backend = provider.get_backend("ibmq_qasm_simulator")
+                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
+                backend = BasicAer.get_backend("qasm_simulator")
         else:
             try:
-                provider = Provider(token=ibmaccount)
-                backend = provider.get_backend(backend_name)
+                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
+                backend = QiskitRuntimeService().backend(backend_name)
             except QiskitError:
-                print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                provider = Provider()
-                backend = provider.get_backend("ibmq_qasm_simulator")
+                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
+                backend = BasicAer.get_backend("qasm_simulator")
         qaoa_mes = QAOA(
             quantum_instance=backend,
             optimizer=optimizer,
@@ -745,7 +746,9 @@ class Solver:
         auto_setting: bool = False,
         simulator: bool = True,
         backend_name: str = "qasm_simulator",
-        ibmaccount: str = "",
+        channel: str = "",
+        token: str = "",
+        instance: str = "",
         num_runs: int = 10,
         optimizer: Optimizer | None = None,
         ansatz: QuantumCircuit | OperatorBase | None = None,
@@ -802,20 +805,18 @@ class Solver:
 
         if simulator:
             try:
-                provider = Provider(token=ibmaccount) if ibmaccount else Provider()
-                backend = provider.get_backend(backend_name)
+                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
+                backend = QiskitRuntimeService().backend(backend_name)
             except QiskitError:
-                print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                provider = Provider()
-                backend = provider.get_backend("ibmq_qasm_simulator")
+                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
+                backend = BasicAer.get_backend("qasm_simulator")
         else:
             try:
-                provider = Provider(token=ibmaccount)
-                backend = provider.get_backend(backend_name)
+                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
+                backend = QiskitRuntimeService().backend(backend_name)
             except QiskitError:
-                print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                provider = Provider()
-                backend = provider.get_backend("ibmq_qasm_simulator")
+                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
+                backend = BasicAer.get_backend("qasm_simulator")
         vqe_mes = VQE(
             quantum_instance=backend,
             optimizer=optimizer,

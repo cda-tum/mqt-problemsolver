@@ -96,8 +96,10 @@ repos:
           - dwave-samplers
           - dwave.system
           - docplex==2.25.236
-          - qiskit==0.45.0
+          - qiskit==0.45.3
           - qiskit_optimization==0.4.0
+          - qiskit-algorithms==0.2.1
+          - qiskit_ibm_runtime==0.14.0
           - matplotlib
           - pandas
           - PyPortfolioOpt

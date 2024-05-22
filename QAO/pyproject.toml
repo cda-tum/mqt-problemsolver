@@ -105,6 +105,11 @@ filterwarnings = [
     "ignore::DeprecationWarning:.*(docplex).*",
     "ignore:.*pytorch.*:UserWarning:",
     "ignore::DeprecationWarning:.*(importlib).*",
+    "ignore:.*:DeprecationWarning:qiskit.*",
+    "ignore:.*:PendingDeprecationWarning:qiskit.*",
+    "ignore:.*:ImportWarning:.*",
+    "ignore:.*:DeprecationWarning:qiskit.providers.ibmq.*",
+    "ignore:.*qiskit.algorithms.*:DeprecationWarning:.*",
     "ignore::sklearn.exceptions.InconsistentVersionWarning:sklearn:",
 ]
 
