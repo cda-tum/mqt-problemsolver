@@ -88,7 +88,7 @@ repos:
         additional_dependencies:
           - importlib_resources
           - qubovert
-          - pytest
+          - pytest==7.4.0
           - types-setuptools
           - setuptools<=65.6.3
           - sympy==1.12
