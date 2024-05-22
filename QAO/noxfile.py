@@ -15,12 +15,15 @@ if TYPE_CHECKING:
 nox.needs_version = ">=2024.3.2"
 nox.options.default_venv_backend = "uv|virtualenv"
 
-
-PYTHON_ALL_VERSIONS = ["3.11"]
+PYTHON_ALL_VERSIONS = ["3.9", "3.10", "3.11"]
 
 BUILD_REQUIREMENTS = [
-    "setuptools>=61",
+    "setuptools>=66.1",
     "setuptools_scm>=7",
+    "wheel>=0.40",
+    "qiskit==0.45.3"
+    "qiskit_optimization==0.4.0"
+    "qiskit_ibm_runtime==0.14.0"
 ]
 
 if os.environ.get("CI", None):
