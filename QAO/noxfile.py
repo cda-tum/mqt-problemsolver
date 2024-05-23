@@ -21,12 +21,17 @@ BUILD_REQUIREMENTS = [
     "setuptools>=66.1",
     "setuptools_scm>=7",
     "wheel>=0.40",
-    "matplotlib>=3.0",
+    "matplotlib>=3.8",
     "numpy>=1.23",
     "qiskit==0.45.3",
     "qiskit_optimization==0.4.0",
     "qiskit_ibm_runtime==0.14.0",
     "pytest==7.4.0",
+    "scikit-learn>=1.2",
+    "dimod>=0.12.0",
+    "dwave-preprocessing>=0.6 ",
+    "dwave-samplers>1.0",
+    "dwave-system>1.20",
 ]
 
 if os.environ.get("CI", None):
