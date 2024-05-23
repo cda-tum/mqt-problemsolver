@@ -22,7 +22,7 @@ BUILD_REQUIREMENTS = [
     "setuptools_scm>=7",
     "wheel>=0.40",
     "matplotlib>=3.0",
-    "numpy>=1.20,<1.23",
+    "numpy>=1.23",
     "qiskit==0.45.3",
     "qiskit_optimization==0.4.0",
     "qiskit_ibm_runtime==0.14.0",
