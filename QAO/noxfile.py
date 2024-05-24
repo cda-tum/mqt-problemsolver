@@ -27,11 +27,13 @@ BUILD_REQUIREMENTS = [
     "qiskit_optimization==0.4.0",
     "qiskit_ibm_runtime==0.14.0",
     "pytest==7.4.0",
-    "scikit-learn>=1.2",
+    "scikit-learn>=1.3",
     "dimod>=0.12.0",
-    "dwave-preprocessing>=0.6 ",
-    "dwave-samplers>1.0",
+    "dwave-preprocessing>=0.6.3 ",
+    "dwave-samplers>1.1",
     "dwave-system>1.20",
+    "pandas>=2.1",
+    "qubovert>=1.0",
 ]
 
 if os.environ.get("CI", None):
