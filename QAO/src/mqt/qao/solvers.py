@@ -6,7 +6,7 @@ import logging
 from math import ceil, log, sqrt
 from pathlib import Path
 from time import time_ns
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,6 +30,7 @@ from qiskit.providers.basicaer import BasicAer
 from qubovert import PUBO, QUBO
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from dimod import SampleSet
     from qiskit.algorithms.optimizers import Optimizer
     from qiskit.opflow import (
