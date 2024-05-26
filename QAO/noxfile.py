@@ -31,7 +31,7 @@ BUILD_REQUIREMENTS = [
     "dimod>=0.12.0",
     "dwave-preprocessing>=0.6.3 ",
     "dwave-samplers>=1.1",
-    "dwave-system==1.10",
+    "dwave-system==1.20",
     "pandas>=2.1",
     "qubovert>=1.0",
 ]
