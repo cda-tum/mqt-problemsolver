@@ -34,7 +34,6 @@ BUILD_REQUIREMENTS = [
     "dwave-system>=1.20",
     "pandas>=2.1",
     "qubovert>=1.0",
-    "mesonpy>=0.10.0",
 ]
 
 if os.environ.get("CI", None):
