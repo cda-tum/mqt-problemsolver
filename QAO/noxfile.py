@@ -30,8 +30,8 @@ BUILD_REQUIREMENTS = [
     "scikit-learn>=1.3",
     "dimod>=0.12.0",
     "dwave-preprocessing>=0.6.3 ",
-    "dwave-samplers>=1.1",
-    "dwave-system==1.20",
+    "dwave-samplers==1.0",
+    "dwave-system>=1.20",
     "pandas>=2.1",
     "qubovert>=1.0",
 ]
