@@ -1,7 +1,7 @@
 [build-system]
 requires = [
-    "setuptools>=61",
-    "setuptools_scm>=7",
+    "setuptools>=66.1",
+    "setuptools_scm>=8.1",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -13,28 +13,22 @@ authors = [
     { name = "Deborah Volpe", email = "deborah.volpe@polito.it"},
     { name = "Nils Quetschlich", email = "nils.quetschlich@tum.de" },
 ]
-keywords = ["MQT",  "quantum computing", "optimization", "QUBO"]
+keywords = ["MQT",  "quantum-computing", "optimization", "QUBO"]
 license = { file = "LICENSE" }
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.9"
 dynamic = ["version"]
 
 dependencies = [
-    "qubovert>=1.0",
-    "sympy",
-    "numpy>=1.23",
-    "dimod>=0.12.0",
-    "dwave-samplers==1.2",
-    "dwave-system>=1.20",
-    "importlib_metadata>=3.6; python_version < '3.10'",
-    "importlib_resources>=5.9; python_version < '3.10'",
-    "docplex",
-    "qiskit=0.45.3",
-    "qiskit_optimization==0.4.0",
-    "qiskit_ibm_runtime==0.14.0",
-    "matplotlib",
-    "pandas>=2.1",
-    "PyPortfolioOpt",
-    "scikit-learn>=1.3",
+    "qiskit>=1.0",
+    "qiskit_optimization>=0.6",
+    "qiskit_aer>=0.14",
+    "pandas>=2.1.2",
+    "numpy>=1.26",
+    "qubovert>=1.2.5",
+    "matplotlib>=3.8",
+    "docplex>=2.21.207",
+    "dwave-system>=1.21.0",
+    "dwave-samplers>=1.2.0",
 ]
 
 classifiers = [
@@ -45,8 +39,10 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
@@ -55,7 +51,6 @@ classifiers = [
 [project.optional-dependencies]
 test = ["pytest>=7.2"]
 coverage = ["mqt.qao[test]", "pytest-cov>=4"]
-dev = ["mqt.qao[coverage]"]
 docs = [
     "furo>=2023.08.17",
     "sphinx~=7.0",
@@ -71,6 +66,7 @@ docs = [
     "sphinx-autodoc-typehints",
     "qiskit[visualization]",
 ]
+dev = ["mqt.qao[coverage,docs]"]
 
 [project.urls]
 Homepage = "https://github.com/cda-tum/mqt-qao"
@@ -82,37 +78,17 @@ Research = "https://www.cda.cit.tum.de/research/quantum/"
 
 
 [tool.pytest.ini_options]
-pythonpath = ["./src"]
 minversion = "7.2"
 testpaths = ["tests"]
+pythonpath = ["src"]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--showlocals"]
-log_cli_level = "INFO"
+log_cli_level = "info"
 xfail_strict = true
 filterwarnings = [
     "error",
-    "ignore:.*pkg_resources.*:DeprecationWarning:",
-    "ignore:.*sre_.*:DeprecationWarning:",
-    "ignore:.*Rigetti.*:UserWarning:",
-    "ignore:.*Values in x.*:RuntimeWarning:",
-    "ignore:.*The Rebase2QuditGatePass has moved to bqskit.passes.retarget.two.*:DeprecationWarning:",
-    "ignore:.*The least populated class in y has only 3 members, which is less than n_splits=5.*:UserWarning:",
-    "ignore:.*divide by zero encountered in det.*:RuntimeWarning:",
-    "ignore:.*invalid value encountered in det.*:RuntimeWarning:",
-    "ignore:..*env.action_masks to get variables from other wrappers is deprecated and will be removed in v1.0.*:UserWarning:",
-    "ignore::SyntaxWarning:.*(docplex).*",
-    "ignore::DeprecationWarning:.*(docplex).*",
-    "ignore:.*pytorch.*:UserWarning:",
-    "ignore::DeprecationWarning:.*(importlib).*",
-    "ignore:.*:DeprecationWarning:qiskit.*",
-    "ignore:.*:PendingDeprecationWarning:qiskit.*",
-    "ignore:.*:ImportWarning:.*",
-    "ignore:.*:DeprecationWarning:qiskit.providers.ibmq.*",
-    "ignore:.*qiskit.algorithms.*:DeprecationWarning:.*",
-    "ignore::sklearn.exceptions.InconsistentVersionWarning:sklearn:",
+    "ignore:.*Qiskit with Python 3.8.*:DeprecationWarning:",
 ]
 
-[tool.check-wheel-contents]
-ignore = "W002"
 
 [tool.coverage]
 run.source = ["mqt.qao"]
@@ -129,19 +105,32 @@ precision = 1
 
 
 [tool.mypy]
-mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
 files = ["src", "tests"]
-python_version = "3.11"
-strict = true
+mypy_path = ["$MYPY_CONFIG_FILE_DIR/src"]
+python_version = "3.9"
+warn_unused_configs = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-warn_unreachable = true
+strict = true
+disallow_untyped_defs = false
 explicit_package_bases = true
-no_implicit_reexport = true
-pretty = true
+warn_unreachable = true
 
 
 [[tool.mypy.overrides]]
-module = ["qubovert.*", "sympy.*", "dwave.samplers.*", "dwave.system.*",  "docplex.*", "qiskit.*", "qiskit_optimization.*", "qiskit_ibm_provider.*", "matplotlib.*", "pandas.*", "pypfopt.*", "sklearn.*"]
+module = [
+    "qiskit.*",
+    "qiskit_optimization.*",
+    "qiskit_algorithms.*",
+    "qiskit_aer.*",
+    "matplotlib.*",
+    "qubovert.*",
+    "sympy.*",
+    "qiskit_ibm_runtime.*",
+    "matplotlib.*",
+    "docplex.*",
+    "dimod.*",
+    "dwave.*"
+]
 ignore_missing_imports = true
 
 
@@ -151,6 +140,7 @@ extend-include = ["*.ipynb"]
 src = ["src"]
 preview = true
 unsafe-fixes = true
+
 [tool.ruff.lint]
 extend-select = [
     "A",           # flake8-builtins
@@ -186,30 +176,45 @@ extend-select = [
     "SLOT",        # flake8-slots
     "SIM",         # flake8-simplify
     "TCH",         # flake8-type-checking
-    "TID",         # flake8-tidy-imports
+    "TID251",      # flake8-tidy-imports.banned-api
     "TRY",         # tryceratops
     "UP",          # pyupgrade
     "YTT",         # flake8-2020
 ]
 ignore = [
-    "ANN101",  # Missing type annotation for self in method
-    "ANN102",  # Missing type annotation for cls in classmethod
+    "ANN101",  # Missing type annotation for `self` in method
+    "ANN102",  # Missing type annotation for `cls` in classmethod
     "ISC001",  # Conflicts with formatter
-    "E501",    # Line too long (Black is enough)
-    "PLR",     # Design related pylint codes
+    "PLR09",   # Too many <...>
+    "PLR2004", # Magic value used in comparison
+    "PLC0415", # Import should be at top of file
+    "PT004",   # Incorrect, just usefixtures instead.
     "S101",    # Use of assert detected
-    "I001",   # isort: Missing import
+    "S404",    # `subprocess` module is possibly insecure
 ]
-flake8-unused-arguments.ignore-variadic-names = true
 isort.required-imports = ["from __future__ import annotations"]
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"typing.Callable".msg = "Use collections.abc.Callable instead."
+"typing.Iterator".msg = "Use collections.abc.Iterator instead."
+"typing.Mapping".msg = "Use collections.abc.Mapping instead."
+"typing.Sequence".msg = "Use collections.abc.Sequence instead."
+"typing.Set".msg = "Use collections.abc.Set instead."
+"typing.Self".msg = "Use scikit_build_core._compat.typing.Self instead."
+"typing_extensions.Self".msg = "Use scikit_build_core._compat.typing.Self instead."
+"typing.assert_never".msg = "Use scikit_build_core._compat.typing.assert_never instead."
+"importlib.resources".msg = "Use scikit_build_core._compat.importlib.resources instead."
+"importlib_resources".msg = "Use scikit_build_core._compat.importlib.resources instead."
+
 [tool.ruff.lint.per-file-ignores]
-"*.pyi" = ["D"]  # pydocstyle
+"tests/**" = ["T20", "ANN"]
+"docs/**" = ["T20"]
+"noxfile.py" = ["T20", "TID251"]
+"*.pyi" = ["D418", "PYI021"]  # pydocstyle
 "*.ipynb" = [
     "D",    # pydocstyle
     "E402", # Allow imports to appear anywhere in Jupyter notebooks
     "I002", # Allow missing `from __future__ import annotations` import
-    "I001", # Allow missing unsorted import
 ]
 
 [tool.ruff.lint.pydocstyle]

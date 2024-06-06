@@ -7,7 +7,9 @@ import math
 import numpy as np
 from qubovert import PUBO
 
-from mqt.qao import Constraints, ObjectiveFunction, Variables
+from .constraints import Constraints
+from .objectivefunction import ObjectiveFunction
+from .variables import Variables
 
 
 class Problem:
@@ -149,7 +151,8 @@ class Problem:
 
         return self.pubo
 
-    def _upper_bound_with_only_positive_coefficient(self, cost_function: PUBO) -> float | bool:
+    @staticmethod
+    def _upper_bound_with_only_positive_coefficient(cost_function: PUBO) -> float | bool:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -172,7 +175,8 @@ class Problem:
                 upperbound += cost_function[key]
         return upperbound
 
-    def _maximum_qubo_coefficient(self, cost_function: PUBO) -> float:
+    @staticmethod
+    def _maximum_qubo_coefficient(cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -196,7 +200,8 @@ class Problem:
                 offset = cost_function[key]
         return max_coeff + offset
 
-    def _vlm(self, cost_function: PUBO) -> float:
+    @staticmethod
+    def _vlm(cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -224,7 +229,8 @@ class Problem:
                         n_sum[elem] -= cost_function[key]
         return float(np.max([np.array(list(p_sum.values())), np.array(list(n_sum.values()))]))
 
-    def _momc(self, cost_function: PUBO, constraint_function: PUBO) -> float:
+    @staticmethod
+    def _momc(cost_function: PUBO, constraint_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -273,7 +279,8 @@ class Problem:
             return wc_max
         return max(1.0, wc_max / wg_min)
 
-    def _moc(self, cost_function: PUBO, constraint_function: PUBO) -> float:
+    @staticmethod
+    def _moc(cost_function: PUBO, constraint_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -337,7 +344,8 @@ class Problem:
                     val = v
         return max(1, val)
 
-    def upper_lower_bound_naive_method(self, cost_function: PUBO) -> float:
+    @staticmethod
+    def upper_lower_bound_naive_method(cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -357,7 +365,8 @@ class Problem:
                     lower_bound += cost_function[key]
         return upper_bound - lower_bound
 
-    def upper_lower_bound_posiform_and_negaform_method(self, cost_function: PUBO) -> float:
+    @staticmethod
+    def upper_lower_bound_posiform_and_negaform_method(cost_function: PUBO) -> float:
         """function for estimating the weights for constraints
 
         Keyword arguments:
@@ -392,7 +401,8 @@ class Problem:
                 upperbound += n_sum[key]
         return upperbound - lowerbound
 
-    def _sequential_penalty_increase(self, current_lambda: float) -> float:
+    @staticmethod
+    def _sequential_penalty_increase(current_lambda: float) -> float:
         """function for updating weights for constraints
 
         Keyword arguments:
@@ -403,7 +413,8 @@ class Problem:
         """
         return current_lambda * 10
 
-    def _scaled_sequential_penalty_increase(self, current_lambda: float, wu: float, t: int) -> float:
+    @staticmethod
+    def _scaled_sequential_penalty_increase(current_lambda: float, wu: float, t: int) -> float:
         """function for updating weights for constraints
 
         Keyword arguments:
@@ -417,7 +428,8 @@ class Problem:
         scale_factor = wu ** (1 / t)
         return float(round(current_lambda * scale_factor))
 
-    def _binary_search_penalty_algorithm(self, current_lambda: float, wu: float) -> float:
+    @staticmethod
+    def _binary_search_penalty_algorithm(current_lambda: float, wu: float) -> float:
         """function for updating weights for constraints
 
         Keyword arguments:

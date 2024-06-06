@@ -7,7 +7,7 @@ from qubovert import PUBO, boolean_var
 # for managing symbols
 from sympy import Expr, expand
 
-from mqt.qao.variables import Variables
+from .variables import Variable, Variables
 
 
 class Constraints:
@@ -204,11 +204,11 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
             a = self._convert_expression_logic(
-                expand(cast(Expr, (el[0]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el[0]))).evalf(),
                 var.binary_variables_name_weight,
             )
             b = self._convert_expression_logic(
-                expand(cast(Expr, (el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = 2 * a * b - a - b + 1
@@ -218,15 +218,7 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
 
-            op = []
-            for e in el:
-                for elms in var.binary_variables_name_weight.values():
-                    if isinstance(elms, list):
-                        for elm in elms:
-                            if not isinstance(elm, str) and e == next(iter(elm[0].variables)):
-                                op.append(elm[0])  # noqa: PERF401
-                    elif e == next(iter(elms[0].variables)):
-                        op.append(elms[0])
+            op = self._logic_constraint(el, var)
 
             ret = 2 * op[0] * op[1] - op[0] - op[1] + 1
         return ret
@@ -243,60 +235,34 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).replace("~", "").split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2 = self._constraint_check_sub_single_var(
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2 = self._constraint_check_sub_list_var(
+                            solution,
+                            variables,
+                            expr1,
+                            expr2,
+                            var,
+                            expr1_to_sub,
+                            expr2_to_sub,
+                        )
         try:
             return bool(expr1) != bool(expr2)
         except ValueError:
             return False
 
-    def _not_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _not_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the not constraint penalty function.
 
         Keyword arguments:
@@ -307,8 +273,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).replace("~", "").split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -360,15 +326,15 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
             a = self._convert_expression_logic(
-                expand(cast(Expr, (el2[0]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el2[0]))).evalf(),
                 var.binary_variables_name_weight,
             )
             b = self._convert_expression_logic(
-                expand(cast(Expr, (el2[1]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el2[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             c = self._convert_expression_logic(
-                expand(cast(Expr, (el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = a * b - 2 * (a + b) * c + 3 * c
@@ -383,15 +349,7 @@ class Constraints:
                 return False
 
             el = [el2[0], el2[1], el[1]]
-            op = []
-            for e in el:
-                for elms in var.binary_variables_name_weight.values():
-                    if isinstance(elms, list):
-                        for elm in elms:
-                            if not isinstance(elm, str) and e == next(iter(elm[0].variables)):
-                                op.append(elm[0])  # noqa: PERF401
-                    elif e == next(iter(elms[0].variables)):
-                        op.append(elms[0])
+            op = self._logic_constraint(el, var)
 
             ret = op[0] * op[1] - 2 * (op[0] + op[1]) * op[2] + 3 * op[2]
         return ret
@@ -415,9 +373,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()  # type: ignore[no-untyped-call]
-        expr3 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el2[0]))).evalf()
+        expr2 = expand(cast(Expr, (el2[1]))).evalf()
+        expr3 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
@@ -425,68 +383,27 @@ class Constraints:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr3_to_sub:
-                            expr3 = expr3.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
+                            expr1_to_sub,
+                            expr2_to_sub,
+                            expr3_to_sub,
+                            expr1,
+                            expr2,
+                            expr3,
+                            solution[var],
+                            variables.variables_dict[var],
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr3_to_sub:
-                                                expr3 = expr3.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr3_to_sub:
-                                            expr3 = expr3.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr3_to_sub:
-                                    expr3 = expr3.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2, expr3 = self._constraint_check_three_sub_list_var(
+                            solution, variables, expr1, expr2, expr3, var, expr1_to_sub, expr2_to_sub, expr3_to_sub
+                        )
         try:
             return bool(expr1) and bool(expr2) == bool(expr3)
         except ValueError:
             return False
 
-    def _and_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _and_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the and constraint penalty function.
 
         Keyword arguments:
@@ -504,9 +421,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()  # type: ignore[no-untyped-call]
-        expr3 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el2[0]))).evalf()
+        expr2 = expand(cast(Expr, (el2[1]))).evalf()
+        expr3 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -565,15 +482,15 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
             a = self._convert_expression_logic(
-                expand(cast(Expr, (el2[0]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el2[0]))).evalf(),
                 var.binary_variables_name_weight,
             )
             b = self._convert_expression_logic(
-                expand(cast(Expr, (el2[1]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el2[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             c = self._convert_expression_logic(
-                expand(cast(Expr, (el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = a * b + (a + b) * (1 - 2 * c) + c
@@ -588,15 +505,7 @@ class Constraints:
                 return False
 
             el = [el2[0], el2[1], el[1]]
-            op = []
-            for e in el:
-                for elms in var.binary_variables_name_weight.values():
-                    if isinstance(elms, list):
-                        for elm in elms:
-                            if not isinstance(elm, str) and e == next(iter(elm[0].variables)):
-                                op.append(elm[0])  # noqa: PERF401
-                    elif e == next(iter(elms[0].variables)):
-                        op.append(elms[0])
+            op = self._logic_constraint(el, var)
             ret = op[0] * op[1] + (op[0] + op[1]) * (1 - 2 * op[2]) + op[2]
         return ret
 
@@ -619,9 +528,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()  # type: ignore[no-untyped-call]
-        expr3 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el2[0]))).evalf()
+        expr2 = expand(cast(Expr, (el2[1]))).evalf()
+        expr3 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
@@ -629,68 +538,27 @@ class Constraints:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr3_to_sub:
-                            expr3 = expr3.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
+                            expr1_to_sub,
+                            expr2_to_sub,
+                            expr3_to_sub,
+                            expr1,
+                            expr2,
+                            expr3,
+                            solution[var],
+                            variables.variables_dict[var],
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr3_to_sub:
-                                                expr3 = expr3.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr3_to_sub:
-                                            expr3 = expr3.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr3_to_sub:
-                                    expr3 = expr3.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2, expr3 = self._constraint_check_three_sub_list_var(
+                            solution, variables, expr1, expr2, expr3, var, expr1_to_sub, expr2_to_sub, expr3_to_sub
+                        )
         try:
             return bool(expr1) or bool(expr2) == bool(expr3)
         except ValueError:
             return False
 
-    def _or_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _or_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the or constraint penalty function.
 
         Keyword arguments:
@@ -708,9 +576,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()  # type: ignore[no-untyped-call]
-        expr3 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el2[0]))).evalf()
+        expr2 = expand(cast(Expr, (el2[1]))).evalf()
+        expr3 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -744,6 +612,19 @@ class Constraints:
             return bool(expr1) or bool(expr2) == bool(expr3)
         except ValueError:
             return False
+
+    @staticmethod
+    def _logic_constraint(el: list[str], var: Variables) -> list[PUBO]:
+        op = []
+        for e in el:
+            for elms in var.binary_variables_name_weight.values():
+                if isinstance(elms, list):
+                    for elm in elms:
+                        if not isinstance(elm, str) and e == next(iter(elm[0].variables)):
+                            op.append(elm[0])  # noqa: PERF401
+                elif e == next(iter(elms[0].variables)):
+                    op.append(elms[0])
+        return op
 
     def _xor_constraint(self, elem: tuple[str, bool, bool, bool], var: Variables) -> PUBO | bool:
         """function for writing the xor constraint penalty function.
@@ -767,9 +648,9 @@ class Constraints:
             if len(el2) != 2:
                 print("Wrong constraint format\n")
                 return False
-            a = self._convert_expression_logic(expand(cast(Expr, (el2[0]))).evalf(), var.binary_variables_name_weight)  # type: ignore[no-untyped-call]
-            b = self._convert_expression_logic(expand(cast(Expr, (el2[1]))).evalf(), var.binary_variables_name_weight)  # type: ignore[no-untyped-call]
-            c = self._convert_expression_logic(expand(cast(Expr, (el[1]))).evalf(), var.binary_variables_name_weight)  # type: ignore[no-untyped-call]
+            a = self._convert_expression_logic(expand(cast(Expr, (el2[0]))).evalf(), var.binary_variables_name_weight)
+            b = self._convert_expression_logic(expand(cast(Expr, (el2[1]))).evalf(), var.binary_variables_name_weight)
+            c = self._convert_expression_logic(expand(cast(Expr, (el[1]))).evalf(), var.binary_variables_name_weight)
             ret = a + b + c - 2 * a * c - 2 * b * c - 2 * a * b + 4 * a * b * c
         else:
             el = str(elem[0]).replace(" ", "").split("=")
@@ -781,20 +662,82 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
             el = [el2[0], el2[1], el[1]]
-            op = []
-            for e in el:
-                for elms in var.binary_variables_name_weight.values():
-                    if isinstance(elms, list):
-                        for elm in elms:
-                            if not isinstance(elm, str) and e == next(iter(elm[0].variables)):
-                                op.append(elm[0])  # noqa: PERF401
-                    elif e == next(iter(elms[0].variables)):
-                        op.append(elms[0])
+            op = self._logic_constraint(el, var)
             a = op[0]
             b = op[1]
             c = op[2]
             ret = a + b + c - 2 * a * c - 2 * b * c - 2 * a * b + 4 * a * b * c
         return ret
+
+    @staticmethod
+    def _constraint_check_three_sub_single_var(
+        expr1_to_sub: bool,
+        expr2_to_sub: bool,
+        expr3_to_sub: bool,
+        expr1: Expr,
+        expr2: Expr,
+        expr3: Expr,
+        sol_val: float,
+        variable: Variable,
+    ) -> tuple[Expr, Expr, Expr]:
+        if expr1_to_sub:
+            expr1 = expr1.subs({variable.symbol: sol_val})
+        if expr2_to_sub:
+            expr2 = expr2.subs({variable.symbol: sol_val})
+        if expr3_to_sub:
+            expr3 = expr3.subs({variable.symbol: sol_val})
+        return expr1, expr2, expr3
+
+    def _constraint_check_three_sub_list_var(
+        self,
+        solution: dict[str, Any],
+        variables: Variables,
+        expr1: Expr,
+        expr2: Expr,
+        expr3: Expr,
+        var: str,
+        expr1_to_sub: bool,
+        expr2_to_sub: bool,
+        expr3_to_sub: bool,
+    ) -> tuple[Expr, Expr, Expr]:
+        for i in range(len(solution[var])):
+            if isinstance(solution[var][i], list):
+                for j in range(len(solution[var][i])):
+                    if isinstance(solution[var][i][j], list):
+                        for k in range(len(solution[var][i][j])):
+                            expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
+                                expr1_to_sub,
+                                expr2_to_sub,
+                                expr3_to_sub,
+                                expr1,
+                                expr2,
+                                expr3,
+                                solution[var][i][j][k],
+                                variables.variables_dict[var][i][j][k],
+                            )
+                    else:
+                        expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
+                            expr1_to_sub,
+                            expr2_to_sub,
+                            expr3_to_sub,
+                            expr1,
+                            expr2,
+                            expr3,
+                            solution[var][i][j],
+                            variables.variables_dict[var][i][j],
+                        )
+            else:
+                expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
+                    expr1_to_sub,
+                    expr2_to_sub,
+                    expr3_to_sub,
+                    expr1,
+                    expr2,
+                    expr3,
+                    solution[var][i],
+                    variables.variables_dict[var][i],
+                )
+        return expr1, expr2, expr3
 
     def _xor_constraint_check(self, constraint: str, variables: Variables, solution: dict[str, Any]) -> bool:
         """function for checking the xor constraint penalty function.
@@ -815,9 +758,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()  # type: ignore[no-untyped-call]
-        expr3 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el2[0]))).evalf()
+        expr2 = expand(cast(Expr, (el2[1]))).evalf()
+        expr3 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
@@ -825,68 +768,27 @@ class Constraints:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr3_to_sub:
-                            expr3 = expr3.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
+                            expr1_to_sub,
+                            expr2_to_sub,
+                            expr3_to_sub,
+                            expr1,
+                            expr2,
+                            expr3,
+                            solution[var],
+                            variables.variables_dict[var],
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr3_to_sub:
-                                                expr3 = expr3.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr3_to_sub:
-                                            expr3 = expr3.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr3_to_sub:
-                                    expr3 = expr3.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2, expr3 = self._constraint_check_three_sub_list_var(
+                            solution, variables, expr1, expr2, expr3, var, expr1_to_sub, expr2_to_sub, expr3_to_sub
+                        )
         try:
             return bool(expr1) ^ bool(expr2) == bool(expr3)
         except ValueError:
             return False
 
-    def _xor_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _xor_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the xor constraint penalty function.
 
         Keyword arguments:
@@ -904,9 +806,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()  # type: ignore[no-untyped-call]
-        expr3 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el2[0]))).evalf()
+        expr2 = expand(cast(Expr, (el2[1]))).evalf()
+        expr3 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -940,6 +842,59 @@ class Constraints:
             return bool(expr1) ^ bool(expr2) == bool(expr3)
         except ValueError:
             return False
+
+    @staticmethod
+    def _constraint_check_sub_single_var(
+        expr1_to_sub: bool, expr2_to_sub: bool, expr1: Expr, expr2: Expr, sol_val: float, variable: Variable
+    ) -> tuple[Expr, Expr]:
+        if expr1_to_sub:
+            expr1 = expr1.subs({variable.symbol: sol_val})
+        if expr2_to_sub:
+            expr2 = expr2.subs({variable.symbol: sol_val})
+        return expr1, expr2
+
+    def _constraint_check_sub_list_var(
+        self,
+        solution: dict[str, Any],
+        variables: Variables,
+        expr1: Expr,
+        expr2: Expr,
+        var: str,
+        expr1_to_sub: bool,
+        expr2_to_sub: bool,
+    ) -> tuple[Expr, Expr]:
+        for i in range(len(solution[var])):
+            if isinstance(solution[var][i], list):
+                for j in range(len(solution[var][i])):
+                    if isinstance(solution[var][i][j], list):
+                        for k in range(len(solution[var][i][j])):
+                            expr1, expr2 = self._constraint_check_sub_single_var(
+                                expr1_to_sub,
+                                expr2_to_sub,
+                                expr1,
+                                expr2,
+                                solution[var][i][j][k],
+                                variables.variables_dict[var][i][j][k],
+                            )
+                    else:
+                        expr1, expr2 = self._constraint_check_sub_single_var(
+                            expr1_to_sub,
+                            expr2_to_sub,
+                            expr1,
+                            expr2,
+                            solution[var][i][j],
+                            variables.variables_dict[var][i][j],
+                        )
+            else:
+                expr1, expr2 = self._constraint_check_sub_single_var(
+                    expr1_to_sub,
+                    expr2_to_sub,
+                    expr1,
+                    expr2,
+                    solution[var][i],
+                    variables.variables_dict[var][i],
+                )
+        return expr1, expr2
 
     def _greq_constraint(
         self, elem: tuple[str, bool, bool, bool], var: Variables, aux: Variables, i: int, j: int
@@ -975,7 +930,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -984,11 +939,11 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
 
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            _min_val, max_val, const = self._min_max_const_estimation(exp)
             if max_val + const > 0:
                 if len(str(max_val + const).split(".")) == 2:
                     if elem[3] and float("0." + str(max_val + const).split(".")[1]) != 0.0:
@@ -1010,8 +965,8 @@ class Constraints:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split(">=")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()  # type: ignore[no-untyped-call]
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            _min_val, max_val, const = self._min_max_const_estimation(exp)
             if max_val + const > 0:
                 if len(str(max_val + const).split(".")) == 2:
                     precision = float("0." + str(max_val + const).split(".")[1])
@@ -1048,60 +1003,28 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split(">=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2 = self._constraint_check_sub_single_var(
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2 = self._constraint_check_sub_list_var(
+                            solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
+                        )
         try:
             return float(expr1) >= float(expr2)
         except ValueError:
             return False
 
-    def _greq_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _greq_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the grater equal constraint penalty function.
 
         Keyword arguments:
@@ -1112,8 +1035,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split(">=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1174,7 +1097,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -1183,10 +1106,10 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            min_val, _max_val, const = self._min_max_const_estimation(exp)
             const = -const
             if const - min_val > 0:
                 if len(str(const - min_val).split(".")) == 2:
@@ -1209,8 +1132,8 @@ class Constraints:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split("<=")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()  # type: ignore[no-untyped-call]
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            min_val, _max_val, const = self._min_max_const_estimation(exp)
             const = -const
             if const - min_val > 0:
                 if len(str(const - min_val).split(".")) == 2:
@@ -1247,60 +1170,28 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split("<=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2 = self._constraint_check_sub_single_var(
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2 = self._constraint_check_sub_list_var(
+                            solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
+                        )
         try:
             return float(expr1) <= float(expr2)
         except ValueError:
             return False
 
-    def _lteq_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _lteq_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the less equal constraint penalty function.
 
         Keyword arguments:
@@ -1311,8 +1202,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split("<=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1373,7 +1264,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -1382,10 +1273,10 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            _min_val, max_val, const = self._min_max_const_estimation(exp)
             if max_val + const > 0:
                 if len(str(max_val + const).split(".")) == 2:
                     if elem[3] and float("0." + str(max_val + const).split(".")[1]) != 0.0:
@@ -1410,8 +1301,8 @@ class Constraints:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split(">")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()  # type: ignore[no-untyped-call]
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            _min_val, max_val, const = self._min_max_const_estimation(exp)
             if max_val + const > 0:
                 if len(str(max_val + const).split(".")) == 2:
                     precision = float("0." + str(max_val + const).split(".")[1])
@@ -1456,60 +1347,28 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split(">")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2 = self._constraint_check_sub_single_var(
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2 = self._constraint_check_sub_list_var(
+                            solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
+                        )
         try:
             return float(expr1) > float(expr2)
         except ValueError:
             return False
 
-    def _grt_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _grt_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the greater equal constraint penalty function.
 
         Keyword arguments:
@@ -1520,8 +1379,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split(">")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1582,7 +1441,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -1591,10 +1450,10 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            min_val, _max_val, const = self._min_max_const_estimation(exp)
             precision = 1.0
             const = -const
             if const - min_val > 0:
@@ -1607,9 +1466,8 @@ class Constraints:
                         precision = float("0." + str(const - min_val).split(".")[1])
                     if precision == 0.0:
                         precision = 1
-                else:
-                    if elem[3]:
-                        precision = min(1, var_precision)
+                elif elem[3]:
+                    precision = min(1, var_precision)
                 if precision != const - min_val:
                     aux_var = aux.add_continuous_variable("aux" + format(j), precision, const - min_val, precision)
                     j += 1
@@ -1622,8 +1480,8 @@ class Constraints:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split("<")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()  # type: ignore[no-untyped-call]
-            min_val, max_val, const = self._min_max_const_estimation(exp)
+            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            min_val, _max_val, const = self._min_max_const_estimation(exp)
             const = -const
             if const - min_val > 0:
                 if len(str(const - min_val).split(".")) == 2:
@@ -1669,60 +1527,28 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split("<")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2 = self._constraint_check_sub_single_var(
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2 = self._constraint_check_sub_list_var(
+                            solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
+                        )
         try:
             return float(expr1) < float(expr2)
         except ValueError:
             return False
 
-    def _lt_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _lt_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the less equal constraint penalty function.
 
         Keyword arguments:
@@ -1733,8 +1559,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split("<")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1779,13 +1605,13 @@ class Constraints:
         if elem[2]:
             el = str(elem[0]).split("=")
             exp = self._convert_expression(
-                expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),  # type: ignore[no-untyped-call]
+                expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = (exp) ** 2
         else:
             el = str(elem[0]).split("=")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()  # type: ignore[no-untyped-call]
+            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
             hamiltonian = self._expression_to_hamiltonian(
                 cast(Expr, exp), list(var.binary_variables_name_weight.values())
             )
@@ -1804,60 +1630,28 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
             for var in solution:
                 if var in variables.variables_dict:
                     if isinstance(solution[var], float):
-                        if expr1_to_sub:
-                            expr1 = expr1.subs({variables.variables_dict[var].symbol: solution[var]})
-                        if expr2_to_sub:
-                            expr2 = expr2.subs({variables.variables_dict[var].symbol: solution[var]})
+                        expr1, expr2 = self._constraint_check_sub_single_var(
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                        )
                     elif isinstance(solution[var], list):
-                        for i in range(len(solution[var])):
-                            if isinstance(solution[var][i], list):
-                                for j in range(len(solution[var][i])):
-                                    if isinstance(solution[var][i][j], list):
-                                        for k in range(len(solution[var][i][j])):
-                                            if expr1_to_sub:
-                                                expr1 = expr1.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                            if expr2_to_sub:
-                                                expr2 = expr2.subs(
-                                                    {
-                                                        variables.variables_dict[var][i][j][k].symbol: solution[var][i][
-                                                            j
-                                                        ][k]
-                                                    }
-                                                )
-                                    else:
-                                        if expr1_to_sub:
-                                            expr1 = expr1.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                                        if expr2_to_sub:
-                                            expr2 = expr2.subs(
-                                                {variables.variables_dict[var][i][j].symbol: solution[var][i][j]}
-                                            )
-                            else:
-                                if expr1_to_sub:
-                                    expr1 = expr1.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
-                                if expr2_to_sub:
-                                    expr2 = expr2.subs({variables.variables_dict[var][i].symbol: solution[var][i]})
+                        expr1, expr2 = self._constraint_check_sub_list_var(
+                            solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
+                        )
         try:
             return float(expr1) == float(expr2)
         except ValueError:
             return False
 
-    def _eq_constraint_check_no_sub(self, constraint: str, solution: dict[str, int]) -> bool:
+    @staticmethod
+    def _eq_constraint_check_no_sub(constraint: str, solution: dict[str, int]) -> bool:
         """function for checking the equality constraint penalty function.
 
         Keyword arguments:
@@ -1868,8 +1662,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()  # type: ignore[no-untyped-call]
-        expr2 = expand(cast(Expr, (el[1]))).evalf()  # type: ignore[no-untyped-call]
+        expr1 = expand(cast(Expr, (el[0]))).evalf()
+        expr2 = expand(cast(Expr, (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1897,6 +1691,88 @@ class Constraints:
         except ValueError:
             return False
 
+    @staticmethod
+    def _convert_expression_power(
+        powers: list[str], binary_variables_name_weight: dict[str, Any], to_add: float
+    ) -> float | bool:
+        temp = 0.0
+        try:
+            power = int(powers[1])
+        except TypeError:
+            print("Expression not supported\n")
+            return False
+        key = powers[0]
+        if key not in binary_variables_name_weight:
+            print("Expression not supported\n")
+            return False
+        if isinstance(binary_variables_name_weight[key], list):
+            encoding = binary_variables_name_weight[key][0]
+            if encoding == "dictionary":
+                for elem in binary_variables_name_weight[key]:
+                    if not isinstance(elem, str):
+                        t = 1.0
+                        t *= elem[0]
+                        if len(elem) == 2:
+                            t *= elem[1] ** power
+                        elif len(elem) == 3:
+                            t = t * elem[1] ** power + elem[2] ** power
+                        temp += t
+            else:
+                for elem in binary_variables_name_weight[key]:
+                    if not isinstance(elem, str):
+                        t = 1.0
+                        t *= elem[0]
+                        if len(elem) == 2:
+                            t *= elem[1]
+                        elif len(elem) == 3:
+                            t = t * elem[1] + elem[2]
+                        temp += t
+                temp **= power
+        else:
+            t = 1.0
+            t *= binary_variables_name_weight[key][0]
+            if len(binary_variables_name_weight[key]) == 2:
+                t *= (binary_variables_name_weight[key][1]) ** power
+            elif len(binary_variables_name_weight[key]) == 3:
+                t = (t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]) ** power
+            temp += t
+        to_add *= temp
+        return to_add
+
+    @staticmethod
+    def _convert_expression_no_power(
+        poly_field: str, binary_variables_name_weight: dict[str, Any], to_add: float
+    ) -> float | bool:
+        temp = 0.0
+        key = poly_field
+        if key not in binary_variables_name_weight:
+            try:
+                to_add *= float(key)
+            except TypeError:
+                print("Expression not supported\n")
+                return False
+        else:
+            if isinstance(binary_variables_name_weight[key], list):
+                for elem in binary_variables_name_weight[key]:
+                    if not isinstance(elem, str):
+                        t = 1.0
+                        t *= elem[0]
+                        if len(elem) == 2:
+                            t *= elem[1]
+                        elif len(elem) == 3:
+                            t = t * elem[1] + elem[2]
+                        temp += t
+            else:
+                t = 1.0
+                t *= binary_variables_name_weight[key][0]
+                if len(binary_variables_name_weight[key]) == 2:
+                    t *= binary_variables_name_weight[key][1]
+                elif len(binary_variables_name_weight[key]) == 3:
+                    t = t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]
+                temp += t
+            to_add *= temp
+        return to_add
+
     def _convert_expression(self, expr: Expr, binary_variables_name_weight: dict[str, Any]) -> PUBO | bool:
         """function for translating an expression in the problem variable
 
@@ -1911,84 +1787,19 @@ class Constraints:
         func = PUBO()
         sign = "+"
         for field in fields:
-            if field != "+" and field != "-":
+            if field not in {"+", "-"}:
                 poly_fields = field.split("*")
                 to_add = 1.0
                 for poly_field in poly_fields:
                     powers = poly_field.split("^")
-                    temp = 0.0
                     if len(powers) == 2:
-                        try:
-                            power = int(powers[1])
-                        except TypeError:
-                            print("Expression not supported\n")
-                            return False
-                        key = powers[0]
-                        if key not in binary_variables_name_weight:
-                            print("Expression not supported\n")
-                            return False
-                        if isinstance(binary_variables_name_weight[key], list):
-                            encoding = binary_variables_name_weight[key][0]
-                            if encoding == "dictionary":
-                                for elem in binary_variables_name_weight[key]:
-                                    if not isinstance(elem, str):
-                                        t = 1.0
-                                        t *= elem[0]
-                                        if len(elem) == 2:
-                                            t *= elem[1] ** power
-                                        elif len(elem) == 3:
-                                            t = t * elem[1] ** power + elem[2] ** power
-                                        temp += t
-                            else:
-                                for elem in binary_variables_name_weight[key]:
-                                    if not isinstance(elem, str):
-                                        t = 1.0
-                                        t *= elem[0]
-                                        if len(elem) == 2:
-                                            t *= elem[1]
-                                        elif len(elem) == 3:
-                                            t = t * elem[1] + elem[2]
-                                        temp += t
-                                temp = temp**power
-                        else:
-                            t = 1.0
-                            t *= binary_variables_name_weight[key][0]
-                            if len(binary_variables_name_weight[key]) == 2:
-                                t *= (binary_variables_name_weight[key][1]) ** power
-                            elif len(binary_variables_name_weight[key]) == 3:
-                                t = (
-                                    t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]
-                                ) ** power
-                            temp += t
-                        to_add *= temp
+                        ret = self._convert_expression_power(powers, binary_variables_name_weight, to_add)
                     else:
-                        key = poly_field
-                        if key not in binary_variables_name_weight:
-                            try:
-                                to_add *= float(key)
-                            except TypeError:
-                                print("Expression not supported\n")
-                                return False
-                        else:
-                            if isinstance(binary_variables_name_weight[key], list):
-                                for elem in binary_variables_name_weight[key]:
-                                    if not isinstance(elem, str):
-                                        t = 1.0
-                                        t *= elem[0]
-                                        if len(elem) == 2:
-                                            t *= elem[1]
-                                        elif len(elem) == 3:
-                                            t = t * elem[1] + elem[2]
-                                        temp += t
-                            else:
-                                t = 1.0
-                                t *= binary_variables_name_weight[key][0]
-                                if len(binary_variables_name_weight[key]) == 2:
-                                    t *= binary_variables_name_weight[key][1]
-                                elif len(binary_variables_name_weight[key]) == 3:
-                                    t = t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]
-                                temp += t
-                            to_add *= temp
+                        ret = self._convert_expression_no_power(poly_field, binary_variables_name_weight, to_add)
+
+                    if isinstance(ret, bool):
+                        return False
+                    to_add = ret
 
                 if sign == "+":
                     func += to_add
@@ -1997,6 +1808,167 @@ class Constraints:
             else:
                 sign = field
         return func
+
+    @staticmethod
+    def _convert_expression_prec_power(
+        powers: list[str],
+        binary_variables_name_weight: dict[str, Any],
+        variables_dict: dict[str, Any],
+        to_add: float,
+        min_precision: float,
+    ) -> tuple[float, float] | bool:
+        temp = 0.0
+        try:
+            power = int(powers[1])
+        except TypeError:
+            print("Expression not supported\n")
+            return False
+        key = powers[0]
+        if key not in binary_variables_name_weight:
+            print("Expression not supported\n")
+            return False
+        if isinstance(binary_variables_name_weight[key], list):
+            encoding = binary_variables_name_weight[key][0]
+            if encoding == "dictionary":
+                for elem in binary_variables_name_weight[key]:
+                    if not isinstance(elem, str):
+                        t = 1.0
+                        t *= elem[0]
+                        if len(elem) == 2:
+                            t *= elem[1] ** power
+                        elif len(elem) == 3:
+                            t = t * elem[1] ** power + elem[2] ** power
+                        temp += t
+            else:
+                for elem in binary_variables_name_weight[key]:
+                    if not isinstance(elem, str):
+                        t = 1.0
+                        t *= elem[0]
+                        if len(elem) == 2:
+                            t *= elem[1]
+                        elif len(elem) == 3:
+                            t = t * elem[1] + elem[2]
+                        temp += t
+                temp **= power
+        else:
+            t = 1.0
+            t *= binary_variables_name_weight[key][0]
+            if len(binary_variables_name_weight[key]) == 2:
+                t *= (binary_variables_name_weight[key][1]) ** power
+            elif len(binary_variables_name_weight[key]) == 3:
+                t = (t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]) ** power
+            temp += t
+        to_add *= temp
+        name = key.split("_")
+        if len(name) == 1:
+            if variables_dict[name[0]].type == "c" and min_precision > variables_dict[name[0]].precision:
+                min_precision = variables_dict[name[0]].precision
+        elif (
+            len(name) == 2
+            and name[1].isnumeric()
+            and name[0] in variables_dict
+            and variables_dict[name[0]][int(name[1])].type == "c"
+        ):
+            min_precision = min(min_precision, variables_dict[name[0]][int(name[1])].precision)
+        elif (
+            len(name) == 3
+            and name[1].isnumeric()
+            and name[2].isnumeric()
+            and name[0] in variables_dict
+            and variables_dict[name[0]][int(name[1])][int(name[2])].type == "c"
+        ):
+            min_precision = min(min_precision, variables_dict[name[0]][int(name[1])][int(name[2])].precision)
+        elif (
+            len(name) == 4
+            and name[1].isnumeric()
+            and name[2].isnumeric()
+            and name[3].isnumeric()
+            and name[0] in variables_dict
+            and variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].type == "c"
+            and min_precision > variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].precision
+        ):
+            min_precision = variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].precision
+        elif (
+            name is variables_dict.keys()
+            and variables_dict[name[0]].type == "c"
+            and min_precision > variables_dict[name[0]].precision
+        ):
+            min_precision = variables_dict[name[0]].precision
+
+        return to_add, min_precision
+
+    @staticmethod
+    def _convert_expression_prec_no_power(
+        poly_field: str,
+        binary_variables_name_weight: dict[str, Any],
+        variables_dict: dict[str, Any],
+        to_add: float,
+        min_precision: float,
+    ) -> tuple[float, float] | bool:
+        temp = 0.0
+        key = poly_field
+        if key not in binary_variables_name_weight:
+            try:
+                to_add *= float(key)
+            except ValueError:
+                print("Expression not supported\n")
+                return False
+        else:
+            if isinstance(binary_variables_name_weight[key], list):
+                for elem in binary_variables_name_weight[key]:
+                    if not isinstance(elem, str):
+                        t = 1.0
+                        t *= elem[0]
+                        if len(elem) == 2:
+                            t *= elem[1]
+                        elif len(elem) == 3:
+                            t = t * elem[1] + elem[2]
+                        temp += t
+            else:
+                t = 1.0
+                t *= binary_variables_name_weight[key][0]
+                if len(binary_variables_name_weight[key]) == 2:
+                    t *= binary_variables_name_weight[key][1]
+                elif len(binary_variables_name_weight[key]) == 3:
+                    t = t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]
+                temp += t
+            to_add *= temp
+            name = key.split("_")
+            if len(name) == 1 and variables_dict[name[0]].type == "c":
+                min_precision = min(min_precision, variables_dict[name[0]].precision)
+            elif (
+                len(name) == 2
+                and name[1].isnumeric()
+                and name[0] in variables_dict
+                and variables_dict[name[0]][int(name[1])].type == "c"
+                and min_precision > variables_dict[name[0]][int(name[1])].precision
+            ):
+                min_precision = variables_dict[name[0]][int(name[1])].precision
+            elif len(name) == 3 and name[1].isnumeric() and name[2].isnumeric() and name[0] in variables_dict:
+                if (
+                    variables_dict[name[0]][int(name[1])][int(name[2])].type == "c"
+                    and min_precision > variables_dict[name[0]][int(name[1])][int(name[2])].precision
+                ):
+                    min_precision = variables_dict[name[0]][int(name[1])][int(name[2])].precision
+            elif (
+                len(name) == 4
+                and name[1].isnumeric()
+                and name[2].isnumeric()
+                and name[3].isnumeric()
+                and name[0] in variables_dict
+                and variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].type == "c"
+            ):
+                min_precision = min(
+                    min_precision,
+                    variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].precision,
+                )
+            elif (
+                name is variables_dict.keys()
+                and variables_dict[name[0]].type == "c"
+                and min_precision > variables_dict[name[0]].precision
+            ):
+                min_precision = variables_dict[name[0]].precision
+        return to_add, min_precision
 
     def _convert_expression_prec(
         self, expr: Expr, binary_variables_name_weight: dict[str, Any], variables_dict: dict[str, Any]
@@ -2013,172 +1985,26 @@ class Constraints:
         fields = str(expr).replace("**", "^").split(" ")
         func = PUBO()
         sign = "+"
-        min_precision = 1
+        min_precision = 1.0
         for field in fields:
-            if field != "+" and field != "-":
+            if field not in {"+", "-"}:
                 poly_fields = field.split("*")
                 to_add = 1.0
                 for poly_field in poly_fields:
                     powers = poly_field.split("^")
-                    temp = 0.0
+
                     if len(powers) == 2:
-                        try:
-                            power = int(powers[1])
-                        except TypeError:
-                            print("Expression not supported\n")
-                            return False
-                        key = powers[0]
-                        if key not in binary_variables_name_weight:
-                            print("Expression not supported\n")
-                            return False
-                        if isinstance(binary_variables_name_weight[key], list):
-                            encoding = binary_variables_name_weight[key][0]
-                            if encoding == "dictionary":
-                                for elem in binary_variables_name_weight[key]:
-                                    if not isinstance(elem, str):
-                                        t = 1.0
-                                        t *= elem[0]
-                                        if len(elem) == 2:
-                                            t *= elem[1] ** power
-                                        elif len(elem) == 3:
-                                            t = t * elem[1] ** power + elem[2] ** power
-                                        temp += t
-                            else:
-                                for elem in binary_variables_name_weight[key]:
-                                    if not isinstance(elem, str):
-                                        t = 1.0
-                                        t *= elem[0]
-                                        if len(elem) == 2:
-                                            t *= elem[1]
-                                        elif len(elem) == 3:
-                                            t = t * elem[1] + elem[2]
-                                        temp += t
-                                temp = temp**power
-                        else:
-                            t = 1.0
-                            t *= binary_variables_name_weight[key][0]
-                            if len(binary_variables_name_weight[key]) == 2:
-                                t *= (binary_variables_name_weight[key][1]) ** power
-                            elif len(binary_variables_name_weight[key]) == 3:
-                                t = (
-                                    t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]
-                                ) ** power
-                            temp += t
-                        to_add *= temp
-                        name = key.split("_")
-                        if len(name) == 1:
-                            if (
-                                variables_dict[name[0]].type == "c"
-                                and min_precision > variables_dict[name[0]].precision
-                            ):
-                                min_precision = variables_dict[name[0]].precision
-                        elif (
-                            len(name) == 2
-                            and name[1].isnumeric()
-                            and name[0] in variables_dict
-                            and variables_dict[name[0]][int(name[1])].type == "c"
-                        ):
-                            if min_precision > variables_dict[name[0]][int(name[1])].precision:
-                                min_precision = variables_dict[name[0]][int(name[1])].precision
-                        elif (
-                            len(name) == 3
-                            and name[1].isnumeric()
-                            and name[2].isnumeric()
-                            and name[0] in variables_dict
-                            and variables_dict[name[0]][int(name[1])][int(name[2])].type == "c"
-                        ):
-                            if min_precision > variables_dict[name[0]][int(name[1])][int(name[2])].precision:
-                                min_precision = variables_dict[name[0]][int(name[1])][int(name[2])].precision
-                        elif (
-                            len(name) == 4
-                            and name[1].isnumeric()
-                            and name[2].isnumeric()
-                            and name[3].isnumeric()
-                            and name[0] in variables_dict
-                            and variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].type == "c"
-                            and min_precision
-                            > variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].precision
-                        ):
-                            min_precision = variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].precision
-                        elif (
-                            name is variables_dict.keys()
-                            and variables_dict[name[0]].type == "c"
-                            and min_precision > variables_dict[name[0]].precision
-                        ):
-                            min_precision = variables_dict[name[0]].precision
+                        ret = self._convert_expression_prec_power(
+                            powers, binary_variables_name_weight, variables_dict, to_add, min_precision
+                        )
                     else:
-                        key = poly_field
-                        if key not in binary_variables_name_weight:
-                            try:
-                                to_add *= float(key)
-                            except ValueError:
-                                print("Expression not supported\n")
-                                return False
-                        else:
-                            if isinstance(binary_variables_name_weight[key], list):
-                                for elem in binary_variables_name_weight[key]:
-                                    if not isinstance(elem, str):
-                                        t = 1.0
-                                        t *= elem[0]
-                                        if len(elem) == 2:
-                                            t *= elem[1]
-                                        elif len(elem) == 3:
-                                            t = t * elem[1] + elem[2]
-                                        temp += t
-                            else:
-                                t = 1.0
-                                t *= binary_variables_name_weight[key][0]
-                                if len(binary_variables_name_weight[key]) == 2:
-                                    t *= binary_variables_name_weight[key][1]
-                                elif len(binary_variables_name_weight[key]) == 3:
-                                    t = t * binary_variables_name_weight[key][1] + binary_variables_name_weight[key][2]
-                                temp += t
-                            to_add *= temp
-                            name = key.split("_")
-                            if len(name) == 1 and variables_dict[name[0]].type == "c":
-                                if min_precision > variables_dict[name[0]].precision:
-                                    min_precision = variables_dict[name[0]].precision
-                            elif (
-                                len(name) == 2
-                                and name[1].isnumeric()
-                                and name[0] in variables_dict
-                                and variables_dict[name[0]][int(name[1])].type == "c"
-                                and min_precision > variables_dict[name[0]][int(name[1])].precision
-                            ):
-                                min_precision = variables_dict[name[0]][int(name[1])].precision
-                            elif (
-                                len(name) == 3
-                                and name[1].isnumeric()
-                                and name[2].isnumeric()
-                                and name[0] in variables_dict
-                            ):
-                                if (
-                                    variables_dict[name[0]][int(name[1])][int(name[2])].type == "c"
-                                    and min_precision > variables_dict[name[0]][int(name[1])][int(name[2])].precision
-                                ):
-                                    min_precision = variables_dict[name[0]][int(name[1])][int(name[2])].precision
-                            elif (
-                                len(name) == 4
-                                and name[1].isnumeric()
-                                and name[2].isnumeric()
-                                and name[3].isnumeric()
-                                and name[0] in variables_dict
-                                and variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].type == "c"
-                            ):
-                                if (
-                                    min_precision
-                                    > variables_dict[name[0]][int(name[1])][int(name[2])][int(name[3])].precision
-                                ):
-                                    min_precision = variables_dict[name[0]][int(name[1])][int(name[2])][
-                                        int(name[3])
-                                    ].precision
-                            else:
-                                if (
-                                    name is variables_dict.keys()
-                                    and variables_dict[name[0]].type == "c"
-                                    and min_precision > variables_dict[name[0]].precision
-                                ):
-                                    min_precision = variables_dict[name[0]].precision
+                        ret = self._convert_expression_prec_no_power(
+                            poly_field, binary_variables_name_weight, variables_dict, to_add, min_precision
+                        )
+                    if isinstance(ret, bool):
+                        return ret
+                    to_add = ret[0]
+                    min_precision = ret[1]
 
                 if sign == "+":
                     func += to_add
@@ -2188,7 +2014,8 @@ class Constraints:
                 sign = field
         return func, min_precision
 
-    def _convert_expression_logic(self, expr: Expr, binary_variables_name_weight: dict[str, Any]) -> boolean_var | bool:
+    @staticmethod
+    def _convert_expression_logic(expr: Expr, binary_variables_name_weight: dict[str, Any]) -> boolean_var | bool:
         """function for translating an expression in the problem variable in case of logic constraints
 
         Keyword arguments:
@@ -2211,7 +2038,8 @@ class Constraints:
             ret = binary_variables_name_weight[key][0]
         return ret
 
-    def _min_max_const_estimation(self, exp: PUBO) -> tuple[float, float, float]:
+    @staticmethod
+    def _min_max_const_estimation(exp: PUBO) -> tuple[float, float, float]:
         """function for estimating minimum and maximum value and the constraint value
 
         Keyword arguments:
@@ -2234,6 +2062,52 @@ class Constraints:
                 min_val += exp[key]
         return min_val, max_val, const
 
+    @staticmethod
+    def _expression_to_hamiltonian_power(
+        powers: list[str], binary_variables_name_weight_val: list[Any], to_add: float
+    ) -> float | bool:
+        try:
+            power = int(powers[1])
+        except TypeError:
+            print("Expression not supported\n")
+            return False
+        key = powers[0]
+        for elm in binary_variables_name_weight_val:
+            if isinstance(elm, list):
+                for el in elm:
+                    if not isinstance(el, str) and key == (next(iter(el[0].variables))):
+                        to_add *= el[0] ** power
+                        break
+            elif not isinstance(elm, str) and key == next(iter(elm[0].variables)):
+                to_add *= elm[0] ** power
+                break
+        return to_add
+
+    @staticmethod
+    def _expression_to_hamiltonian_no_power(
+        poly_field: str, binary_variables_name_weight_val: list[Any], to_add: float
+    ) -> float:
+        key = poly_field
+        is_float = False
+        try:
+            temp = float(key)
+        except ValueError:
+            pass
+        else:
+            to_add *= temp
+            is_float = True
+
+        if not is_float:
+            for elm in binary_variables_name_weight_val:
+                if isinstance(elm, list):
+                    for el in elm:
+                        if not isinstance(el, str) and key == next(iter(el[0].variables)):
+                            to_add *= el[0]
+                elif not isinstance(elm, str) and key == next(iter(elm[0].variables)):
+                    to_add *= elm[0]
+
+        return to_add
+
     def _expression_to_hamiltonian(self, exp: Expr, binary_variables_name_weight_val: list[Any]) -> PUBO:
         """function for translating an expression in the problem variable into an Hamiltonian when is directly written with the inside binary variables
 
@@ -2248,46 +2122,20 @@ class Constraints:
         hamiltonian = PUBO()
         sign = "+"
         for field in fields:
-            if field != "+" and field != "-":
+            if field not in {"+", "-"}:
                 poly_fields = field.split("*")
                 to_add = 1.0
                 for poly_field in poly_fields:
                     powers = poly_field.split("^")
                     if len(powers) == 2:
-                        try:
-                            power = int(powers[1])
-                        except TypeError:
-                            print("Expression not supported\n")
-                            return False
-                        key = powers[0]
-                        for elm in binary_variables_name_weight_val:
-                            if isinstance(elm, list):
-                                for el in elm:
-                                    if not isinstance(el, str) and key == (next(iter(el[0].variables))):
-                                        to_add *= el[0] ** power
-                                        break
-                            elif not isinstance(elm, str) and key == next(iter(elm[0].variables)):
-                                to_add *= elm[0] ** power
-                                break
+                        t = self._expression_to_hamiltonian_power(powers, binary_variables_name_weight_val, to_add)
+                        if not isinstance(t, bool):
+                            to_add = t
                     else:
-                        key = poly_field
-                        is_float = False
-                        try:
-                            temp = float(key)
-                        except ValueError:
-                            pass
-                        else:
-                            to_add *= temp
-                            is_float = True
+                        to_add = self._expression_to_hamiltonian_no_power(
+                            poly_field, binary_variables_name_weight_val, to_add
+                        )
 
-                        if not is_float:
-                            for elm in binary_variables_name_weight_val:
-                                if isinstance(elm, list):
-                                    for el in elm:
-                                        if not isinstance(el, str) and key == next(iter(el[0].variables)):
-                                            to_add *= el[0]
-                                elif not isinstance(elm, str) and key == next(iter(elm[0].variables)):
-                                    to_add *= elm[0]
                 if sign == "+":
                     hamiltonian += to_add
                 else:

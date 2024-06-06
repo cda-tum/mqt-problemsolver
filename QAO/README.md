@@ -17,7 +17,7 @@
 
 # MQT Quantum Auto Optimizer: Automatic Framework for Solving Optimization Problems with Quantum Computers
 
-MQT Quantum Auto Optimizer is a framework that allows one to automatically translate an optimization problem into a quantum-compliant formulation and to solve it with one of the main quantum solvers (Quantum Annelar, QAOA, VQE and GAS)
+MQT Quantum Auto Optimizer is a framework that allows one to automatically translate an optimization problem into a quantum-compliant formulation and to solve it with one of the main quantum solvers (Quantum Annealer, Quantum Approximate Optimization Algorithm, Variational Quantum Eigensolver and Grover Adaptive Search)
 
 MQT Quantum Auto Optimizer is part of the [Munich Quantum Toolkit (MQT)](https://mqt.readthedocs.io/) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/). This framework has been developed in collaboration with the [VLSI Lab](https://www.vlsilab.polito.it/) of [Politecnico di Torino](https://www.polito.it).
 

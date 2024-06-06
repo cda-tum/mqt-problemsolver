@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
-from math import ceil, log, sqrt
+from math import ceil, log, log2, sqrt
 from pathlib import Path
 from time import time_ns
 from typing import TYPE_CHECKING, Any
@@ -14,34 +14,28 @@ from docplex.mp.model import Model
 from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import DWaveSampler, EmbeddingComposite
 from matplotlib import rc
-from qiskit.algorithms import QAOA, VQE
-from qiskit.circuit import QuantumCircuit, Parameter
+from qiskit.circuit import Parameter, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
-from qiskit.exceptions import QiskitError
+from qiskit.primitives import Sampler
+from qiskit_algorithms import QAOA, SamplingVQE
+from qiskit_algorithms.optimizers import COBYLA
 from qiskit_optimization.algorithms import (
     GroverOptimizer,
-    MinimumEigenOptimizationResult,
     MinimumEigenOptimizer,
-    OptimizationResult,
+    SolutionSample,
 )
-from qiskit_ibm_runtime import QiskitRuntimeService  # type: ignore[import-untyped]
 from qiskit_optimization.translators import from_docplex_mp
-from qiskit.providers.basicaer import BasicAer
 from qubovert import PUBO, QUBO
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
     from dimod import SampleSet
-    from qiskit.algorithms.optimizers import Optimizer
-    from qiskit.opflow import (
-        ExpectationBase,
-        GradientBase,
-        OperatorBase,
-    )
+    from qiskit_algorithms.optimizers import Optimizer
     from qiskit_optimization.problems import QuadraticProgram
 
 
-from mqt.qao.problem import Problem
+from .problem import Problem
 
 
 class Solver:
@@ -384,11 +378,6 @@ class Solver:
         self,
         problem: Problem,
         auto_setting: bool = False,
-        simulator: bool = True,
-        backend_name: str = "qasm_simulator",
-        channel: str = "",
-        token: str = "",
-        instance: str = "",
         qubit_values: int = 0,
         coeff_precision: float = 1.0,
         threshold: int = 10,
@@ -448,43 +437,13 @@ class Solver:
         if auto_setting:  # To change with the experience
             # num_runs = 100
             threshold = 2 * len(self.qubo.variables)
-            qubit_values = ceil(
-                log(
-                    abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
-                    2,
-                )
-            )
-        else:
-            if boundaries_estimation_method == "upper lower bound posiform and negaform method":
-                qubit_values = ceil(
-                    log(
-                        abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
-                        2,
-                    )
-                )
-            elif boundaries_estimation_method == "naive":
-                qubit_values = ceil(
-                    log(
-                        abs(self.problem.upper_lower_bound_naive_method(scaled_qubo)),
-                        2,
-                    )
-                )
+            qubit_values = ceil(log2(abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo))))
+        elif boundaries_estimation_method == "upper lower bound posiform and negaform method":
+            qubit_values = ceil(log2(abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo))))
+        elif boundaries_estimation_method == "naive":
+            qubit_values = ceil(log2(abs(self.problem.upper_lower_bound_naive_method(scaled_qubo))))
 
-        if simulator:
-            try:  # Load your IBM Quantum account
-                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
-                backend = QiskitRuntimeService().backend(backend_name)
-            except QiskitError:
-                print("The chosen simulator doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
-        else:
-            try:
-                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
-                backend = QiskitRuntimeService().backend(backend_name)
-            except QiskitError:
-                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
-        grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
+        grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, sampler=Sampler())
 
         if save_time:
             start = time_ns()
@@ -523,30 +482,14 @@ class Solver:
                 scaled_qubo = round(scaled_qubo_c / min_coeff)
                 qp = self._from_qubovert_to_qiskit_model(scaled_qubo)
 
-                if auto_setting:
+                if auto_setting or boundaries_estimation_method == "upper lower bound posiform and negaform method":
                     qubit_values = ceil(
-                        log(
-                            abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
-                            2,
-                        )
+                        log2(abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)))
                     )
-                else:
-                    if boundaries_estimation_method == "upper lower bound posiform and negaform method":
-                        qubit_values = ceil(
-                            log(
-                                abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo)),
-                                2,
-                            )
-                        )
-                    elif boundaries_estimation_method == "naive":
-                        qubit_values = ceil(
-                            log(
-                                abs(self.problem.upper_lower_bound_naive_method(scaled_qubo)),
-                                2,
-                            )
-                        )
+                elif boundaries_estimation_method == "naive":
+                    qubit_values = ceil(log2(abs(self.problem.upper_lower_bound_naive_method(scaled_qubo))))
 
-                grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, quantum_instance=backend)
+                grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, sampler=Sampler())
 
                 if save_time:
                     start = time_ns()
@@ -580,21 +523,13 @@ class Solver:
         self,
         problem: Problem,
         auto_setting: bool = False,
-        simulator: bool = True,
-        backend_name: str = "qasm_simulator",
-        channel: str = "",
-        token: str = "",
-        instance: str = "",
         num_runs: int = 10,
-        optimizer: Optimizer = None,
+        optimizer: Optimizer | None = None,
         reps: int = 1,
         initial_state: QuantumCircuit | None = None,
-        mixer: QuantumCircuit | OperatorBase = None,
+        mixer: QuantumCircuit = None,
         initial_point: np.ndarray[Any, Any] | None = None,
-        gradient: GradientBase | Callable[[np.ndarray[Any, Any] | list[Any]], list[Any]] | None = None,
-        expectation: ExpectationBase | None = None,
-        include_custom: bool = False,
-        max_evals_grouped: int = 1,
+        aggregation: float | Callable[[list[float]], float] | None = None,
         callback: Callable[[int, np.ndarray[Any, Any], float, float], None] | None = None,
         max_lambda_update: int = 5,
         lambda_update_mechanism: str = "sequential penalty increase",
@@ -652,31 +587,17 @@ class Solver:
             initial_state = QuantumCircuit(var_num)
             for _idx in range(var_num):
                 initial_state.h(_idx)
-        if simulator:
-            try:
-                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
-                backend = QiskitRuntimeService().backend(backend_name)
-            except QiskitError:
-                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
-        else:
-            try:
-                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
-                backend = QiskitRuntimeService().backend(backend_name)
-            except QiskitError:
-                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
+
+        if optimizer is None:
+            optimizer = COBYLA()
         qaoa_mes = QAOA(
-            quantum_instance=backend,
+            sampler=Sampler(),
             optimizer=optimizer,
             reps=reps,
             initial_state=initial_state,
             mixer=mixer,
             initial_point=initial_point,
-            gradient=gradient,
-            expectation=expectation,
-            include_custom=include_custom,
-            max_evals_grouped=max_evals_grouped,
+            aggregation=aggregation,
             callback=callback,
         )
         qaoa = MinimumEigenOptimizer(qaoa_mes)
@@ -745,19 +666,11 @@ class Solver:
         self,
         problem: Problem,
         auto_setting: bool = False,
-        simulator: bool = True,
-        backend_name: str = "qasm_simulator",
-        channel: str = "",
-        token: str = "",
-        instance: str = "",
         num_runs: int = 10,
         optimizer: Optimizer | None = None,
-        ansatz: QuantumCircuit | OperatorBase | None = None,
+        ansatz: QuantumCircuit | None = None,
         initial_point: np.ndarray[Any, Any] | None = None,
-        gradient: GradientBase | Callable[[np.ndarray[Any, Any] | list[Any]], list[Any]] | None = None,
-        expectation: ExpectationBase | None = None,
-        include_custom: bool = False,
-        max_evals_grouped: int = 1,
+        aggregation: float | Callable[[list[float]], float] | None = None,
         callback: Callable[[int, np.ndarray[Any, Any], float, float], None] | None = None,
         max_lambda_update: int = 5,
         lambda_update_mechanism: str = "sequential penalty increase",
@@ -801,32 +714,18 @@ class Solver:
             compilation_time = -1
         logging.getLogger("qiskit").setLevel(logging.ERROR)
         res = []
-        if auto_setting and ansatz is None:
+        if auto_setting or ansatz is None:
             ansatz = TwoLocal(num_qubits=len(self.qubo.variables), rotation_blocks="ry", entanglement_blocks="cz")
 
-        if simulator:
-            try:
-                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
-                backend = QiskitRuntimeService().backend(backend_name)
-            except QiskitError:
-                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
-        else:
-            try:
-                QiskitRuntimeService.save_account(channel=channel, token=token, instance=instance, overwrite=True)
-                backend = QiskitRuntimeService().backend(backend_name)
-            except QiskitError:
-                print("The chosen backend doesn't exist or the IBM cannot be used. Qasm simulator will used.")
-                backend = BasicAer.get_backend("qasm_simulator")
-        vqe_mes = VQE(
-            quantum_instance=backend,
+        if optimizer is None:
+            optimizer = COBYLA()
+
+        vqe_mes = SamplingVQE(
+            sampler=Sampler(),
             optimizer=optimizer,
             ansatz=ansatz,
             initial_point=initial_point,
-            gradient=gradient,
-            expectation=expectation,
-            include_custom=include_custom,
-            max_evals_grouped=max_evals_grouped,
+            aggregation=aggregation,
             callback=callback,
         )
         vqe = MinimumEigenOptimizer(vqe_mes)
@@ -893,7 +792,8 @@ class Solver:
     def get_lambda_updates(self) -> int:
         return self._number_of_lambda_update
 
-    def _from_qubovert_to_qiskit_model(self, qubo: QUBO) -> QuadraticProgram:
+    @staticmethod
+    def _from_qubovert_to_qiskit_model(qubo: QUBO) -> QuadraticProgram:
         """function for converting the qubovert formulation into the qiskit quadratic model one
 
         Keyword arguments:
@@ -1031,7 +931,7 @@ class Solution:
                 self.energies.append(sample[1] + offset)
         self.best_energy = samples.first.energy + offset
 
-        for sample in list(samples.samples()):  # type: ignore[no-untyped-call]
+        for sample in list(samples.samples()):
             converted_sol = self.problem.variables.convert_simulated_annealing_solution(pubo.convert_solution(sample))
             if isinstance(converted_sol, dict):
                 self.solutions.append(converted_sol)
@@ -1053,7 +953,7 @@ class Solution:
 
     def create_qiskit_qubo_solution(
         self,
-        res: list[MinimumEigenOptimizationResult] | list[OptimizationResult],
+        res: list[SolutionSample],
         pubo: PUBO,
         qubo: QUBO,
         time: float = -1.0,
@@ -1168,7 +1068,7 @@ class Solution:
             rc("text", usetex=True)
             plt.rc("text", usetex=True)
             if label:
-                n, bins, patches = plt.hist(
+                plt.hist(
                     self.energies,
                     cumulative=True,
                     histtype="step",
@@ -1177,17 +1077,15 @@ class Solution:
                     label=r"\textit{" + label + "}",
                 )
             else:
-                n, bins, patches = plt.hist(self.energies, cumulative=True, histtype="step", linewidth=2, bins=100)
+                plt.hist(self.energies, cumulative=True, histtype="step", linewidth=2, bins=100)
             plt.title(r"\textbf{Cumulative distribution}", fontsize=20)
             plt.xlabel(r"\textit{Energy}", fontsize=20)
             plt.ylabel(r"\textit{occurrence}", fontsize=20)
         else:
             if label:
-                n, bins, patches = plt.hist(
-                    self.energies, cumulative=True, histtype="step", linewidth=2, bins=100, label=label
-                )
+                plt.hist(self.energies, cumulative=True, histtype="step", linewidth=2, bins=100, label=label)
             else:
-                n, bins, patches = plt.hist(self.energies, cumulative=True, histtype="step", linewidth=2, bins=100)
+                plt.hist(self.energies, cumulative=True, histtype="step", linewidth=2, bins=100)
             plt.title("Cumulative distribution", fontsize=20)
             plt.xlabel("Energy", fontsize=20)
             plt.ylabel("occurrence", fontsize=20)
@@ -1206,9 +1104,8 @@ class Solution:
                 plt.savefig(filename + ".png", format="png")
                 plt.savefig(filename + ".pdf", format="pdf")
                 plt.close()
-        else:
-            if show:
-                plt.show()
+        elif show:
+            plt.show()
 
     def valid_solutions(self, weak: bool = True) -> float:
         """function for evaluating the rate of valid solution and the amount of violations
@@ -1236,7 +1133,7 @@ class Solution:
                     else:
                         self.valid_solution_rate[count] = 1
             for key in self.valid_solution_rate:
-                self.valid_solution_rate[key] = self.valid_solution_rate[key] / len(all_satisfied)
+                self.valid_solution_rate[key] /= len(all_satisfied)
         return self.valid_solution_rate[0]
 
     def p_range(self, ref_value: float | None = None) -> float:

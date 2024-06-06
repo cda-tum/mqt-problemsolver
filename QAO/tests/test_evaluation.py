@@ -17,26 +17,6 @@ from mqt.qao.problem import Problem
 from mqt.qao.solvers import Solution, Solver
 from mqt.qao.variables import Variables
 
-# from dwave.cloud import Client
-
-
-def test_example() -> None:
-    """Expected type of final code:
-    Problem = Problem
-    variables = Problem.variables.add_....._variables(.....)
-    def f(var):
-       ....
-    Problem.objective_function.add_objective_function(f(var))
-    Problem.constraints.add_constraints(....)
-    # With an eventual option for saving more information (Problem final size, etc.)
-    decoded_best_solution, Energy = Problem.solve()
-    # And eventually for knowing something about resolution statistics
-    Problem.statistics()
-
-    """
-    Variables()
-    assert 1 == 1
-
 
 def test_binary_only() -> None:
     """Test only the construction of binary variables"""
@@ -967,20 +947,20 @@ def test_problem(lambda_strategy: str) -> None:
     reference_qubo_dict_re = {}
     for key in reference_qubo_dict:
         reference_qubo_dict_re[tuple(sorted(key))] = reference_qubo_dict[key]
-    if lambda_strategy == "upper_bound_only_positive" or lambda_strategy == "upper lower bound naive":
-        assert [52.25 * 1.1] * 2 == lambdas
+    if lambda_strategy in {"upper_bound_only_positive", "upper lower bound naive"}:
+        assert lambdas == [52.25 * 1.1] * 2
         assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
     elif lambda_strategy == "maximum_coefficient":
-        assert [10.0 * 1.1] * 2 == lambdas
+        assert lambdas == [10.0 * 1.1] * 2
         assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
-    elif lambda_strategy == "VLM" or lambda_strategy == "MOMC":
-        assert [12.0 * 1.1] * 2 == lambdas
+    elif lambda_strategy in {"VLM", "MOMC"}:
+        assert lambdas == [12.0 * 1.1] * 2
         assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
     elif lambda_strategy == "MOC":
-        assert [7 * 1.1, 6 * 1.1] == lambdas
+        assert lambdas == [7 * 1.1, 6 * 1.1]
         assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
     elif lambda_strategy == "upper lower bound posiform and negaform method":
-        assert [31.625 * 1.1] * 2 == lambdas
+        assert lambdas == [31.625 * 1.1] * 2
         assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
 
 
@@ -1011,7 +991,7 @@ def test_simulated_annealer_solver(lambda_strategy: str) -> None:
     solver = Solver()
     sol = solver.solve_simulated_annealing(problem, lambda_strategy=lambda_strategy)
     if isinstance(sol, Solution):
-        all_satisfy, each_satisfy = sol.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = sol.check_constraint_optimal_solution()
         assert sol.best_solution == {"a": 0.0, "b": 3.0, "c": -1.5}
         assert sol.best_energy < -2.24  # (the range if for having no issues with numerical errors)
         assert sol.best_energy > -2.26
@@ -1080,7 +1060,7 @@ def test_simulated_annealer_solver_constrained(lambda_strategy: str, constraint_
     solver = Solver()
     solution = solver.solve_simulated_annealing(problem, lambda_strategy=lambda_strategy)
     if isinstance(solution, Solution):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
             assert (
@@ -1174,7 +1154,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism(
     )
     solver.get_lambda_updates()
     if isinstance(solution, Solution):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
             assert (
@@ -1376,7 +1356,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism_and_strat
     )
     solver.get_lambda_updates()
     if isinstance(solution, Solution):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
             assert solution.best_solution == {"a": 0.0, "b": -1.0, "c": 1.0} or not all_satisfy
             assert (
@@ -1472,7 +1452,7 @@ def test_simulated_annealing_cost_function_matrix(
     )
     solver.get_lambda_updates()
     if isinstance(solution, Solution):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "M1_0_1 >= 1":
             assert (
                 solution.best_solution == {"M1": [[-1, 2]], "M2": [[2], [-1]]}
@@ -1504,7 +1484,8 @@ def test_gas_solver_basic() -> None:
     solver = Solver()
     solution = solver.solve_grover_adaptive_search_qubo(problem, qubit_values=6, num_runs=10)
     if isinstance(solution, Solution):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
+        print(solution.best_solution)
         assert solution.best_solution == {"a": 1.0, "b": 0.0, "c": 1.0}
         print(solution.best_solution)
         assert solution.best_energy < -5.9  # (the range if for having no issues with numerical errors)
@@ -1534,7 +1515,7 @@ def test_qaoa_solver_qubo_basic() -> None:
         num_runs=10,
     )
     if isinstance(solution, Solution):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 1.0, "b": 0.0, "c": 1.0}
         print(solution.best_solution)
         assert solution.best_energy < -5.9  # (the range if for having no issues with numerical errors)
@@ -1564,7 +1545,7 @@ def test_vqe_solver_qubo_basic() -> None:
         num_runs=10,
     )
     if isinstance(solution, Solution):
-        all_satisfy, each_satisfy = solution.check_constraint_optimal_solution()
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         assert solution.best_solution == {"a": 1.0, "b": 0.0, "c": 1.0}
         print(solution.best_solution)
         assert solution.best_energy < -5.9  # (the range if for having no issues with numerical errors)

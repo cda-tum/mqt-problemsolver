@@ -15,22 +15,35 @@ ci:
 repos:
   # Standard hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.5.0"
+    rev: v4.6.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
       - id: check-docstring-first
       - id: check-merge-conflict
+      - id: check-symlinks
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
+      - id: requirements-txt-fixer
       - id: trailing-whitespace
+
+  # Clean jupyter notebooks
+  - repo: https://github.com/srstevenson/nb-clean
+    rev: 3.2.0
+    hooks:
+      - id: nb-clean
+        args:
+          - --remove-empty-cells
+          - --preserve-cell-metadata
+          - raw_mimetype
+          - --
 
   # Handling unwanted unicode characters
   - repo: https://github.com/sirosen/texthooks
-    rev: "0.6.2"
+    rev: 0.6.6
     hooks:
       - id: fix-ligatures
       - id: fix-smartquotes
@@ -43,28 +56,9 @@ repos:
       - id: rst-directive-colons
       - id: rst-inline-touching-normal
 
-  # Clean jupyter notebooks
-  - repo: https://github.com/srstevenson/nb-clean
-    rev: "3.1.0"
-    hooks:
-      - id: nb-clean
-  # Check for spelling
-  - repo: https://github.com/codespell-project/codespell
-    rev: "v2.2.6"
-    hooks:
-      - id: codespell
-        args: ["-L", "wille,linz,fro"]
-        exclude: "mqt/benchviewer/templates/legal.html"
-
-  # Format configuration files with prettier
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: "v3.0.3"
-    hooks:
-      - id: prettier
-        types_or: [yaml, markdown, html, css, javascript, json]
-
+  # Python linting using ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.4
+    rev: v0.4.7
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
@@ -72,38 +66,37 @@ repos:
       - id: ruff-format
         types_or: [python, pyi, jupyter]
 
+  # Static type checking using mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        files: ^(src/mqt|tests)
+        args: []
+        additional_dependencies:
+          - pytest
+          - numpy
+
   # Also run Black on examples in the documentation
   - repo: https://github.com/adamchainz/blacken-docs
     rev: 1.16.0
     hooks:
       - id: blacken-docs
-        additional_dependencies: [black==23.*]
+        additional_dependencies: [black==24.*]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.6.1
+  # Format configuration files with prettier
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
     hooks:
-      - id: mypy
-        files: ^(src|tests)
-        args: []
-        additional_dependencies:
-          - importlib_resources
-          - qubovert
-          - pytest==7.4.0
-          - types-setuptools
-          - setuptools<=65.6.3
-          - sympy==1.12
-          - numpy==1.23.5
-          - dwave-samplers
-          - dwave.system
-          - docplex==2.25.236
-          - qiskit==0.45.3
-          - qiskit_optimization==0.4.0
-          - qiskit-algorithms==0.2.1
-          - qiskit_ibm_runtime==0.14.0
-          - matplotlib
-          - pandas
-          - PyPortfolioOpt
-          - scikit-learn
+      - id: prettier
+        types_or: [yaml, markdown, html, css, scss, javascript, json]
+
+  # Check for spelling
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args: ["-L", "wille,linz", "--skip", "*.ipynb"]
 
   # Catch common capitalization mistakes
   - repo: local
@@ -112,7 +105,7 @@ repos:
         name: Disallow improper capitalization
         language: pygrep
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest|Mqt|Tum
-        exclude: (.joblib|.pre-commit-config.yaml)
+        exclude: .pre-commit-config.yaml
 
   # Check best practices for scientific Python code
   - repo: https://github.com/scientific-python/cookie

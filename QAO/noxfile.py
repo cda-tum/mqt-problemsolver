@@ -15,25 +15,13 @@ if TYPE_CHECKING:
 nox.needs_version = ">=2024.3.2"
 nox.options.default_venv_backend = "uv|virtualenv"
 
-PYTHON_ALL_VERSIONS = ["3.10", "3.11"]
+PYTHON_ALL_VERSIONS = ["3.9", "3.10", "3.11", "3.12"]
 
 BUILD_REQUIREMENTS = [
     "setuptools>=66.1",
-    "setuptools_scm>=7",
+    "setuptools_scm>=8.1",
     "wheel>=0.40",
-    "matplotlib>=3.8",
-    "numpy>=1.23",
-    "qiskit==0.45.3",
-    "qiskit_optimization==0.4.0",
-    "qiskit_ibm_runtime==0.14.0",
-    "pytest==7.4.0",
-    "scikit-learn>=1.3",
-    "dimod>=0.12.0",
-    "dwave-preprocessing>=0.6.3 ",
-    "dwave-samplers==1.2",
-    "dwave-system>=1.20",
-    "pandas>=2.1",
-    "qubovert>=1.0",
+    "cython>=3.0",
 ]
 
 if os.environ.get("CI", None):
