@@ -22,6 +22,7 @@ dependencies = [
     "qiskit>=1.0",
     "qiskit_optimization>=0.6",
     "qiskit_aer>=0.14",
+    "qiskit_aer<0.14.1; python_version < '3.10'", # temporarily upper cap because of https://github.com/Qiskit/qiskit-aer/issues/2167
     "pandas>=2.1.2",
     "numpy>=1.26",
     "qubovert>=1.2.5",
@@ -85,7 +86,7 @@ addopts = ["-ra", "--strict-markers", "--strict-config", "--showlocals"]
 log_cli_level = "info"
 xfail_strict = true
 filterwarnings = [
-    "error",
+#    "error",  # Temporarily disabled because of https://github.com/cda-tum/mqt-qao/issues/3. Uncomment when fixed.
     "ignore:.*Qiskit with Python 3.8.*:DeprecationWarning:",
 ]
 
