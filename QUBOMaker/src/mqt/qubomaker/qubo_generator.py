@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Tuple, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -187,7 +187,7 @@ class QUBOGenerator:
         Returns:
             sp.Expr: The new expression with lower order.
         """
-        (x1, x2, y, rest) = self.__optimal_decomposition(cast(tuple[sp.Expr, ...], expression.args), auxiliary_dict)
+        (x1, x2, y, rest) = self.__optimal_decomposition(cast(Tuple[sp.Expr, ...], expression.args), auxiliary_dict)
         auxiliary_penalty = x1 * x2 - 2 * y * x1 - 2 * y * x2 + 3 * y
         rest *= y
         if self.__get_order(rest) > 2:

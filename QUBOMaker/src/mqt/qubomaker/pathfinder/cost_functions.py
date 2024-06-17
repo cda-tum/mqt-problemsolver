@@ -1226,7 +1226,7 @@ class PathsShareNoEdges(PathComparison):
             ),
             ["v", "w"],
             "\\in E",
-            lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
+            lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
         )
 
 
