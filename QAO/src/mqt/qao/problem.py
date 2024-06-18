@@ -326,9 +326,9 @@ class Problem:
 
         val = 0.0
         first = True
-        for key in p_sum:
+        for key, value in p_sum.items():
             if key in p_sum_constrained and p_sum_constrained[key] != 0:
-                v = p_sum[key] / p_sum_constrained[key]
+                v = value / p_sum_constrained[key]
                 if v != 0 and first:
                     val = v
                     first = False
@@ -394,9 +394,9 @@ class Problem:
                         n_sum[elem] += cost_function[key] / len(key)
         lowerbound = 0.0
         upperbound = 0.0
-        for key in p_sum:
-            if p_sum[key] < 0:
-                lowerbound += p_sum[key]
+        for key, value in p_sum.items():
+            if value < 0:
+                lowerbound += value
             if n_sum[key] > 0:
                 upperbound += n_sum[key]
         return upperbound - lowerbound

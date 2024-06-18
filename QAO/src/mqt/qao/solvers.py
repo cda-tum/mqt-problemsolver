@@ -1259,9 +1259,9 @@ class Solution:
                 elems_v = {}
                 coeff_m = sum(coeff) / len(coeff)
                 coeff_v = np.var(coeff)
-                for key in elems:
-                    elems_m[key] = sum(elems[key]) / len(elems[key])
-                    elems_v[key] = np.var(elems[key])
+                for key, value in elems.items():
+                    elems_m[key] = sum(value) / len(value)
+                    elems_v[key] = np.var(value)
                 data["qubo contributions"] = num_elm
                 data["qubo contributions average"] = elems_m
                 data["qubo contributions variance"] = elems_v

@@ -339,8 +339,8 @@ def test_cost_function() -> None:
     for key in qubo:
         qubo_re[tuple(sorted(key))] = qubo[key]
     reference_qubo_dict_re = {}
-    for key in reference_qubo_dict:
-        reference_qubo_dict_re[tuple(sorted(key))] = reference_qubo_dict[key]
+    for key, value in reference_qubo_dict.items():
+        reference_qubo_dict_re[tuple(sorted(key))] = value
     assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
 
 
@@ -392,8 +392,8 @@ def test_cost_function_matrix() -> None:
     for key in qubo:
         qubo_re[tuple(sorted(key))] = qubo[key]
     reference_qubo_dict_re = {}
-    for key in reference_qubo_dict:
-        reference_qubo_dict_re[tuple(sorted(key))] = reference_qubo_dict[key]
+    for key, value in reference_qubo_dict.items():
+        reference_qubo_dict_re[tuple(sorted(key))] = value
     assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))
 
 
@@ -449,13 +449,13 @@ def test_constraint(expression: str, var_precision: bool) -> None:
     for key in qubo_second:
         qubo_second_re[tuple(sorted(key))] = qubo_second[key]
     dictionary_constraints_qubo_re = {}
-    for key in dictionary_constraints_qubo:
-        dictionary_constraints_qubo_re[tuple(sorted(key))] = dictionary_constraints_qubo[key]
+    for key, value in dictionary_constraints_qubo.items():
+        dictionary_constraints_qubo_re[tuple(sorted(key))] = value
     if expression == "~a = b":
         dictionary_constraints_qubo_2 = {("b0",): -1.0, ("b1",): -1.0, ("b0", "b1"): 2.0, (): 1.0}
         dictionary_constraints_qubo_2_re = {}
-        for key in dictionary_constraints_qubo_2:
-            dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
+        for key, value in dictionary_constraints_qubo_2.items():
+            dictionary_constraints_qubo_2_re[tuple(sorted(key))] = value
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
     elif expression == "a & b = c":
@@ -855,13 +855,13 @@ def test_constraint_no_sub(expression: str) -> None:
     for key in qubo_second:
         qubo_second_re[tuple(sorted(key))] = qubo_second[key]
     dictionary_constraints_qubo_re = {}
-    for key in dictionary_constraints_qubo:
-        dictionary_constraints_qubo_re[tuple(sorted(key))] = dictionary_constraints_qubo[key]
+    for key, value in dictionary_constraints_qubo.items():
+        dictionary_constraints_qubo_re[tuple(sorted(key))] = value
     if expression == "~b0 = b1":
         dictionary_constraints_qubo_2 = {("b0",): -1, ("b1",): -1, ("b0", "b1"): 2, (): 1}
         dictionary_constraints_qubo_2_re = {}
-        for key in dictionary_constraints_qubo_2:
-            dictionary_constraints_qubo_2_re[tuple(sorted(key))] = dictionary_constraints_qubo_2[key]
+        for key, value in dictionary_constraints_qubo_2.items():
+            dictionary_constraints_qubo_2_re[tuple(sorted(key))] = value
         assert dict(sorted(qubo_second_re.items())) == dict(sorted(dictionary_constraints_qubo_2_re.items()))
         assert dict(sorted(qubo_first_re.items())) == dict(sorted(dictionary_constraints_qubo_re.items()))
 
@@ -945,8 +945,8 @@ def test_problem(lambda_strategy: str) -> None:
     for key in qubo:
         qubo_re[tuple(sorted(key))] = qubo[key]
     reference_qubo_dict_re = {}
-    for key in reference_qubo_dict:
-        reference_qubo_dict_re[tuple(sorted(key))] = reference_qubo_dict[key]
+    for key, value in reference_qubo_dict.items():
+        reference_qubo_dict_re[tuple(sorted(key))] = value
     if lambda_strategy in {"upper_bound_only_positive", "upper lower bound naive"}:
         assert lambdas == [52.25 * 1.1] * 2
         assert dict(sorted(qubo_re.items())) == dict(sorted(reference_qubo_dict_re.items()))

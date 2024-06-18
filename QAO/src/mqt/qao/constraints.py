@@ -240,13 +240,13 @@ class Constraints:
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
-            for var in solution:
+            for var, values in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(values, float):
                         expr1, expr2 = self._constraint_check_sub_single_var(
-                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, values, variables.variables_dict[var]
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(values, list):
                         expr1, expr2 = self._constraint_check_sub_list_var(
                             solution,
                             variables,
@@ -380,9 +380,9 @@ class Constraints:
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub or expr3_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
                             expr1_to_sub,
                             expr2_to_sub,
@@ -390,10 +390,10 @@ class Constraints:
                             expr1,
                             expr2,
                             expr3,
-                            solution[var],
+                            value,
                             variables.variables_dict[var],
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2, expr3 = self._constraint_check_three_sub_list_var(
                             solution, variables, expr1, expr2, expr3, var, expr1_to_sub, expr2_to_sub, expr3_to_sub
                         )
@@ -535,9 +535,9 @@ class Constraints:
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub or expr3_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
                             expr1_to_sub,
                             expr2_to_sub,
@@ -545,10 +545,10 @@ class Constraints:
                             expr1,
                             expr2,
                             expr3,
-                            solution[var],
+                            value,
                             variables.variables_dict[var],
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2, expr3 = self._constraint_check_three_sub_list_var(
                             solution, variables, expr1, expr2, expr3, var, expr1_to_sub, expr2_to_sub, expr3_to_sub
                         )
@@ -765,9 +765,9 @@ class Constraints:
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub or expr3_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2, expr3 = self._constraint_check_three_sub_single_var(
                             expr1_to_sub,
                             expr2_to_sub,
@@ -775,10 +775,10 @@ class Constraints:
                             expr1,
                             expr2,
                             expr3,
-                            solution[var],
+                            value,
                             variables.variables_dict[var],
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2, expr3 = self._constraint_check_three_sub_list_var(
                             solution, variables, expr1, expr2, expr3, var, expr1_to_sub, expr2_to_sub, expr3_to_sub
                         )
@@ -1008,13 +1008,13 @@ class Constraints:
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2 = self._constraint_check_sub_single_var(
-                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, value, variables.variables_dict[var]
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2 = self._constraint_check_sub_list_var(
                             solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
                         )
@@ -1175,13 +1175,13 @@ class Constraints:
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2 = self._constraint_check_sub_single_var(
-                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, value, variables.variables_dict[var]
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2 = self._constraint_check_sub_list_var(
                             solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
                         )
@@ -1352,13 +1352,13 @@ class Constraints:
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2 = self._constraint_check_sub_single_var(
-                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, value, variables.variables_dict[var]
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2 = self._constraint_check_sub_list_var(
                             solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
                         )
@@ -1532,13 +1532,13 @@ class Constraints:
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2 = self._constraint_check_sub_single_var(
-                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, value, variables.variables_dict[var]
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2 = self._constraint_check_sub_list_var(
                             solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
                         )
@@ -1635,13 +1635,13 @@ class Constraints:
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
-            for var in solution:
+            for var, value in solution.items():
                 if var in variables.variables_dict:
-                    if isinstance(solution[var], float):
+                    if isinstance(value, float):
                         expr1, expr2 = self._constraint_check_sub_single_var(
-                            expr1_to_sub, expr2_to_sub, expr1, expr2, solution[var], variables.variables_dict[var]
+                            expr1_to_sub, expr2_to_sub, expr1, expr2, value, variables.variables_dict[var]
                         )
-                    elif isinstance(solution[var], list):
+                    elif isinstance(value, list):
                         expr1, expr2 = self._constraint_check_sub_list_var(
                             solution, variables, expr1, expr2, var, expr1_to_sub, expr2_to_sub
                         )
