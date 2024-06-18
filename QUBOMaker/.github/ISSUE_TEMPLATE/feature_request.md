@@ -1,20 +1,33 @@
----
-name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
+name: ✨ Feature request
+description: Suggest an idea
+title: "✨ <title>"
+body:
 
----
+- type: markdown
+  attributes:
+  value: >
+  **Thank you for wanting to suggest a feature for this project!**
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+      ⚠
+      Verify first that your idea is not [already requested on GitHub](https://github.com/cda-tum/mqt-qubomaker/search?q=is%3Aissue&type=issues).
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+- type: textarea
+  attributes:
+  label: What's the problem this feature will solve?
+  description: >-
+  What are you trying to do, that you are unable to achieve as it currently stands?
+  placeholder: >-
+  I'm trying to do X and I'm missing feature Y for this to be
+  easily achievable.
+  validations:
+  required: true
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
-
-**Additional context**
-Add any other context or screenshots about the feature request here.
+- type: textarea
+  attributes:
+  label: Describe the solution you'd like
+  description: >
+  Clear and concise description of what you want to happen.
+  placeholder: >-
+  When I do X, I want to achieve Y in a situation when Z.
+  validations:
+  required: true
