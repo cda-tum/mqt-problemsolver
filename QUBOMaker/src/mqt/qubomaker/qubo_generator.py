@@ -276,16 +276,16 @@ class QUBOGenerator:
                 return all_variables[variable] - 1
             return auxiliary_variables.index(cast(sp.Symbol, variable)) + self.get_encoding_variable_count()
 
-        for term in coefficients:
+        for term, value in coefficients.items():
             if isinstance(term, sp.Mul):
                 index1 = get_index(term.args[0])
                 index2 = get_index(term.args[1])
                 if index1 > index2:
                     index1, index2 = index2, index1
-                result[index1][index2] = coefficients[term]
+                result[index1][index2] = value
             elif isinstance(term, (sp.Symbol, sp.Function)):
                 index = get_index(term)
-                result[index][index] = coefficients[term]
+                result[index][index] = value
 
         return result
 
