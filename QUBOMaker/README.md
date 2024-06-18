@@ -1,8 +1,10 @@
+[![PyPI](https://img.shields.io/pypi/v/mqt.qubomaker?logo=pypi&style=flat-square)](https://pypi.org/project/mqt.qubomaker/)
+![OS](https://img.shields.io/badge/os-linux%20%7C%20macos%20%7C%20windows-blue?style=flat-square)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![CodeCov](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/coverage.yml/badge.svg)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/coverage.yml)
-[![Deploy to PyPI](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/deploy.yml/badge.svg)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/deploy.yml)
-[![codecov](https://codecov.io/gh/cda-tum/mqt-qubomaker/graph/badge.svg?token=WB16FSW7OZ)](https://codecov.io/gh/cda-tum/mqt-qubomaker)
-[![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt-qubomaker.readthedocs.io/en/latest/)
+[![CI](https://img.shields.io/github/actions/workflow/status/cda-tum/mqt-qubomaker/ci.yml?branch=main&style=flat-square&logo=github&label=ci)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/ci.yml)
+[![CD](https://img.shields.io/github/actions/workflow/status/cda-tum/mqt-qubomaker/cd.yml?style=flat-square&logo=github&label=cd)](https://github.com/cda-tum/mqt-qubomaker/actions/workflows/cd.yml)
+[![Documentation](https://img.shields.io/readthedocs/mqt-qubomaker?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/qubomaker)
+[![codecov](https://img.shields.io/codecov/c/github/cda-tum/mqt-qubomaker?style=flat-square&logo=codecov)](https://codecov.io/gh/cda-tum/mqt-qubomaker)
 
 <p align="center">
 <a href="https://mqt.readthedocs.io">
