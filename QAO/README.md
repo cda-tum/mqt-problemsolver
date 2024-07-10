@@ -70,9 +70,9 @@ In case you are using the MQT Quantum Auto Optimizer in your work, we would be t
 	TITLE         = {{Towards an Automatic Framework for Solving Optimization Problems with Quantum Computers}},
 	YEAR          = {2024},
 	BOOKTITLE     = {IEEE International Conference on Quantum Software (QSW)},
-    EPRINT        = {2406.12840},
-    PRIMARYCLASS  = {quant-ph},
-    ARCHIVEPREXIX = {arxiv},
+	EPRINT        = {2406.12840},
+	PRIMARYCLASS  = {quant-ph},
+	ARCHIVEPREXIX = {arxiv},
 }
 ```
 
