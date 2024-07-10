@@ -30,6 +30,7 @@ dependencies = [
     "docplex>=2.21.207",
     "dwave-system>=1.21.0",
     "dwave-samplers>=1.2.0",
+    "numpy<2.0.0"
 ]
 
 classifiers = [
