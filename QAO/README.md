@@ -62,7 +62,7 @@ solution = Solver().solve_Dwave_quantum_annealer(prb, token=token)
 
 ## References
 
-In case you are using MQT Bench in your work, we would be thankful if you referred to it by citing the following publication:
+In case you are using the MQT Quantum Auto Optimizer in your work, we would be thankful if you referred to it by citing the following publication:
 
 ```bibtex
 @INPROCEEDINGS{volpe2024towards,
