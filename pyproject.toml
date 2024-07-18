@@ -27,7 +27,8 @@ dependencies = [
     "networkx",
     "python_tsp",
     "docplex",
-    "qiskit_optimization"
+    "qiskit_optimization",
+    "tweedledum==1.0.0"
 ]
 
 classifiers = [
@@ -41,7 +42,6 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
