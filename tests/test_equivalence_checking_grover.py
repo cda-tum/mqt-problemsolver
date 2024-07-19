@@ -25,7 +25,7 @@ def create_condition_string(num_qubits: int, num_targets: int) -> tuple[str, lis
     """
 
     if num_qubits < 0 or num_targets < 0:
-        raise TypeError
+        raise ValueError
 
     list_of_bitstrings: list[str] = []
     if num_targets == 0:

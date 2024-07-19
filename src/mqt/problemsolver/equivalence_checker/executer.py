@@ -14,11 +14,62 @@ from qiskit_aer import AerSimulator
 
 sim_counts = AerSimulator(method="statevector")
 
+alphabet = list(string.ascii_lowercase)
+
+def create_condition_string(num_qubits: int, num_counter_examples: int) -> tuple[str, list[str]]:
+    """
+    Creates a string to simulate a miter out of bitstring combinations (e.g. '0000' -> 'a & b & c & d')
+
+    Parameters
+    ----------
+    num_qubits : int
+        Number of input bits
+    num_counter_examples : int
+        Number of counter examples
+
+    Returns
+    -------
+    res_string : str
+        Resulting condition string
+    counter_examples : list[str]
+        The corresponding bitstrings to res_string (e.g. counter_examples is ['0000'] for res_string 'a & b & c & d')
+    """
+
+    if num_qubits < 0 or num_counter_examples < 0:
+        raise ValueError
+
+    counter_examples: list[str] = []
+    if num_counter_examples == 0:
+        res, _ = create_condition_string(num_qubits, 1)
+        res += " & a"
+        return res, counter_examples
+    res_string: str = ""
+    counter_examples = []
+    for num in range(num_counter_examples):
+        bitstring = list(str(format(num, f"0{num_qubits}b")))[::-1]
+        counter_examples.append(str(format(num, f"0{num_qubits}b")))
+        for i, char in enumerate(bitstring):
+            if char == "0" and i == 0:
+                bitstring[i] = "~" + alphabet[i]
+            elif char == "1" and i == 0:
+                bitstring[i] = alphabet[i]
+            elif char == "0":
+                bitstring[i] = " & " + "~" + alphabet[i]
+            elif char == "1":
+                bitstring[i] = " & " + alphabet[i]
+        combined_bitstring = "".join(bitstring)
+        if num < num_counter_examples - 1:
+            res_string += combined_bitstring + " | "
+        else:
+            res_string += combined_bitstring
+    return res_string, counter_examples
 
 def sampler(
     process_number: int,
     return_dict: dict[int, str | int],
     miter: str,
+    counter_examples: list[str],
+    num_counter_examples: int,
     start_iterations: int,
     shots: int,
     delta: float,
@@ -88,56 +139,70 @@ def sampler(
 
         if stopping_condition:
             break
+    
+    with open(f'results_{num_qubits}qubits_{num_counter_examples}counter_examples_{delta}delta.txt', 'a') as f:
+        if sorted(target_states) == sorted(counter_examples):
+            f.write(f'Correct targets found! Total number of iterations: {total_iterations} \n')
+        elif len(target_states) == 0:
+            if len(counter_examples) > 0:
+                f.write(f'No targets found! Total number of iterations: {total_iterations} \n')
+            elif len(counter_examples) == 0:
+                f.write(f'Correct targets found (None)! Total number of iterations: {total_iterations} \n')
+        else:
+            f.write(f'At least one wrong target found! Total number of iterations: {total_iterations} \n')
+    f.close()
+
  
     for i, state in enumerate(target_states):
         target_states[i] = state[::-1] # Compensate Qiskit's qubit ordering
 
     return_dict[process_number] = target_states
 
+if __name__ == "__main__":
 
-def run(miter: str, num_qubits:int, shots: int, delta: float, number_of_processes: int) -> list[str | int]:
-    """
-    Runs the grover verification application in multiple processes.
+    def find_counter_examples(miter: str, counter_examples: list[str], num_counter_examples: int,  num_qubits:int, shots: int, delta: float, number_of_processes: int) -> list[str | int]:
+        """
+        Runs the grover verification application in multiple processes.
 
-    Parameters
-    ----------
-    miter: str
-        String that contains the conditions to satisfy
-    num_qubits : int
-        Number of input bits
-    shots: int
-        Number of shots
-    delta: float
-        Threshold parameter between 0 and 1
-    number_of_processes: int
-        Number of processes the algorithm should run in simultaneously
+        Parameters
+        ----------
+        miter: str
+            String that contains the conditions to satisfy
+        num_qubits : int
+            Number of input bits
+        shots: int
+            Number of shots
+        delta: float
+            Threshold parameter between 0 and 1
+        number_of_processes: int
+            Number of processes the algorithm should run in simultaneously
 
-    Returns
-    -------
-    list[str | int]
-        A list of values representing the targets found by the Grover algorithm
-    """
-    try:
-        assert 0 <= delta <= 1
-    except AssertionError:
-        print(f'Invalid delta of {delta}. It must be between 0 and 1.')
-    
-    total_num_combinations = 2**num_qubits
-    start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-    jobs = []
-    for i in range(number_of_processes):
-        process = multiprocessing.Process(
-            target=sampler,
-            args=(i, return_dict, miter, start_iterations, shots, delta),
-        )
-        jobs.append(process)
-        process.start()
+        Returns
+        -------
+        list[str | int]
+            A list of values representing the targets found by the Grover algorithm
+        """
+        try:
+            assert 0 <= delta <= 1
+        except AssertionError:
+            print(f'Invalid delta of {delta}. It must be between 0 and 1.')
+        
+        total_num_combinations = 2**num_qubits
+        start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+        jobs = []
+        for i in range(number_of_processes):
+            process = multiprocessing.Process(
+                target=sampler,
+                args=(i, return_dict, miter, counter_examples, num_counter_examples, start_iterations, shots, delta),
+            )
+            jobs.append(process)
+            process.start()
 
-    for job in jobs:
-        job.join()
-    return return_dict.values()
+        for job in jobs:
+            job.join()
+        # return return_dict.values()
 
-miter = "a & b"
-targets = run(miter, 2, 32, 0.7, 1)
+    miter, counter_examples = create_condition_string(3,2)
+    find_counter_examples(miter, counter_examples, 2, 3, 64, 0.7, 5)
