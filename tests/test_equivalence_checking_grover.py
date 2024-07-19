@@ -35,7 +35,7 @@ def create_condition_string(num_qubits: int, num_targets: int) -> tuple[str, lis
     res_string: str = ""
     list_of_bitstrings = []
     for num in range(num_targets):
-        bitstring = list(str(format(num, f"0{num_qubits}b")))[::-1]
+        bitstring = list(str(format(num, f"0{num_qubits}b")))
         list_of_bitstrings.append(str(format(num, f"0{num_qubits}b")))
         for i, char in enumerate(bitstring):
             if char == "0" and i == 0:
@@ -53,38 +53,39 @@ def create_condition_string(num_qubits: int, num_targets: int) -> tuple[str, lis
             res_string += combined_bitstring
     return res_string, list_of_bitstrings
 
-if __name__ == "__main__":
-
-    def test_create_condition_string() -> None:
-        num_qubits = 3
-        num_targets = 2
-        res_string, list_of_bitstrings = create_condition_string(
-            num_qubits=num_qubits, num_targets=num_targets
-        )
-        assert isinstance(res_string, str)
-        assert isinstance(list_of_bitstrings, list)
-        assert len(res_string) == 26
-        assert len(list_of_bitstrings) == num_targets
-        assert res_string == "~a & ~b & ~c | a & ~b & ~c"
 
 
-    def test_run() -> None:
-        num_qubits = 4
-        num_targets = 2
-        shots = 128
-        delta = 0.7
-        number_of_processes = 4
-        res_states = executer.run(num_qubits, num_targets, shots, delta, number_of_processes)
-        for process in res_states:
-            for state in ['1010','0000']:
-                assert state in process
+def test_create_condition_string() -> None:
+    num_qubits = 3
+    num_targets = 2
+    res_string, list_of_bitstrings = create_condition_string(
+        num_qubits=num_qubits, num_targets=num_targets
+    )
+    
+    assert isinstance(res_string, str)
+    assert isinstance(list_of_bitstrings, list)
+    assert len(res_string) == 26
+    assert len(list_of_bitstrings) == num_targets
+    assert res_string == "~a & ~b & ~c | ~a & ~b & c"
 
-        num_qubits = 6
-        num_targets = 10
-        shots = 512
-        delta = 0.8
-        number_of_processes = 4
-        res_states = executer.run(num_qubits, num_targets, shots, delta, number_of_processes)
-        for process in res_states:
-            for state in ['010000', '100000', '110000', '000000', '100100', '101000', '011000', '001000', '000100', '111000']:
-                assert state in process
+
+def test_run() -> None:
+    num_qubits = 3
+    num_targets = 2
+    shots = 128
+    delta = 0.7
+    number_of_processes = 8
+    miter, solutions = create_condition_string(num_qubits, num_targets)
+    res_states = executer.find_counter_examples(miter, num_qubits, shots, delta, number_of_processes)
+    for process in res_states:
+        assert sorted(process) == sorted(solutions)
+
+    num_qubits = 6
+    num_targets = 10
+    shots = 512
+    delta = 0.8
+    number_of_processes = 4
+    miter, solutions = create_condition_string(num_qubits, num_targets)
+    res_states = executer.find_counter_examples(miter, num_qubits, shots, delta, number_of_processes)
+    for process in res_states:
+        assert sorted(process) == sorted(solutions)

@@ -1,16 +1,13 @@
 from __future__ import annotations
-
-import multiprocessing
+import threading
 import string
-
 import numpy as np
-
-# from mqt.problemsolver.equivalence_checker import sampler
-
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import GroverOperator, PhaseOracle
 from qiskit.compiler import transpile
 from qiskit_aer import AerSimulator
+
+# from mqt.problemsolver.equivalence_checker import sampler
 
 sim_counts = AerSimulator(method="statevector")
 
@@ -95,9 +92,9 @@ def sampler(
     return_dict[process_number] = target_states
 
 
-def run(miter: str, num_qubits:int, shots: int, delta: float, number_of_processes: int) -> list[str | int]:
+def find_counter_examples(miter: str, num_qubits:int, shots: int, delta: float, number_of_threads: int) -> list[str | int]:
     """
-    Runs the grover verification application in multiple processes.
+    Runs the grover verification application in multiple threads.
 
     Parameters
     ----------
@@ -109,8 +106,8 @@ def run(miter: str, num_qubits:int, shots: int, delta: float, number_of_processe
         Number of shots
     delta: float
         Threshold parameter between 0 and 1
-    number_of_processes: int
-        Number of processes the algorithm should run in simultaneously
+    number_of_threads: int
+        Number of threads the algorithm should run in simultaneously
 
     Returns
     -------
@@ -124,20 +121,16 @@ def run(miter: str, num_qubits:int, shots: int, delta: float, number_of_processe
     
     total_num_combinations = 2**num_qubits
     start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-    jobs = []
-    for i in range(number_of_processes):
-        process = multiprocessing.Process(
+    return_dict = {}
+    threads = []
+    for i in range(number_of_threads):
+        thread = threading.Thread(
             target=sampler,
             args=(i, return_dict, miter, start_iterations, shots, delta),
         )
-        jobs.append(process)
-        process.start()
+        threads.append(thread)
+        thread.start()
 
-    for job in jobs:
-        job.join()
-    return return_dict.values()
-
-miter = "a & b"
-targets = run(miter, 2, 32, 0.7, 1)
+    for thread in threads:
+        thread.join()
+    return list(return_dict.values())
