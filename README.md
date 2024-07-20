@@ -148,6 +148,7 @@ In case you are using our Resources Estimation approach, we would be thankful if
     year            = {2024},
     eprint          = {2402.12434},
     archivePrefix   = {arXiv},
+    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
 }
 ```
 
