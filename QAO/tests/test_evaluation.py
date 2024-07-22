@@ -1084,8 +1084,7 @@ def test_simulated_annealer_solver_constrained(lambda_strategy: str, constraint_
             assert solution.optimal_solution_cost_functions_values() == {"a + b*c + c**2": -0.25} or not all_satisfy
         elif constraint_expr == "b <= 1":
             assert (
-                solution.best_solution == {"a": 0.0, "b": 1.0, "c": -0.5}
-                or solution.best_solution == {"a": 0.0, "b": -1.0, "c": 0.5}
+                solution.best_solution in ({"a": 0.0, "b": 1.0, "c": -0.5}, {"a": 0.0, "b": -1.0, "c": 0.5})
                 or not all_satisfy
             )
             assert (
@@ -1178,8 +1177,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism(
             assert solution.optimal_solution_cost_functions_values() == {"a + b*c + c**2": -0.25} or not all_satisfy
         elif constraint_expr == "b <= 1":
             assert (
-                solution.best_solution == {"a": 0.0, "b": 1.0, "c": -0.5}
-                or solution.best_solution == {"a": 0.0, "b": -1.0, "c": 0.5}
+                solution.best_solution in ({"a": 0.0, "b": 1.0, "c": -0.5}, {"a": 0.0, "b": -1.0, "c": 0.5})
                 or not all_satisfy
             )
             assert (
@@ -1380,8 +1378,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism_and_strat
             assert solution.optimal_solution_cost_functions_values() == {"a + b*c + c**2": -0.25} or not all_satisfy
         elif constraint_expr == "b <= 1":
             assert (
-                solution.best_solution == {"a": 0.0, "b": 1.0, "c": -0.5}
-                or solution.best_solution == {"a": 0.0, "b": -1.0, "c": 0.5}
+                solution.best_solution in ({"a": 0.0, "b": 1.0, "c": -0.5}, {"a": 0.0, "b": -1.0, "c": 0.5})
                 or not all_satisfy
             )
             assert (
@@ -1455,8 +1452,7 @@ def test_simulated_annealing_cost_function_matrix(
         all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "M1_0_1 >= 1":
             assert (
-                solution.best_solution == {"M1": [[-1, 2]], "M2": [[2], [-1]]}
-                or solution.best_solution == {"M1": [[2, 2]], "M2": [[-1], [-1]]}
+                solution.best_solution in ({"M1": [[-1, 2]], "M2": [[2], [-1]]}, {"M1": [[2, 2]], "M2": [[-1], [-1]]})
                 or not all_satisfy
             )
             assert (solution.best_energy < -3.9) or not all_satisfy
