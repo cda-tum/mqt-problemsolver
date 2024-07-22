@@ -1,12 +1,8 @@
+from __future__ import annotations
+
 from math import ceil
 
-from qsharp.estimator import (
-    EstimatorParams,
-    QubitParams,
-    QECScheme,
-    LogicalCounts,
-    EstimatorResult
-)
+from qsharp.estimator import EstimatorParams, EstimatorResult, LogicalCounts, QECScheme, QubitParams
 
 # For all experiments, we are using the logical resource counts as a starting
 # point.  These have been computed using the qsharp Python package (version
@@ -26,14 +22,16 @@ rotation_count = 0
 rotation_depth = 0
 measurement_count = 0
 
-logical_counts = LogicalCounts({
-  "numQubits": 1318,
-  "tCount": 96,
-  "rotationCount": 11987084,
-  "rotationDepth": 11986482,
-  "cczCount": 67474931068,
-  "measurementCount": 63472407520
-})
+logical_counts = LogicalCounts(
+    {
+        "numQubits": 1318,
+        "tCount": 96,
+        "rotationCount": 11987084,
+        "rotationDepth": 11986482,
+        "cczCount": 67474931068,
+        "measurementCount": 63472407520,
+    }
+)
 
 # --- Default qubit models ---
 
@@ -85,22 +83,14 @@ params.error_budget = 0.01
 for t in range(5):
     params.items[t].qubit_params.instruction_set = "gateBased"
     params.items[t].qubit_params.name = f"t{t}"
-    params.items[t].qubit_params.one_qubit_measurement_time = \
-        f"{(2 * base_time) * time_growth**t} ns"
-    params.items[t].qubit_params.one_qubit_gate_time = \
-        f"{base_time * time_growth**t} ns"
-    params.items[t].qubit_params.two_qubit_gate_time = \
-        f"{base_time * time_growth**t} ns"
-    params.items[t].qubit_params.t_gate_time = \
-        f"{base_time * time_growth**t} ns"
-    params.items[t].qubit_params.one_qubit_measurement_error_rate = \
-        base_error * error_growth**t
-    params.items[t].qubit_params.one_qubit_gate_error_rate = \
-        base_error * error_growth**t
-    params.items[t].qubit_params.two_qubit_gate_error_rate = \
-        base_error * error_growth**t
-    params.items[t].qubit_params.t_gate_error_rate = \
-        base_error * error_growth**t
+    params.items[t].qubit_params.one_qubit_measurement_time = f"{(2 * base_time) * time_growth**t} ns"
+    params.items[t].qubit_params.one_qubit_gate_time = f"{base_time * time_growth**t} ns"
+    params.items[t].qubit_params.two_qubit_gate_time = f"{base_time * time_growth**t} ns"
+    params.items[t].qubit_params.t_gate_time = f"{base_time * time_growth**t} ns"
+    params.items[t].qubit_params.one_qubit_measurement_error_rate = base_error * error_growth**t
+    params.items[t].qubit_params.one_qubit_gate_error_rate = base_error * error_growth**t
+    params.items[t].qubit_params.two_qubit_gate_error_rate = base_error * error_growth**t
+    params.items[t].qubit_params.t_gate_error_rate = base_error * error_growth**t
     params.items[t].qubit_params.idle_error_rate = base_error * error_growth**t
 
 results = logical_counts.estimate(params=params)
@@ -114,17 +104,16 @@ print()
 
 
 def modified_logical_counts(space_factor: float, time_factor: float):
-    return LogicalCounts({
-        "numQubits": int(ceil(logical_counts["numQubits"] * space_factor)),
-        "tCount": int(ceil(logical_counts["tCount"] * time_factor)),
-        "rotationCount": int(ceil(
-            logical_counts["rotationCount"] * time_factor)),
-        "rotationDepth": int(ceil(
-            logical_counts["rotationDepth"] * time_factor)),
-        "cczCount": int(ceil(logical_counts["cczCount"] * time_factor)),
-        "measurementCount": int(ceil(
-            logical_counts["measurementCount"] * time_factor))
-    })
+    return LogicalCounts(
+        {
+            "numQubits": int(ceil(logical_counts["numQubits"] * space_factor)),
+            "tCount": int(ceil(logical_counts["tCount"] * time_factor)),
+            "rotationCount": int(ceil(logical_counts["rotationCount"] * time_factor)),
+            "rotationDepth": int(ceil(logical_counts["rotationDepth"] * time_factor)),
+            "cczCount": int(ceil(logical_counts["cczCount"] * time_factor)),
+            "measurementCount": int(ceil(logical_counts["measurementCount"] * time_factor)),
+        }
+    )
 
 
 params = EstimatorParams()
@@ -132,9 +121,7 @@ params.error_budget = 0.01
 params.qubit_params.name = QubitParams.MAJ_NS_E6
 params.qec_scheme.name = QECScheme.FLOQUET_CODE
 estimates = []
-for space_factor, time_factor in [
-    (1.0, 1.0), (0.5, 2.0), (2.0, 0.5), (0.75, 0.75)
-]:
+for space_factor, time_factor in [(1.0, 1.0), (0.5, 2.0), (2.0, 0.5), (0.75, 0.75)]:
     counts = modified_logical_counts(space_factor, time_factor)
     estimates.append(counts.estimate(params=params))
 
