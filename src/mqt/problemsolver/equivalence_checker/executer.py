@@ -1,13 +1,12 @@
 from __future__ import annotations
+
 import threading
-import string
+
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import GroverOperator, PhaseOracle
 from qiskit.compiler import transpile
 from qiskit_aer import AerSimulator
-
-# from mqt.problemsolver.equivalence_checker import sampler
 
 sim_counts = AerSimulator(method="statevector")
 
@@ -60,7 +59,9 @@ def sampler(
         counts_list = list(counts_dict.values())
         counts_list.sort(reverse=True)
 
-        counts_dict = dict(sorted(counts_dict.items(), key=lambda item: item[1])[::-1]) # Sort state dictionary with respect to values (counts)
+        counts_dict = dict(
+            sorted(counts_dict.items(), key=lambda item: item[1])[::-1]
+        )  # Sort state dictionary with respect to values (counts)
 
         stopping_condition = False
         for i in range(round(total_num_combinations * 0.5)):
@@ -85,14 +86,16 @@ def sampler(
 
         if stopping_condition:
             break
- 
+
     for i, state in enumerate(target_states):
-        target_states[i] = state[::-1] # Compensate Qiskit's qubit ordering
+        target_states[i] = state[::-1]  # Compensate Qiskit's qubit ordering
 
     return_dict[process_number] = target_states
 
 
-def find_counter_examples(miter: str, num_qubits:int, shots: int, delta: float, number_of_threads: int) -> list[str | int]:
+def find_counter_examples(
+    miter: str, num_qubits: int, shots: int, delta: float, number_of_threads: int
+) -> list[str | int]:
     """
     Runs the grover verification application in multiple threads.
 
@@ -117,11 +120,11 @@ def find_counter_examples(miter: str, num_qubits:int, shots: int, delta: float, 
     try:
         assert 0 <= delta <= 1
     except AssertionError:
-        print(f'Invalid delta of {delta}. It must be between 0 and 1.')
-    
+        print(f"Invalid delta of {delta}. It must be between 0 and 1.")
+
     total_num_combinations = 2**num_qubits
     start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
-    return_dict = {}
+    return_dict: dict[int, list[str]] = {}
     threads = []
     for i in range(number_of_threads):
         thread = threading.Thread(
@@ -133,4 +136,4 @@ def find_counter_examples(miter: str, num_qubits:int, shots: int, delta: float, 
 
     for thread in threads:
         thread.join()
-    return list(return_dict.values())
+    return [return_dict[i] for i in range(len(return_dict))]

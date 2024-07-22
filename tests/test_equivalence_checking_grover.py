@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import string
+
 from mqt.problemsolver.equivalence_checker import executer
 
 alphabet = list(string.ascii_lowercase)
+
 
 def create_condition_string(num_qubits: int, num_targets: int) -> tuple[str, list[str]]:
     """
@@ -54,14 +56,11 @@ def create_condition_string(num_qubits: int, num_targets: int) -> tuple[str, lis
     return res_string, list_of_bitstrings
 
 
-
 def test_create_condition_string() -> None:
     num_qubits = 3
     num_targets = 2
-    res_string, list_of_bitstrings = create_condition_string(
-        num_qubits=num_qubits, num_targets=num_targets
-    )
-    
+    res_string, list_of_bitstrings = create_condition_string(num_qubits=num_qubits, num_targets=num_targets)
+
     assert isinstance(res_string, str)
     assert isinstance(list_of_bitstrings, list)
     assert len(res_string) == 26
@@ -76,8 +75,11 @@ def test_run() -> None:
     delta = 0.7
     number_of_processes = 8
     miter, solutions = create_condition_string(num_qubits, num_targets)
-    res_states = executer.find_counter_examples(miter, num_qubits, shots, delta, number_of_processes)
+    res_states: dict[int, list[str]] = executer.find_counter_examples(
+        miter, num_qubits, shots, delta, number_of_processes
+    )
     for process in res_states:
+        print(type(res_states))
         assert sorted(process) == sorted(solutions)
 
     num_qubits = 6
@@ -86,6 +88,11 @@ def test_run() -> None:
     delta = 0.8
     number_of_processes = 4
     miter, solutions = create_condition_string(num_qubits, num_targets)
-    res_states = executer.find_counter_examples(miter, num_qubits, shots, delta, number_of_processes)
+    res_states: dict[int, list[str]] = executer.find_counter_examples(
+        miter, num_qubits, shots, delta, number_of_processes
+    )
     for process in res_states:
         assert sorted(process) == sorted(solutions)
+
+
+test_run()
