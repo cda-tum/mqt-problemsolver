@@ -11,7 +11,8 @@ from qsharp.estimator import (
 # For all experiments, we are using the logical resource counts as a starting
 # point.  These have been computed using the qsharp Python package (version
 # 1.6.0) for the https://aka.ms/fcidump/XVIII-cas4-fb-64e-56o Hamiltonian on
-# the sample:
+# the sample
+# https://github.com/microsoft/qsharp/tree/main/samples/estimation/df-chemistry:
 #
 # ```
 # $ python chemistry.py -f https://aka.ms/fcidump/XVIII-cas4-fb-64e-56o
