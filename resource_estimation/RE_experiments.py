@@ -1,25 +1,42 @@
-from __future__ import annotations
+from math import ceil
 
-import os
+from qsharp.estimator import (
+    EstimatorParams,
+    QubitParams,
+    QECScheme,
+    LogicalCounts,
+    EstimatorResult
+)
 
-import qsharp
-from azure.quantum import Workspace
-from azure.quantum.chemistry import df_chemistry
-from azure.quantum.target.microsoft import MicrosoftEstimator, QECScheme, QubitParams
+# For all experiments, we are using the logical resource counts as a starting
+# point.  These have been computed using the qsharp Python package (version
+# 1.6.0) for the https://aka.ms/fcidump/XVIII-cas4-fb-64e-56o Hamiltonian on
+# the sample:
+#
+# ```
+# $ python chemistry.py -f https://aka.ms/fcidump/XVIII-cas4-fb-64e-56o
+# $ jq '.logicalCounts' < resource_estimate.json
+# ```
 
-resource_id = os.environ.get("AZURE_QUANTUM_RESOURCE_ID")
-location = os.environ.get("AZURE_QUANTUM_LOCATION")
+logical_qubits = 0
+ccz_count = 0
+t_count = 0
+rotation_count = 0
+rotation_depth = 0
+measurement_count = 0
 
-workspace = Workspace(resource_id=resource_id, location=location)
-estimator = MicrosoftEstimator(workspace)
+logical_counts = LogicalCounts({
+  "numQubits": 1318,
+  "tCount": 96,
+  "rotationCount": 11987084,
+  "rotationDepth": 11986482,
+  "cczCount": 67474931068,
+  "measurementCount": 63472407520
+})
 
-### Default qubit models
+# --- Default qubit models ---
 
-params = estimator.make_params(num_items=6)
-
-# select Hamiltonian
-params.file_uris["fcidumpUri"] = "https://aka.ms/fcidump/XVIII-cas4-fb-64e-56o"
-
+params = EstimatorParams(6)
 params.error_budget = 0.01
 params.items[0].qubit_params.name = QubitParams.GATE_US_E3
 params.items[1].qubit_params.name = QubitParams.GATE_US_E4
@@ -30,42 +47,16 @@ params.items[4].qec_scheme.name = QECScheme.FLOQUET_CODE
 params.items[5].qubit_params.name = QubitParams.MAJ_NS_E6
 params.items[5].qec_scheme.name = QECScheme.FLOQUET_CODE
 
-job = estimator.submit(df_chemistry(), input_params=params)
-results = job.get_results()
+results = logical_counts.estimate(params=params)
 
 print()
 print("Default qubit models")
 print(results.summary_data_frame())
 print()
 
+# --- Evaluating different number of T factories ---
 
-### Evaluating different number of T factories
-
-# For the next experiment, estimate from logical counts to save time
-lcounts = results[0]["logicalCounts"]
-program = f"""
-open Microsoft.Quantum.ResourceEstimation;
-
-operation Main() : Unit {{
-    use qubits = Qubit[1369];
-
-    AccountForEstimates(
-        [
-            CczCount({lcounts["cczCount"] + lcounts["ccixCount"]}),
-            TCount({lcounts["tCount"]}),
-            RotationCount({lcounts["rotationCount"]}),
-            RotationDepth({lcounts["rotationDepth"]}),
-            MeasurementCount({lcounts["measurementCount"]})
-        ],
-        PSSPCLayout(),
-        qubits
-    );
-}}
-"""
-
-Main = qsharp.compile(program)
-
-params = estimator.make_params(num_items=14)
+params = EstimatorParams(num_items=14)
 params.qubit_params.name = QubitParams.MAJ_NS_E6
 params.qec_scheme.name = QECScheme.FLOQUET_CODE
 
@@ -73,15 +64,14 @@ params.error_budget = 0.01
 for i in range(14):
     params.items[i].constraints.max_t_factories = 14 - i
 
-job = estimator.submit(Main, input_params=params)
-results = job.get_results()
+results = logical_counts.estimate(params=params)
 
 print()
 print("Different number of T factories")
 print(results.summary_data_frame())
 print()
 
-### Modifying error rates and operating times
+# --- Modifying error rates and operating times ---
 
 base_time = 50  # ns
 base_error = 1e-3
@@ -89,71 +79,65 @@ base_error = 1e-3
 error_growth = 1e-1
 time_growth = 0.9
 
-params = estimator.make_params(num_items=5)
+params = EstimatorParams(num_items=5)
 params.error_budget = 0.01
 for t in range(5):
     params.items[t].qubit_params.instruction_set = "gateBased"
     params.items[t].qubit_params.name = f"t{t}"
-    params.items[t].qubit_params.one_qubit_measurement_time = f"{(2 * base_time) * time_growth**t} ns"
-    params.items[t].qubit_params.one_qubit_gate_time = f"{base_time * time_growth**t} ns"
-    params.items[t].qubit_params.two_qubit_gate_time = f"{base_time * time_growth**t} ns"
-    params.items[t].qubit_params.t_gate_time = f"{base_time * time_growth**t} ns"
-    params.items[t].qubit_params.one_qubit_measurement_error_rate = base_error * error_growth**t
-    params.items[t].qubit_params.one_qubit_gate_error_rate = base_error * error_growth**t
-    params.items[t].qubit_params.two_qubit_gate_error_rate = base_error * error_growth**t
-    params.items[t].qubit_params.t_gate_error_rate = base_error * error_growth**t
+    params.items[t].qubit_params.one_qubit_measurement_time = \
+        f"{(2 * base_time) * time_growth**t} ns"
+    params.items[t].qubit_params.one_qubit_gate_time = \
+        f"{base_time * time_growth**t} ns"
+    params.items[t].qubit_params.two_qubit_gate_time = \
+        f"{base_time * time_growth**t} ns"
+    params.items[t].qubit_params.t_gate_time = \
+        f"{base_time * time_growth**t} ns"
+    params.items[t].qubit_params.one_qubit_measurement_error_rate = \
+        base_error * error_growth**t
+    params.items[t].qubit_params.one_qubit_gate_error_rate = \
+        base_error * error_growth**t
+    params.items[t].qubit_params.two_qubit_gate_error_rate = \
+        base_error * error_growth**t
+    params.items[t].qubit_params.t_gate_error_rate = \
+        base_error * error_growth**t
     params.items[t].qubit_params.idle_error_rate = base_error * error_growth**t
 
-job = estimator.submit(Main, input_params=params)
-results = job.get_results()
+results = logical_counts.estimate(params=params)
 
 print()
 print("Modifying error rates and operating times")
 print(results.summary_data_frame())
 print()
 
-### Modifying logical counts
+# --- Modifying logical counts ---
 
-program_with_args = f"""
-open Microsoft.Quantum.Math;
-open Microsoft.Quantum.ResourceEstimation;
 
-operation Main(spaceFactor : Double, timeFactor : Double) : Unit {{
-    use qubits = Qubit[Ceiling(1369.0 * spaceFactor)];
+def modified_logical_counts(space_factor: float, time_factor: float):
+    return LogicalCounts({
+        "numQubits": int(ceil(logical_counts["numQubits"] * space_factor)),
+        "tCount": int(ceil(logical_counts["tCount"] * time_factor)),
+        "rotationCount": int(ceil(
+            logical_counts["rotationCount"] * time_factor)),
+        "rotationDepth": int(ceil(
+            logical_counts["rotationDepth"] * time_factor)),
+        "cczCount": int(ceil(logical_counts["cczCount"] * time_factor)),
+        "measurementCount": int(ceil(
+            logical_counts["measurementCount"] * time_factor))
+    })
 
-    AccountForEstimates(
-        [
-            CczCount(Ceiling({lcounts["cczCount"] + lcounts["ccixCount"]}.0 * timeFactor)),
-            TCount(Ceiling({lcounts["tCount"]}.0 * timeFactor)),
-            RotationCount(Ceiling({lcounts["rotationCount"]}.0 * timeFactor)),
-            RotationDepth(Ceiling({lcounts["rotationDepth"]}.0 * timeFactor)),
-            MeasurementCount(Ceiling({lcounts["measurementCount"]}.0 * timeFactor))
-        ],
-        PSSPCLayout(),
-        qubits
-    );
-}}
-"""
 
-MainWithArgs = qsharp.compile(program_with_args)
-
-params = estimator.make_params(num_items=4)
+params = EstimatorParams()
 params.error_budget = 0.01
 params.qubit_params.name = QubitParams.MAJ_NS_E6
 params.qec_scheme.name = QECScheme.FLOQUET_CODE
-params.items[0].arguments["spaceFactor"] = 1.0
-params.items[0].arguments["timeFactor"] = 1.0
-params.items[1].arguments["spaceFactor"] = 0.5
-params.items[1].arguments["timeFactor"] = 2.0
-params.items[2].arguments["spaceFactor"] = 2.0
-params.items[2].arguments["timeFactor"] = 0.5
-params.items[3].arguments["spaceFactor"] = 0.75
-params.items[3].arguments["timeFactor"] = 0.75
-
-job = estimator.submit(MainWithArgs, input_params=params)
-results = job.get_results()
+estimates = []
+for space_factor, time_factor in [
+    (1.0, 1.0), (0.5, 2.0), (2.0, 0.5), (0.75, 0.75)
+]:
+    counts = modified_logical_counts(space_factor, time_factor)
+    estimates.append(counts.estimate(params=params))
 
 print()
 print("Modifying logical counts")
-print(results.summary_data_frame())
+print(EstimatorResult(estimates).summary_data_frame())
 print()
