@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import multiprocessing
 import string
 
 import numpy as np
 
 # from mqt.problemsolver.equivalence_checker import sampler
-
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import GroverOperator, PhaseOracle
 from qiskit.compiler import transpile
@@ -15,6 +13,7 @@ from qiskit_aer import AerSimulator
 sim_counts = AerSimulator(method="statevector")
 
 alphabet = list(string.ascii_lowercase)
+
 
 def create_condition_string(num_qubits: int, num_counter_examples: int) -> tuple[str, list[str]]:
     """
@@ -64,16 +63,14 @@ def create_condition_string(num_qubits: int, num_counter_examples: int) -> tuple
             res_string += combined_bitstring
     return res_string, counter_examples
 
+
 def sampler(
-    process_number: int,
-    return_dict: dict[int, str | int],
     miter: str,
     counter_examples: list[str],
-    num_counter_examples: int,
     start_iterations: int,
     shots: int,
     delta: float,
-) -> None:
+) -> str:
     """
     Runs the algorithm utilizing Grover's algorithm to look for elements satisfying the conditions.
 
@@ -114,7 +111,9 @@ def sampler(
         counts_list = list(counts_dict.values())
         counts_list.sort(reverse=True)
 
-        counts_dict = dict(sorted(counts_dict.items(), key=lambda item: item[1])[::-1]) # Sort state dictionary with respect to values (counts)
+        counts_dict = dict(
+            sorted(counts_dict.items(), key=lambda item: item[1])[::-1]
+        )  # Sort state dictionary with respect to values (counts)
 
         stopping_condition = False
         for i in range(round(total_num_combinations * 0.5)):
@@ -139,70 +138,51 @@ def sampler(
 
         if stopping_condition:
             break
-    
-    with open(f'results_{num_qubits}qubits_{num_counter_examples}counter_examples_{delta}delta.txt', 'a') as f:
-        if sorted(target_states) == sorted(counter_examples):
-            f.write(f'Correct targets found! Total number of iterations: {total_iterations} \n')
-        elif len(target_states) == 0:
-            if len(counter_examples) > 0:
-                f.write(f'No targets found! Total number of iterations: {total_iterations} \n')
-            elif len(counter_examples) == 0:
-                f.write(f'Correct targets found (None)! Total number of iterations: {total_iterations} \n')
-        else:
-            f.write(f'At least one wrong target found! Total number of iterations: {total_iterations} \n')
-    f.close()
 
- 
-    for i, state in enumerate(target_states):
-        target_states[i] = state[::-1] # Compensate Qiskit's qubit ordering
+    if sorted(target_states) == sorted(counter_examples):
+        return f"Correct targets found! Total number of iterations: {total_iterations}"
+    if len(target_states) == 0:
+        if len(counter_examples) > 0:
+            return f"No targets found! Total number of iterations: {total_iterations}"
+        if len(counter_examples) == 0:
+            return f"Correct targets found (None)! Total number of iterations: {total_iterations}"
 
-    return_dict[process_number] = target_states
+    return f"At least one wrong target found! Total number of iterations: {total_iterations}"
 
-if __name__ == "__main__":
 
-    def find_counter_examples(miter: str, counter_examples: list[str], num_counter_examples: int,  num_qubits:int, shots: int, delta: float, number_of_processes: int) -> list[str | int]:
-        """
-        Runs the grover verification application in multiple processes.
+def find_counter_examples(
+    miter: str,
+    counter_examples: list[str],
+    num_qubits: int,
+    shots: int,
+    delta: float,
+) -> str:
+    """
+    Runs the grover verification application in multiple processes.
 
-        Parameters
-        ----------
-        miter: str
-            String that contains the conditions to satisfy
-        num_qubits : int
-            Number of input bits
-        shots: int
-            Number of shots
-        delta: float
-            Threshold parameter between 0 and 1
-        number_of_processes: int
-            Number of processes the algorithm should run in simultaneously
+    Parameters
+    ----------
+    miter: str
+        String that contains the conditions to satisfy
+    num_qubits : int
+        Number of input bits
+    shots: int
+        Number of shots
+    delta: float
+        Threshold parameter between 0 and 1
+    number_of_processes: int
+        Number of processes the algorithm should run in simultaneously
 
-        Returns
-        -------
-        list[str | int]
-            A list of values representing the targets found by the Grover algorithm
-        """
-        try:
-            assert 0 <= delta <= 1
-        except AssertionError:
-            print(f'Invalid delta of {delta}. It must be between 0 and 1.')
-        
-        total_num_combinations = 2**num_qubits
-        start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
-        manager = multiprocessing.Manager()
-        return_dict = manager.dict()
-        jobs = []
-        for i in range(number_of_processes):
-            process = multiprocessing.Process(
-                target=sampler,
-                args=(i, return_dict, miter, counter_examples, num_counter_examples, start_iterations, shots, delta),
-            )
-            jobs.append(process)
-            process.start()
+    Returns
+    -------
+    list[str | int]
+        A list of values representing the targets found by the Grover algorithm
+    """
+    try:
+        assert 0 <= delta <= 1
+    except AssertionError:
+        print(f"Invalid delta of {delta}. It must be between 0 and 1.")
 
-        for job in jobs:
-            job.join()
-        # return return_dict.values()
-
-    miter, counter_examples = create_condition_string(3,2)
-    find_counter_examples(miter, counter_examples, 2, 3, 64, 0.7, 5)
+    total_num_combinations = 2**num_qubits
+    start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
+    return sampler(miter, counter_examples, start_iterations, shots, delta)
