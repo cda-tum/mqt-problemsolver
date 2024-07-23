@@ -105,7 +105,7 @@ currently restricted by the number of qubits and the error rates. By estimating 
 the development of quantum computing applications can be accelerated without the need to wait for the availability of
 large-enough quantum hardware.
 
-In `resource_estimation/resource_estimation.py`, we evaluate the resources to calculate the ground state energy of a
+In `resource_estimation/RE_experiments.py`, we evaluate the resources to calculate the ground state energy of a
 Hamiltonian to chemical accuracy of 1 mHartree using the qubitization quantum simulation algorithm. The Hamiltonian
 describes the 64 electron and 56 orbital active space of one of the stable intermediates in the ruthenium-catalyzed
 carbon fixation cycle
