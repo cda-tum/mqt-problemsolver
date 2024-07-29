@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import cast
-
 import pytest
 import sympy as sp
 
@@ -32,7 +30,7 @@ def evaluate(
     """
     settings = pf.PathFindingQUBOGeneratorSettings(encoding, n_paths, TEST_GRAPH.n_vertices, loop)
     formula = cost_function.get_formula(TEST_GRAPH, settings)
-    assignment = [
+    assignment: list[tuple[sp.Expr, sp.Expr | int | float]] = [
         (cf.FormulaHelpers.get_encoding_variable_one_hot(p + 1, TEST_GRAPH.n_vertices + 1, i + 1), 0)
         for p in range(settings.n_paths)
         for i in range(settings.max_path_length + 1)
@@ -54,9 +52,8 @@ def evaluate(
         for i in range(TEST_GRAPH.n_vertices)
         for j in range(TEST_GRAPH.n_vertices)
     ]
-    return cast(
-        int,
-        formula.subs(path)  # type: ignore[no-untyped-call]
+    return int(
+        formula.subs(path)
         .doit()
         .subs(path)
         .doit()
@@ -479,3 +476,47 @@ def test_is_valid(encoding_type: pf.EncodingType, loop: bool) -> None:
 
     assert evaluate(pf.PathIsValid([2]), encoding_b, encoding_type, loop, n_paths=2) > 0
     assert evaluate(pf.PathIsValid([1, 2]), encoding_b, encoding_type, loop, n_paths=2) > 0
+
+
+def test_latex_output() -> None:
+    """Tests for the correctness of the LaTeX output of custom sympy expressions."""
+    printer = sp.StrPrinter()
+
+    s = cf.FormulaHelpers.sum_set(sp.Symbol("x"), ["x"], r"\in V", lambda: [1, 2, 3])
+    assert s._latex(printer) == r"\sum_{x \in V} x"  # noqa: SLF001
+
+    a = cf.A(1, 2)
+    assert a._latex(printer) == r"A_{1,2}"  # noqa: SLF001
+
+    x = cf.X(1, 2, 3)
+    assert x._latex(printer) == r"x_{1,2,3}"  # noqa: SLF001
+
+    d = cf.Decompose(5, 1)
+    assert d._latex(printer) == r"\bar{5}_{1}"  # noqa: SLF001
+
+
+def test_composite_get_formula() -> None:
+    """Test for the correctness of the CompositeCostFunction get_formula method."""
+    settings = pf.PathFindingQUBOGeneratorSettings(cf.EncodingType.ONE_HOT, 1, TEST_GRAPH.n_vertices, False)
+    p1 = cf.PathPositionIs(1, [1], 1)
+    p2 = cf.PathPositionIs(2, [2], 1)
+    c = cf.CompositeCostFunction((p1, 1), (p2, 1))
+    composite_expr = c.get_formula(TEST_GRAPH, settings)
+    p1_expr = p1.get_formula(TEST_GRAPH, settings)
+    p2_expr = p2.get_formula(TEST_GRAPH, settings)
+    assert composite_expr == p1_expr + p2_expr
+
+
+def test_expanding_sum() -> None:
+    """Test for the correctness of the ExpandingSum expression type and its expansion method."""
+    x = sp.Symbol("x")
+    y = sp.Symbol("y")
+    z = sp.Symbol("z")
+    expression = x + y
+    e = cf.ExpandingSum(expression, (x, 1, 3), (y, 1, 3))
+    assert int(e.doit()) == 36
+    e = cf.ExpandingSum(expression, (x, y, 3), (y, 1, 3))
+    assert int(e.doit()) == 24
+    e = cf.ExpandingSum(expression, (x, 1, 3), (y, z, 3))
+    done_expr = e.doit()
+    assert done_expr == e

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, Tuple, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -96,12 +96,9 @@ class QUBOGenerator:
         if isinstance(expression, sp.Expr):
             expression = self._construct_expansion(expression).expand()
         expression = expression.doit().expand()
-        if isinstance(expression, sp.Expr):
-            expression = self.expand_higher_order_terms(expression)
-            self.expansion_cache = expression
-            return expression
-        msg = "Expression is not an expression."
-        raise TypeError(msg)
+        expression = self.expand_higher_order_terms(expression)
+        self.expansion_cache = expression
+        return expression
 
     def expand_higher_order_terms(self, expression: sp.Expr) -> sp.Expr:
         """Expands a mathematical QUBO expression.
@@ -115,9 +112,9 @@ class QUBOGenerator:
         Returns:
             sp.Expr: The transformed expression.
         """
-        result = 0
+        result: sp.Expr | float = 0
         auxiliary_dict: dict[sp.Expr, sp.Expr] = {}
-        coeffs = expression.as_coefficients_dict()  # type: ignore[no-untyped-call]
+        coeffs = expression.as_coefficients_dict()
         for term in coeffs:
             unpowered = self.__unpower(term)
             unpowered = self.__simplify_auxiliary_variables(unpowered, auxiliary_dict)
@@ -146,9 +143,7 @@ class QUBOGenerator:
         used_auxilliaries = {term for term in expression.args if term in auxiliary_dict.values()}
         redundant_variables = {term for term in auxiliary_dict if auxiliary_dict[term] in used_auxilliaries}
         remaining_variables = [arg for arg in expression.args if arg not in redundant_variables]
-        if len(remaining_variables) == 1:
-            return cast(sp.Expr, remaining_variables[0])
-        return cast(sp.Expr, sp.Mul(*remaining_variables))
+        return sp.Mul(*remaining_variables) if len(remaining_variables) > 1 else remaining_variables[0]
 
     @staticmethod
     def __optimal_decomposition(
@@ -172,7 +167,7 @@ class QUBOGenerator:
                 return x1, x2, auxiliary_dict[x1 * x2], sp.Mul(*[term for term in terms if term not in {x1, x2}])
         x1 = terms[0]
         x2 = terms[1]
-        y: sp.Symbol = sp.Symbol(f"y_{len(auxiliary_dict) + 1}")  # type: ignore[no-untyped-call]
+        y: sp.Symbol = sp.Symbol(f"y_{len(auxiliary_dict) + 1}")
         auxiliary_dict[x1 * x2] = y
         rest = sp.Mul(*terms[2:])
         return x1, x2, y, rest
@@ -187,12 +182,12 @@ class QUBOGenerator:
         Returns:
             sp.Expr: The new expression with lower order.
         """
-        (x1, x2, y, rest) = self.__optimal_decomposition(cast(Tuple[sp.Expr, ...], expression.args), auxiliary_dict)
+        (x1, x2, y, rest) = self.__optimal_decomposition(expression.args, auxiliary_dict)
         auxiliary_penalty = x1 * x2 - 2 * y * x1 - 2 * y * x2 + 3 * y
         rest *= y
         if self.__get_order(rest) > 2:
             rest = self.__decrease_order(rest, auxiliary_dict)
-        return cast(sp.Expr, auxiliary_penalty + rest)
+        return auxiliary_penalty + rest
 
     def __get_order(self, expression: sp.Expr) -> int:
         """Computes the order of a product of variables.
@@ -220,9 +215,9 @@ class QUBOGenerator:
             sp.Expr: The transformed expression.
         """
         if isinstance(expression, sp.Pow):
-            return cast(sp.Expr, expression.args[0])
+            return expression.args[0]
         if isinstance(expression, sp.Mul):
-            return cast(sp.Expr, sp.Mul(*[self.__unpower(arg) for arg in expression.args]))
+            return sp.Mul(*[self.__unpower(arg) for arg in expression.args])
         return expression
 
     def __get_auxiliary_variables(self, expression: sp.Expr) -> list[sp.Symbol]:
@@ -316,7 +311,7 @@ class QUBOGenerator:
 
         variable_assignment = {item[0]: assignment[item[1] - 1] for item in self._get_encoding_variables()}
         variable_assignment.update(auxiliary_assignment)
-        return cast(float, expansion.subs(variable_assignment).evalf())  # type: ignore[no-untyped-call]
+        return expansion.subs(variable_assignment).evalf()
 
     def __get_auxiliary_assignment(self, assignment: list[int]) -> dict[sp.Expr, int]:
         """Generates the assignment of auxiliary variables based on a given encoding variable assignment.
@@ -347,8 +342,8 @@ class QUBOGenerator:
             to_remove = []
             for aux in remaining_variables:
                 (left, right) = aux.args[0], aux.args[1]
-                left_val = get_var_value(cast(sp.Expr, left))
-                right_val = get_var_value(cast(sp.Expr, right))
+                left_val = get_var_value(left)
+                right_val = get_var_value(right)
                 if left_val is not None and right_val is not None:
                     auxiliary_values[self.auxiliary_cache[aux]] = left_val * right_val
                     to_remove.append(aux)
@@ -379,7 +374,7 @@ class QUBOGenerator:
         Returns:
             int: The number of required variables.
         """
-        coefficients = dict(self.construct_expansion().as_coefficients_dict())  # type: ignore[no-untyped-call]
+        coefficients = dict(self.construct_expansion().as_coefficients_dict())
         auxiliary_variables = list({var for arg in coefficients for var in self.__get_auxiliary_variables(arg)})
         return len(self._get_encoding_variables()) + len(auxiliary_variables)
 

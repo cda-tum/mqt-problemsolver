@@ -80,13 +80,13 @@ def test_tsp(encoding_type: pf.EncodingType) -> None:
         path_representation = generator.decode_bit_array(optimal_solution)
 
         assert paths_equal_with_loops(path_representation[0], [4, 1, 2, 3])
-        assert generator.get_cost(optimal_solution) == 20
+        assert generator.get_cost(optimal_solution) == 20.0
 
         # Test if constructing the Quantum Circuit works without a problem.
         generator.construct_qaoa(seed=0)
 
     solution = paths_to_assignment_list([[4, 1, 2, 3]], 4, 4, encoding_type)
-    assert generator.get_cost(solution) == 20
+    assert generator.get_cost(solution) == 20.0
 
 
 @pytest.mark.parametrize(
@@ -118,7 +118,7 @@ def test_2dpp(encoding_type: pf.EncodingType) -> None:
     generator.add_constraint(cf.PathEndsAt([4], 2))
 
     solution = paths_to_assignment_list([[1, 3], [2, 4]], 4, 2, encoding_type)
-    assert generator.get_cost(solution) == 9
+    assert generator.get_cost(solution) == 9.0
 
 
 def setup_tsp() -> pf.PathFindingQUBOGenerator:

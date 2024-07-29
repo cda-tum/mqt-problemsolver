@@ -305,11 +305,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             for p in range(self.settings.n_paths)
             for i in range(self.settings.max_path_length + 1)
         ]  # x_{p, |V| + 1, i} = 0 for all p, i
-        result = expression.subs(dict(assignment))  # type: ignore[no-untyped-call]
-        if isinstance(result, sp.Expr):
-            return result
-        msg = "Expression is not a sympy expression."
-        raise ValueError(msg)
+        return expression.subs(dict(assignment))
 
     @override
     def get_variable_index(self, var: sp.Expr) -> int:

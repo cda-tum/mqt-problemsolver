@@ -34,11 +34,13 @@ class A(sp.Function):
     `A(v, w)` represents the weight of edge (v, w).
     """
 
-    def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+    def _latex(self, printer: sp.StrPrinter, *args: Any, **kwargs: Any) -> str:  # noqa: ARG002
         """Returns the latex representation of the expression.
 
         Args:
-            _printer (sp.StrPrinter): The printer to use.
+            printer (sp.StrPrinter): The printer to use.
+            args (Any): Additional arguments.
+            kwargs (Any): Additional keyword arguments.
 
         Returns:
             str: The latex representation of the expression.
@@ -53,11 +55,13 @@ class X(sp.Function):
     `x(p, v, i)` represents a single binary variable. Its meaning depends on the encoding type.
     """
 
-    def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+    def _latex(self, printer: sp.StrPrinter, *args: Any, **kwargs: Any) -> str:  # noqa: ARG002
         """Returns the latex representation of the expression.
 
         Args:
-            _printer (sp.StrPrinter): The printer to use.
+            printer (sp.StrPrinter): The printer to use.
+            args (Any): Additional arguments.
+            kwargs (Any): Additional keyword arguments.
 
         Returns:
             str: The latex representation of the expression.
@@ -73,11 +77,13 @@ class Decompose(sp.Function):
         `Decompose(5, 1)` represents digit 1 of the binary string `101`, i.e., 1.
     """
 
-    def _latex(self, _printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+    def _latex(self, printer: sp.StrPrinter, *args: Any, **kwargs: Any) -> str:  # noqa: ARG002
         """Returns the latex representation of the expression.
 
         Args:
-            _printer (sp.StrPrinter): The printer to use.
+            printer (sp.StrPrinter): The printer to use.
+            args (Any): Additional arguments.
+            kwargs (Any): Additional keyword arguments.
 
         Returns:
             str: The latex representation of the expression.
@@ -93,14 +99,16 @@ class Decompose(sp.Function):
         return cast(sp.Expr, sp.Integer(int(n) >> (int(i) - 1) & 1))
 
 
-class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
+class ExpandingSum(sp.Sum):
     """Represents a sum that is always expanded into a sum of its elements when calling `doit()`."""
+
+    args: tuple[sp.Expr, tuple[sp.Symbol, sp.Expr, sp.Expr]]
 
     @override
     def doit(self, **_hints: Any) -> sp.Expr:
         expr, *limits = self.args
         limits = list(reversed(limits))
-        return self.__do_expansion(expr, limits[1:], limits[0])  # type: ignore[arg-type]
+        return self.__do_expansion(expr, limits[1:], limits[0])
 
     def __do_expansion(
         self,
@@ -121,20 +129,20 @@ class ExpandingSum(sp.Sum):  # type: ignore[no-untyped-call]
         Returns:
             sp.Expr: The expanded sum of elements.
         """
-        result = sp.Integer(0)
+        result: sp.Expr = sp.Integer(0)
         (variable, from_value, to_value) = limits
         if not isinstance(from_value, sp.Integer) or not isinstance(to_value, sp.Integer):
-            return ExpandingSum(expr, list(reversed([limits, *remaining_limits])))  # type: ignore[no-untyped-call]
+            return ExpandingSum(expr, *list(reversed([limits, *remaining_limits])))
         for i in range(int(from_value), int(to_value) + 1):
             if len(remaining_limits) == 0:
-                result += expr.subs(variable, i)  # type: ignore[no-untyped-call]
+                result += expr.subs(variable, i)
             else:
                 new_remaining_limits = [
-                    (new_variable, new_from_limit.subs(variable, i), new_to_limit.subs(variable, i))  # type: ignore[no-untyped-call]
+                    (new_variable, new_from_limit.subs(variable, i), new_to_limit.subs(variable, i))
                     for (new_variable, new_from_limit, new_to_limit) in remaining_limits
                 ]
-                result += self.__do_expansion(expr.subs(variable, i), new_remaining_limits[1:], new_remaining_limits[0])  # type: ignore[no-untyped-call]
-        return cast(sp.Expr, result)
+                result += self.__do_expansion(expr.subs(variable, i), new_remaining_limits[1:], new_remaining_limits[0])
+        return result
 
 
 class _StringForSumSet:
@@ -185,21 +193,23 @@ class SumSet(sp.Expr):
             element_expr (sp.Expr): The expression of an individual sum item.
             latex (_StringForSumSet): The latex string that represents the set over which the sum is performed.
         """
-        self._args = (expr, element_expr, latex)  # type: ignore[assignment]
+        self._args = (expr, element_expr, latex)
         self.expr = expr
         self.latex = latex
         self.element_expr = element_expr
 
-    def _latex(self, printer: sp.StrPrinter, *_args: Any, **_kwargs: Any) -> str:
+    def _latex(self, printer: sp.StrPrinter, *args: Any, **kwargs: Any) -> str:  # noqa: ARG002
         """Returns the latex representation of the expression.
 
         Args:
             printer (sp.StrPrinter): The printer to use.
+            args (Any): Additional arguments.
+            kwargs (Any): Additional keyword arguments.
 
         Returns:
             str: The latex representation of the expression.
         """
-        child_latex = printer.doprint(self.element_expr)  # type: ignore[no-untyped-call]
+        child_latex = printer.doprint(self.element_expr)
         return f"{self.latex.string} {child_latex}"
 
     @override
@@ -209,13 +219,13 @@ class SumSet(sp.Expr):
         Returns:
             sp.Expr: The expression that is represented by the sum.
         """
-        return cast(sp.Expr, self.expr.doit(hints=hints))  # type: ignore[no-untyped-call]
+        return self.expr.doit(hints=hints)
 
     def __eq__(self, other: object) -> bool:
         """Overrides the default implementation."""
         if not isinstance(other, SumSet):
             return False
-        return cast(bool, self.expr == other.expr)
+        return self.expr == other.expr
 
     def __hash__(self) -> int:
         """Overrides the default implementation."""
@@ -226,36 +236,38 @@ class FormulaHelpers:
     """Provides static methods for the more efficient construction of sympy formulas."""
 
     @staticmethod
-    def sum_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
+    def sum_from_to(expression: sp.Expr, var: str, from_number: sp.Expr | float, to_number: sp.Expr | float) -> sp.Expr:
         """Generates a sum of the form `Sum(expression, (var, from_number, to_number)`.
 
         Args:
             expression (sp.Expr): The term inside the sum.
             var (str): The iteration variable of the sum as a string.
-            from_number (int): The lower bound of the sum.
-            to_number (int): The upper bound of the sum.
+            from_number (sp.Expr | float): The lower bound of the sum.
+            to_number (sp.Expr | float): The upper bound of the sum.
 
         Returns:
             sp.Expr: The sympy sum term.
         """
-        s = sp.Symbol(var)  # type: ignore[no-untyped-call]
-        return ExpandingSum(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
+        s = sp.Symbol(var)
+        return ExpandingSum(expression, (s, from_number, to_number))
 
     @staticmethod
-    def prod_from_to(expression: sp.Expr, var: str, from_number: int, to_number: int) -> sp.Expr:
+    def prod_from_to(
+        expression: sp.Expr, var: str, from_number: sp.Expr | float, to_number: sp.Expr | float
+    ) -> sp.Expr:
         """Generates a product of the form `Product(expression, (var, from_number, to_number)`.
 
         Args:
             expression (sp.Expr): The term inside the sum.
             var (str): The iteration variable of the sum as a string.
-            from_number (int): The lower bound of the sum.
-            to_number (int): The upper bound of the sum.
+            from_number (sp.Expr | float): The lower bound of the sum.
+            to_number (sp.Expr | float): The upper bound of the sum.
 
         Returns:
             sp.Expr: The sympy sum term.
         """
-        s = sp.Symbol(var)  # type: ignore[no-untyped-call]
-        return sp.Product(expression, (s, from_number, to_number))  # type: ignore[no-untyped-call]
+        s = sp.Symbol(var)
+        return sp.Product(expression, (s, from_number, to_number))
 
     @staticmethod
     def sum_set(expression: sp.Expr, variables: list[str], latex: str, callback: SetCallback) -> sp.Expr:
@@ -272,13 +284,10 @@ class FormulaHelpers:
         """
         variable_symbols = [FormulaHelpers.variable(v) for v in variables]
         assignments = [x if isinstance(x, tuple) else (x,) for x in callback()]
-        expr = cast(
-            sp.Expr,
-            functools.reduce(
-                lambda total, new: total + expression.subs(dict(zip(variable_symbols, new))),  # type: ignore[no-untyped-call]
-                assignments,
-                sp.Integer(0),
-            ),
+        expr = functools.reduce(
+            lambda total, new: total + expression.subs(dict(zip(variable_symbols, new))),
+            assignments,
+            cast(sp.Expr, sp.Integer(0)),
         )
 
         if len(assignments) <= 1:
@@ -320,7 +329,7 @@ class FormulaHelpers:
         Returns:
             sp.Symbol: The generated variable.
         """
-        return sp.Symbol(name)  # type: ignore[no-untyped-call]
+        return sp.Symbol(name)
 
     @staticmethod
     def get_encoding_variable_one_hot(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
@@ -368,11 +377,9 @@ class FormulaHelpers:
             vertex = FormulaHelpers.variable(vertex)
         if isinstance(position, str):
             position = FormulaHelpers.variable(position)
-        return cast(
-            sp.Expr,
-            FormulaHelpers.get_encoding_variable_one_hot(path, vertex, position)
-            - FormulaHelpers.get_encoding_variable_one_hot(path, vertex + 1, position),
-        )
+        return FormulaHelpers.get_encoding_variable_one_hot(
+            path, vertex, position
+        ) - FormulaHelpers.get_encoding_variable_one_hot(path, vertex + 1, position)
 
     @staticmethod
     def get_encoding_variable_binary(path: Any, vertex: Any, position: Any, num_vertices: int = 0) -> sp.Expr:
@@ -408,7 +415,7 @@ class FormulaHelpers:
                 + (1 - Decompose(vertex, index_symbol))
                 * (1 - FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)),
                 (index_symbol, 1, max_index),
-            ),  # type: ignore[no-untyped-call]
+            ),
         )
 
     @staticmethod
@@ -578,13 +585,10 @@ class CompositeCostFunction(CostFunction):
 
     @override
     def get_formula(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
-        return cast(
-            sp.Expr,
-            functools.reduce(
-                lambda a, b: a + b[1] * b[0].get_formula(graph, settings),
-                self.summands[1:],
-                self.summands[0][1] * self.summands[0][0].get_formula(graph, settings),
-            ),
+        return functools.reduce(
+            lambda a, b: a + b[1] * b[0].get_formula(graph, settings),
+            self.summands[1:],
+            self.summands[0][1] * self.summands[0][0].get_formula(graph, settings),
         )
 
     @override
@@ -630,24 +634,20 @@ class PathPositionIs(CostFunction):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return cast(
-            sp.Expr,
-            (
-                1
-                - FormulaHelpers.sum_set(
-                    get_variable_function(
-                        self.path,
-                        "v",
-                        self.position if self.position > 0 else (settings.max_path_length + 1 + self.position),
-                        graph.n_vertices,
-                    ),
-                    ["v"],
-                    f"\\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
-                    lambda: list(self.vertex_ids),
-                )
+        return (
+            1
+            - FormulaHelpers.sum_set(
+                get_variable_function(
+                    self.path,
+                    "v",
+                    self.position if self.position > 0 else (settings.max_path_length + 1 + self.position),
+                    graph.n_vertices,
+                ),
+                ["v"],
+                f"\\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
+                lambda: list(self.vertex_ids),
             )
-            ** 2,
-        )
+        ) ** 2
 
     def __str__(self) -> str:
         """Returns a string representation of the cost function.
@@ -707,32 +707,28 @@ class PathEndsAt(CostFunction):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return cast(
-            sp.Expr,
-            FormulaHelpers.sum_from_to(
-                (
-                    1
-                    - FormulaHelpers.get_for_each_vertex(
-                        get_variable_function(self.path, "v", "i", graph.n_vertices), graph.all_vertices
-                    )
+        return FormulaHelpers.sum_from_to(
+            (
+                1
+                - FormulaHelpers.get_for_each_vertex(
+                    get_variable_function(self.path, "v", "i", graph.n_vertices), graph.all_vertices
                 )
-                ** 2
-                * FormulaHelpers.sum_set(
-                    get_variable_function(self.path, "v", FormulaHelpers.variable("i") - 1, graph.n_vertices),
-                    ["v"],
-                    f"\\not \\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
-                    lambda: list(set(graph.all_vertices) - set(self.vertex_ids)),
-                ),
-                "i",
-                2,
-                settings.max_path_length,
             )
-            + FormulaHelpers.sum_set(
-                get_variable_function(self.path, "v", settings.max_path_length, graph.n_vertices),
+            ** 2
+            * FormulaHelpers.sum_set(
+                get_variable_function(self.path, "v", FormulaHelpers.variable("i") - 1, graph.n_vertices),
                 ["v"],
                 f"\\not \\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
                 lambda: list(set(graph.all_vertices) - set(self.vertex_ids)),
             ),
+            "i",
+            2,
+            settings.max_path_length,
+        ) + FormulaHelpers.sum_set(
+            get_variable_function(self.path, "v", settings.max_path_length, graph.n_vertices),
+            ["v"],
+            f"\\not \\in \\left\\{{ {', '.join([str(v) for v in self.vertex_ids])} \\right\\}}",
+            lambda: list(set(graph.all_vertices) - set(self.vertex_ids)),
         )
 
     def __str__(self) -> str:
@@ -1275,18 +1271,14 @@ class PathIsValid(PathBound):
             return FormulaHelpers.get_encoding_variable_one_hot(p, v, i)
 
         general = self.get_formula_general(graph, settings, get_variable_function)
-        return cast(
-            sp.Expr,
-            general
-            + FormulaHelpers.get_for_each_path(
-                FormulaHelpers.get_for_each_position(
-                    (1 - FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices))
-                    * -1
-                    * (FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices)),
-                    settings.max_path_length,
-                ),
-                self.path_ids,
+        return general + FormulaHelpers.get_for_each_path(
+            FormulaHelpers.get_for_each_position(
+                (1 - FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices))
+                * -1
+                * (FormulaHelpers.get_for_each_vertex(get_variable_function("p", "v", "i"), graph.all_vertices)),
+                settings.max_path_length,
             ),
+            self.path_ids,
         )
 
     @override
@@ -1296,23 +1288,18 @@ class PathIsValid(PathBound):
             2 * settings.max_path_length * np.max(graph.adjacency_matrix) + graph.n_vertices**2
         )
         # This ensures that the domain wall condition (x_i = 0 -> x_{i+1} = 0) is not broken to achieve better cost in other cost functions.
-        return cast(
-            sp.Expr,
-            general
-            + enforce_domain_wall_penalty
-            * FormulaHelpers.get_for_each_path(
-                FormulaHelpers.get_for_each_position(
-                    FormulaHelpers.sum_set(
-                        (1 - FormulaHelpers.get_encoding_variable_one_hot("p", "v", "i"))
-                        * FormulaHelpers.get_encoding_variable_one_hot("p", FormulaHelpers.variable("v") + 1, "i"),
-                        ["v"],
-                        "\\in V",
-                        cast(SetCallback, lambda: graph.all_vertices),
-                    ),
-                    settings.max_path_length,
+        return general + enforce_domain_wall_penalty * FormulaHelpers.get_for_each_path(
+            FormulaHelpers.get_for_each_position(
+                FormulaHelpers.sum_set(
+                    (1 - FormulaHelpers.get_encoding_variable_one_hot("p", "v", "i"))
+                    * FormulaHelpers.get_encoding_variable_one_hot("p", FormulaHelpers.variable("v") + 1, "i"),
+                    ["v"],
+                    "\\in V",
+                    cast(SetCallback, lambda: graph.all_vertices),
                 ),
-                self.path_ids,
+                settings.max_path_length,
             ),
+            self.path_ids,
         )
 
     @override
@@ -1378,25 +1365,19 @@ class MaximizePathLength(PathBound):
         settings: pathfinder.PathFindingQUBOGeneratorSettings,
         get_variable_function: GetVariableFunction,
     ) -> sp.Expr:
-        return cast(
-            sp.Expr,
-            -1
-            * FormulaHelpers.get_for_each_path(
-                FormulaHelpers.sum_set(
-                    FormulaHelpers.get_for_each_position(
-                        FormulaHelpers.adjacency("v", "w")
-                        * get_variable_function("p", "v", "i", graph.n_vertices)
-                        * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices),
-                        settings.max_path_length,
-                    ),
-                    ["v", "w"],
-                    "\\in E",
-                    lambda: cast(
-                        List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges
-                    ),
+        return -1 * FormulaHelpers.get_for_each_path(
+            FormulaHelpers.sum_set(
+                FormulaHelpers.get_for_each_position(
+                    FormulaHelpers.adjacency("v", "w")
+                    * get_variable_function("p", "v", "i", graph.n_vertices)
+                    * get_variable_function("p", "w", FormulaHelpers.variable("i") + 1, graph.n_vertices),
+                    settings.max_path_length,
                 ),
-                self.path_ids,
+                ["v", "w"],
+                "\\in E",
+                lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
             ),
+            self.path_ids,
         )
 
 
