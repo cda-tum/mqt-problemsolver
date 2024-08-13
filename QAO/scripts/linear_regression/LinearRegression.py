@@ -19,8 +19,8 @@ feat = 2
 X = np.zeros([N, d])
 Y = np.zeros(N)
 TrainingPercentage = 0.7
-N_Traning = int(N * TrainingPercentage)
-N_Test = N - N_Traning
+N_Training = int(N * TrainingPercentage)
+N_Test = N - N_Training
 i = 0
 for key in df:
     j = 0
@@ -38,11 +38,11 @@ for key in df:
             j += 1
 pca = PCA(n_components=feat)
 X = pca.fit_transform(X=X, y=Y)
-X_traning = np.hstack((X[:N_Traning, :], np.ones((N_Traning, 1))))
-X_test = np.hstack((X[N_Traning:, :], np.ones((N_Test, 1))))
+X_training = np.hstack((X[:N_Training, :], np.ones((N_Training, 1))))
+X_test = np.hstack((X[N_Training:, :], np.ones((N_Test, 1))))
 
-Y_traning = Y[:N_Traning]
-Y_test = Y[N_Traning:]
+Y_training = Y[:N_Training]
+Y_test = Y[N_Training:]
 variables = Variables()
 w = variables.add_continuous_variables_array("w", [feat + 1, 1], -0.25, 0.25, 0.25)
 objective_function = ObjectiveFunction()
@@ -50,9 +50,9 @@ objective_function.add_objective_function(
     cast(
         Expr,
         (
-            np.dot(np.dot(np.dot(np.transpose(w), np.transpose(X_traning)), X_traning), w)
-            - 2 * np.dot(np.dot(np.transpose(w), np.transpose(X_traning)), Y_traning)
-            + np.dot(np.transpose(Y_traning), Y_traning)
+            np.dot(np.dot(np.dot(np.transpose(w), np.transpose(X_training)), X_training), w)
+            - 2 * np.dot(np.dot(np.transpose(w), np.transpose(X_training)), Y_training)
+            + np.dot(np.transpose(Y_training), Y_training)
         )[0, 0],
     )
 )
@@ -73,18 +73,18 @@ if not isinstance(solution, bool):
     print(solution.best_energy)
     solution.wring_json_reports(filename="simulated_annealing_linear_regression_Iris", problem_features=True)
     w_conf = solution.best_solution["w"]
-    Y_obtained_training = np.dot(X_traning, w_conf)
+    Y_obtained_training = np.dot(X_training, w_conf)
     TP_tr = 0
     TN_tr = 0
     FP_tr = 0
     FN_tr = 0
-    for i in range(N_Traning):
+    for i in range(N_Training):
         if Y_obtained_training[i] > 0:
-            if Y_traning[i] == 1:
+            if Y_training[i] == 1:
                 TP_tr += 1
             else:
                 FP_tr += 1
-        elif Y_traning[i] == 1:
+        elif Y_training[i] == 1:
             FN_tr += 1
         else:
             TN_tr += 1

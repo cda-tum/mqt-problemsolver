@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import logging
+import pickle
+from importlib import resources
 from math import ceil, log, log2, sqrt
 from pathlib import Path
 from time import time_ns
@@ -77,7 +79,7 @@ class Solver:
         Keyword arguments:
         problem -- which is the problem to solve
         auto_setting -- bool it is a flag for choosing the automatic setting of the solver parameters (False by defaults)
-        beta_range -- int is the range of values assumed by the simulated annealing beta parameter (the temperature), if None the solver exploites its default option.
+        beta_range -- int is the range of values assumed by the simulated annealing beta parameter (the temperature), if None the solver exploits its default option.
         num_reads -- int is the number of solver execution, 100 by default
         annealing_time -- int is the number of simulated annealing iterations
         num_sweeps_per_beta -- int define the number of iterations for which is value of beta is maintained
@@ -145,10 +147,7 @@ class Solver:
             time = -1.0
         sol = Solution()
         sol.create_problem(self.problem)
-        solver_info: dict[str, Any] = {}
-        solver_info["solver name"] = "Simulated annealer"
-        solver_info["num reads"] = num_reads
-        solver_info["annealing time"] = annealing_time
+        solver_info = {"solver name": "Simulated annealer", "num reads": num_reads, "annealing time": annealing_time}
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
         sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
@@ -191,11 +190,12 @@ class Solver:
                 sol = Solution()
                 sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
-                solver_info = {}
-                solver_info["solver name"] = "Simulated annealer"
-                solver_info["lambda update"] = self._number_of_lambda_update
-                solver_info["num reads"] = num_reads
-                solver_info["annealing time"] = annealing_time
+                solver_info = {
+                    "solver name": "Simulated annealer",
+                    "lambda update": self._number_of_lambda_update,
+                    "num reads": num_reads,
+                    "annealing time": annealing_time,
+                }
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
                 sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
@@ -333,11 +333,12 @@ class Solver:
 
         sol = Solution()
         sol.create_problem(self.problem)
-        solver_info: dict[str, Any] = {}
-        solver_info["solver name"] = "Dwave annealer"
-        solver_info["num reads"] = num_reads
-        solver_info["annealing time"] = annealing_time_scheduling
-        solver_info["qpu annealing time"] = time
+        solver_info = {
+            "solver name": "Dwave annealer",
+            "num reads": num_reads,
+            "annealing time": annealing_time_scheduling,
+            "qpu annealing time": time,
+        }
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
         sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
@@ -362,12 +363,13 @@ class Solver:
                 sol = Solution()
                 sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
-                solver_info = {}
-                solver_info["solver name"] = "Dwave annealer"
-                solver_info["lambda update"] = self._number_of_lambda_update
-                solver_info["num reads"] = num_reads
-                solver_info["annealing time"] = annealing_time_scheduling
-                solver_info["qpu annealing time"] = time
+                solver_info = {
+                    "solver name": "Dwave annealer",
+                    "lambda update": self._number_of_lambda_update,
+                    "num reads": num_reads,
+                    "annealing time": annealing_time_scheduling,
+                    "qpu annealing time": time,
+                }
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
                 sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
@@ -395,9 +397,6 @@ class Solver:
         Keyword arguments:
         problem -- which is the problem to solve
         auto_setting -- bool it is a flag for choosing the automatic setting of the solver parameters (False by defaults)
-        simulator -- bool it is a flag for choosing the execution on a simulator or on a real devices
-        backend_name -- str specifying if the name of the real or simulation backend
-        IBMaccount -- str containing the IBM quantum experience account for exploiting real devices
         qubit_values -- int containing the number of qubits necessary for representing the function values. It can be derived from the bound
         coeff_precision -- float indicated the wanted precision for coefficients
         threshold -- int it is the number of consecutive positive accepted before determining that negatives are finished
@@ -460,12 +459,13 @@ class Solver:
 
         sol = Solution()
         sol.create_problem(self.problem)
-        solver_info: dict[str, Any] = {}
-        solver_info["solver name"] = "GAS qubo"
-        solver_info["qubit values"] = qubit_values
-        solver_info["num runs"] = num_runs
-        solver_info["threshold"] = threshold
-        solver_info["time"] = time
+        solver_info = {
+            "solver name": "GAS qubo",
+            "qubit values": qubit_values,
+            "num runs": num_runs,
+            "threshold": threshold,
+            "time": time,
+        }
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
         sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
@@ -506,13 +506,14 @@ class Solver:
                 sol = Solution()
                 sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
-                solver_info = {}
-                solver_info["solver name"] = "GAS qubo"
-                solver_info["qubit values"] = qubit_values
-                solver_info["lambda update"] = self._number_of_lambda_update
-                solver_info["num runs"] = num_runs
-                solver_info["threshold"] = threshold
-                solver_info["time"] = time
+                solver_info = {
+                    "solver name": "GAS qubo",
+                    "qubit values": qubit_values,
+                    "lambda update": self._number_of_lambda_update,
+                    "num runs": num_runs,
+                    "threshold": threshold,
+                    "time": time,
+                }
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
                 sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
@@ -543,9 +544,6 @@ class Solver:
         Keyword arguments:
         problem -- which is the problem to solve
         auto_setting -- bool it is a flag for choosing the automatic setting of the solver parameters (False by defaults)
-        simulator -- bool it is a flag for choosing the execution on a simulator or on a real devices
-        backend_name -- str specifying if the name of the real or simulation backend
-        IBMaccount -- str containing the IBM quantum experience account for exploiting real devices
         classical_optimizer -- str identifying the wanted classical optimizer
         num_runs -- int it is the number of trial
         max_lambda_update -- int it is the maximum number of admitted lambda update in case of not satisfied constraints
@@ -617,11 +615,7 @@ class Solver:
 
         sol = Solution()
         sol.create_problem(self.problem)
-        solver_info: dict[str, Any] = {}
-        solver_info["solver name"] = "QAOA qubo"
-        solver_info["num runs"] = num_runs
-        solver_info["repetitions"] = reps
-        solver_info["time"] = time
+        solver_info = {"solver name": "QAOA qubo", "num runs": num_runs, "repetitions": reps, "time": time}
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
         sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
@@ -650,12 +644,13 @@ class Solver:
                 sol = Solution()
                 sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
-                solver_info = {}
-                solver_info["solver name"] = "QAOA qubo"
-                solver_info["lambda update"] = self._number_of_lambda_update
-                solver_info["num runs"] = num_runs
-                solver_info["repetitions"] = reps
-                solver_info["time"] = time
+                solver_info = {
+                    "solver name": "QAOA qubo",
+                    "lambda update": self._number_of_lambda_update,
+                    "num runs": num_runs,
+                    "repetitions": reps,
+                    "time": time,
+                }
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
                 sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
@@ -684,9 +679,6 @@ class Solver:
         Keyword arguments:
         problem -- which is the problem to solve
         auto_setting -- bool it is a flag for choosing the automatic setting of the solver parameters (False by defaults)
-        simulator -- bool it is a flag for choosing the execution on a simulator or on a real devices
-        backend_name -- str specifying if the name of the real or simulation backend
-        IBMaccount -- str containing the IBM quantum experience account for exploiting real devices
         classical_optimizer -- str identifying the wanted classical optimizer
         num_runs -- int it is the number of trial
         max_lambda_update -- int it is the maximum number of admitted lambda update in case of not satisfied constraints
@@ -745,10 +737,7 @@ class Solver:
 
         sol = Solution()
         sol.create_problem(self.problem)
-        solver_info: dict[str, Any] = {}
-        solver_info["solver name"] = "VQE qubo"
-        solver_info["num runs"] = num_runs
-        solver_info["time"] = time
+        solver_info = {"solver name": "VQE qubo", "num runs": num_runs, "time": time}
         if save_compilation_time:
             solver_info["compilation time"] = compilation_time
         sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
@@ -777,17 +766,421 @@ class Solver:
                 sol = Solution()
                 sol.create_problem(self.problem)
                 self._number_of_lambda_update += 1
-                solver_info = {}
-                solver_info["solver name"] = "VQE qubo"
-                solver_info["lambda update"] = self._number_of_lambda_update
-                solver_info["num runs"] = num_runs
-                solver_info["time"] = time
+                solver_info = {
+                    "solver name": "VQE qubo",
+                    "lambda update": self._number_of_lambda_update,
+                    "num runs": num_runs,
+                    "time": time,
+                }
                 if save_compilation_time:
                     solver_info["compilation time"] = compilation_time
                 sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
                 all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
             return sol
         return None
+
+    def _solve_with_the_predicted_solver(
+        self,
+        y: int,
+        solver_info: dict[str, Any] | None = None,
+        num_runs: int = 10,
+        coeff_precision: float = 1.0,
+        token: str = "",
+        save_time: bool = False,
+    ) -> tuple[Solution | bool | None, dict[str, Any]]:
+        """
+        function for creating to define the solver characteristic
+
+        Keyword arguments:
+        y -- int it is the predicted value for the solver
+        solver_info -- dict containing the information about the solver
+        num_runs -- int it is the number of trial
+        coeff_precision -- float indicated the wanted precision for coefficients
+        save_time -- bool it is a flag for deciding if save the time required for solver execution
+
+        Return values:
+        solution -- object containing all the information about the obtained solution
+
+        """
+        if solver_info is None:
+            solver_info = {}
+        sol = Solution()
+        if y == 0 and token:  # QA
+            print("The best solver is the Quantum Annealer. The problem will be solved with the Quantum Annealer\n")
+            failover = True
+            config_file = None
+            endpoint = None
+            solver = "Advantage_system4.1"
+            annealing_time_scheduling = 10 ** (0.7 * sqrt(len(self.qubo.variables)))
+            if annealing_time_scheduling < 0.5:
+                annealing_time_scheduling = 0.5
+            elif annealing_time_scheduling > 2000:
+                annealing_time_scheduling = 2000.0
+            # num_reads = 100
+            auto_scale = True
+            flux_drift_compensation = True
+            programming_thermalization = 1000.0
+            readout_thermalization = 1000.0
+            reduce_intersample_correlation = True
+
+            time = -1.0
+            try:
+                dwave_sampler = DWaveSampler(
+                    failover=failover,
+                    solver=solver,
+                    config_file=config_file,
+                    endpoint=endpoint,
+                    token=token,
+                )
+            except (RuntimeError, TypeError):
+                print("It is not possible to exploit quantum annealer\n")
+                return False, solver_info
+
+            try:
+                dwave_sampler_embedded = EmbeddingComposite(dwave_sampler)
+                samples = dwave_sampler_embedded.sample_qubo(
+                    self.qubo.Q,
+                    num_reads=num_runs,
+                    reduce_intersample_correlation=reduce_intersample_correlation,
+                    annealing_time=annealing_time_scheduling,
+                    auto_scale=auto_scale,
+                    flux_drift_compensation=flux_drift_compensation,
+                    programming_thermalization=programming_thermalization,
+                    readout_thermalization=readout_thermalization,
+                )
+            except (RuntimeError, TypeError):
+                print("It is not possible to exploit quantum annealer\n")
+                return False, solver_info
+
+            if save_time:
+                time = samples.info["timing"]["qpu_anneal_time_per_sample"] * 1000  # for moving to ns
+            sol.create_problem(self.problem)
+            solver_info["solver name"] = "Dwave annealer"
+            solver_info["num reads"] = num_runs
+            solver_info["annealing time"] = annealing_time_scheduling
+            solver_info["qpu annealing time"] = time
+            sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
+        elif y == 1:  # QAOA
+            print("The best solver is the QAOA. The problem will be solved with the QAOA\n")
+            reps = ceil(2 * sqrt(len(self.qubo.variables)))
+            if reps == 0:
+                reps = 1
+            beta = Parameter("β")
+            var_num = len(self.qubo.variables)
+            mixer = QuantumCircuit(var_num)
+            for _idx in range(var_num):
+                mixer.rx(2 * beta, _idx)
+
+            initial_state = QuantumCircuit(var_num)
+            for _idx in range(var_num):
+                initial_state.h(_idx)
+            callback = None
+            initial_point = None
+            aggregation = None
+
+            qp = self._from_qubovert_to_qiskit_model(self.qubo)
+            optimizer = COBYLA()
+            qaoa_mes = QAOA(
+                sampler=Sampler(),
+                optimizer=optimizer,
+                reps=reps,
+                initial_state=initial_state,
+                mixer=mixer,
+                initial_point=initial_point,
+                aggregation=aggregation,
+                callback=callback,
+            )
+            qaoa = MinimumEigenOptimizer(qaoa_mes)
+            res = []
+            if save_time:
+                start = time_ns()
+                for _run in range(num_runs):
+                    results = qaoa.solve(qp)
+                    res.append(results)
+                stop = time_ns()
+                time = float(stop - start) / num_runs
+            else:
+                for _run in range(num_runs):
+                    results = qaoa.solve(qp)
+                    res.append(results)
+                time = -1.0
+            sol.create_problem(self.problem)
+            solver_info["solver name"] = "QAOA qubo"
+            solver_info["num runs"] = num_runs
+            solver_info["repetitions"] = reps
+            solver_info["time"] = time
+            sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+        elif y == 2:  # VQE
+            print("The best solver is the VQE. The problem will be solved with the VQE\n")
+            ansatz = TwoLocal(num_qubits=len(self.qubo.variables), rotation_blocks="ry", entanglement_blocks="cz")
+
+            optimizer = COBYLA()
+
+            initial_point = None
+            aggregation = None
+            callback = None
+            qp = self._from_qubovert_to_qiskit_model(self.qubo)
+            vqe_mes = SamplingVQE(
+                sampler=Sampler(),
+                optimizer=optimizer,
+                ansatz=ansatz,
+                initial_point=initial_point,
+                aggregation=aggregation,
+                callback=callback,
+            )
+
+            vqe = MinimumEigenOptimizer(vqe_mes)
+            res = []
+            if save_time:
+                start = time_ns()
+                for _run in range(num_runs):
+                    results = vqe.solve(qp)
+                    res.append(results)
+                stop = time_ns()
+                time = float(stop - start) / num_runs
+            else:
+                for _run in range(num_runs):
+                    results = vqe.solve(qp)
+                    res.append(results)
+                time = -1.0
+
+            sol.create_problem(self.problem)
+            solver_info["solver name"] = "VQE qubo"
+            solver_info["num runs"] = num_runs
+            solver_info["time"] = time
+            sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+
+        elif y == 3:  # GAS
+            print("The best solver is the GAS. The problem will be solved with the GAS\n")
+            scaled_qubo_c = round((self.qubo.copy() - self.qubo.offset) / coeff_precision)
+            min_coeff = abs(min(scaled_qubo_c.values(), key=abs))
+            scaled_qubo = round(scaled_qubo_c / min_coeff)
+            qp = self._from_qubovert_to_qiskit_model(scaled_qubo)
+            threshold = 2 * len(self.qubo.variables)
+            qubit_values = ceil(log2(abs(self.problem.upper_lower_bound_posiform_and_negaform_method(scaled_qubo))))
+            grover_optimizer = GroverOptimizer(qubit_values, num_iterations=threshold, sampler=Sampler())
+            res = []
+            if save_time:
+                start = time_ns()
+                for _run in range(num_runs):
+                    results = grover_optimizer.solve(qp)
+                    res.append(results)
+                stop = time_ns()
+                time = float(stop - start) / num_runs
+            else:
+                for _run in range(num_runs):
+                    results = grover_optimizer.solve(qp)
+                    res.append(results)
+                time = -1.0
+
+            sol.create_problem(self.problem)
+            solver_info["solver name"] = "GAS qubo"
+            solver_info["qubit values"] = qubit_values
+            solver_info["num runs"] = num_runs
+            solver_info["threshold"] = threshold
+            solver_info["time"] = time
+            sol.create_qiskit_qubo_solution(res, self.pubo, self.qubo, time, solver_info)
+        else:  # Simulated Annealing
+            beta_range = None
+            # num_reads = 100
+            annealing_time = int(10 ** (0.5 * sqrt(len(self.qubo.variables))))
+            num_sweeps_per_beta = 1
+            beta_schedule_type = "geometric"
+            seed = None
+            initial_states = None
+            initial_states_generator = "random"
+            if save_time:
+                start = time_ns()
+                samples = SimulatedAnnealingSampler().sample_qubo(
+                    self.qubo.Q,
+                    beta_range=beta_range,
+                    num_reads=num_runs,
+                    num_sweeps=annealing_time,
+                    num_sweeps_per_beta=num_sweeps_per_beta,
+                    beta_schedule_type=beta_schedule_type,
+                    seed=seed,
+                    initial_states=initial_states,
+                    initial_states_generator=initial_states_generator,
+                )
+                stop = time_ns()
+                time = float(stop - start) / num_runs
+            else:
+                if y == 0:
+                    print(
+                        "Quantum annealer was selected as best solver, but a valid token is not available, so simulated annealing is executed\n"
+                    )
+                else:
+                    print(
+                        "The best solver is the Simulated Annealer. The problem will be solved with the Simulated Annealer\n"
+                    )
+                samples = SimulatedAnnealingSampler().sample_qubo(
+                    self.qubo.Q,
+                    beta_range=beta_range,
+                    num_reads=num_runs,
+                    num_sweeps=annealing_time,
+                    num_sweeps_per_beta=num_sweeps_per_beta,
+                    beta_schedule_type=beta_schedule_type,
+                    seed=seed,
+                    initial_states=initial_states,
+                    initial_states_generator=initial_states_generator,
+                )
+                time = -1.0
+            sol.create_problem(self.problem)
+            solver_info["solver name"] = "Simulated annealer"
+            solver_info["num reads"] = num_runs
+            solver_info["annealing time"] = annealing_time
+            sol.create_dwave_annealing_solution(samples, self.pubo, self.qubo, self.qubo.offset, time, solver_info)
+        return sol, solver_info
+
+    def solve(
+        self,
+        problem: Problem,
+        num_runs: int = 10,
+        coeff_precision: float = 1.0,
+        token: str = "",
+        max_lambda_update: int = 5,
+        lambda_update_mechanism: str = "sequential penalty increase",
+        lambda_strategy: str = "upper lower bound posiform and negaform method",
+        lambda_value: float = 1.0,
+        save_time: bool = False,
+        save_compilation_time: bool = False,
+    ) -> Solution | bool | None:
+        """
+        function for creating to define the solver characteristic
+
+        Keyword arguments:
+        problem -- which is the problem to solve
+        num_runs -- int it is the number of trial
+        coeff_precision -- float indicated the wanted precision for coefficients
+        max_lambda_update -- int it is the maximum number of admitted lambda update in case of not satisfied constraints
+        lambda_update_mechanism -- str it is to the choosing the mechanism for updating lambda in case of not satisfied constraints
+        lambda_strategy -- str it is the mechanism for selecting the lambda generation mechanisms
+        save_time -- bool it is a flag for deciding if save the time required for solver execution
+
+        Return values:
+        solution -- object containing all the information about the obtained solution
+
+        """
+        if save_compilation_time:
+            start = time_ns()
+            self.problem = problem
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.qubo = self.pubo.to_qubo()
+            stop = time_ns()
+            compilation_time = float(stop - start)
+        else:
+            self.problem = problem
+            self.pubo = self.problem.write_the_final_cost_function(lambda_strategy, lambda_value=lambda_value)
+            self.qubo = self.pubo.to_qubo()
+
+        # estrapolate the features
+        x = np.zeros((1, 9))
+        x[0, 0] = len(self.qubo.variables)
+        num_elm: dict[int, int] = {}
+        elems: dict[int, list[float]] = {}
+        coeff = []
+        for key in self.qubo:
+            if len(key) in num_elm:
+                num_elm[len(key)] += 1
+                elems[len(key)].append(self.qubo[key])
+            else:
+                num_elm[len(key)] = 1
+                elems[len(key)] = []
+                elems[len(key)].append(self.qubo[key])
+            coeff.append(self.qubo[key])
+        elems_m = {}
+        elems_v = {}
+        coeff_m = sum(coeff) / len(coeff)
+        coeff_v = np.var(coeff)
+        for key, value in elems.items():
+            elems_m[key] = sum(value) / len(value)
+            elems_v[key] = np.var(value)
+        x[0, 1] = num_elm[1]
+        x[0, 2] = num_elm[2]
+        x[0, 3] = elems_m[1]
+        x[0, 4] = elems_m[2]
+        x[0, 5] = elems_v[1]
+        x[0, 6] = elems_v[2]
+        x[0, 7] = coeff_m
+        x[0, 8] = coeff_v
+
+        # Convert the resource path to a Path object
+        path_ml = resources.files("mqt.qao").joinpath("model/RandomForest")
+        path_scalerk = path_ml / "ScalerKCross.pkl"
+        path_scaler = path_ml / "Scaler.pkl"
+        path_model = path_ml / "model.pkl"
+        with path_scalerk.open("rb") as file:
+            scalerk = pickle.load(file)
+        x = scalerk.transform(x)
+        with path_scaler.open("rb") as file:
+            scaler = pickle.load(file)
+        x = scaler.transform(x)
+        with path_model.open("rb") as file:
+            model = pickle.load(file)
+        y = int(model.predict(x)[0])
+        solver_info: dict[str, Any] = {}
+
+        if save_compilation_time:
+            solver_info["compilation time"] = compilation_time
+        sol, solver_info = self._solve_with_the_predicted_solver(
+            y, solver_info, num_runs, coeff_precision, token, save_time
+        )
+        if isinstance(sol, bool) or sol is None:
+            return sol
+        all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
+
+        if not all_satisfied or self._number_of_lambda_update < max_lambda_update:
+            while self._number_of_lambda_update != max_lambda_update and not all_satisfied:
+                self.pubo = self.problem.update_lambda_cost_function(
+                    single_satisfied, max_lambda_update, lambda_update_mechanism
+                )
+                self.qubo = self.pubo.to_qubo()
+
+                # estrapolate the features
+                x = np.zeros((1, 9))
+                x[0, 0] = len(self.qubo.variables)
+                num_elm = {}
+                elems = {}
+                coeff = []
+                for key in self.qubo:
+                    if len(key) in num_elm:
+                        num_elm[len(key)] += 1
+                        elems[len(key)].append(self.qubo[key])
+                    else:
+                        num_elm[len(key)] = 1
+                        elems[len(key)] = []
+                        elems[len(key)].append(self.qubo[key])
+                    coeff.append(self.qubo[key])
+                elems_m = {}
+                elems_v = {}
+                coeff_m = sum(coeff) / len(coeff)
+                coeff_v = np.var(coeff)
+                for key, value in elems.items():
+                    elems_m[key] = sum(value) / len(value)
+                    elems_v[key] = np.var(value)
+                x[0, 1] = num_elm[1]
+                x[0, 2] = num_elm[2]
+                x[0, 3] = elems_m[1]
+                x[0, 4] = elems_m[2]
+                x[0, 5] = elems_v[1]
+                x[0, 6] = elems_v[2]
+                x[0, 7] = coeff_m
+                x[0, 8] = coeff_v
+                x = scalerk.transform(x)
+                x = scaler.transform(x)
+                y = int(model.predict(x)[0])
+                solver_info = {}
+                sol, solver_info = self._solve_with_the_predicted_solver(
+                    y, solver_info, num_runs, coeff_precision, token, save_time
+                )
+                if save_compilation_time:
+                    solver_info["compilation time"] = compilation_time
+                if isinstance(sol, bool) or sol is None:
+                    return sol
+                all_satisfied, single_satisfied = sol.check_constraint_optimal_solution()
+
+                self._number_of_lambda_update += 1
+        return sol
 
     def get_lambda_updates(self) -> int:
         return self._number_of_lambda_update
@@ -1249,12 +1642,12 @@ class Solution:
                 for key in self.qubo:
                     if len(key) in num_elm:
                         num_elm[len(key)] += 1
-                        elems[len(key)].append(self.pubo[key])
+                        elems[len(key)].append(self.qubo[key])
                     else:
                         num_elm[len(key)] = 1
                         elems[len(key)] = []
-                        elems[len(key)].append(self.pubo[key])
-                    coeff.append(self.pubo[key])
+                        elems[len(key)].append(self.qubo[key])
+                    coeff.append(self.qubo[key])
                 elems_m = {}
                 elems_v = {}
                 coeff_m = sum(coeff) / len(coeff)

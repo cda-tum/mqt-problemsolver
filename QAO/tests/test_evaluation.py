@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import cast
 
 import numpy as np
@@ -1058,7 +1059,9 @@ def test_simulated_annealer_solver_constrained(lambda_strategy: str, constraint_
     problem = Problem()
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
-    solution = solver.solve_simulated_annealing(problem, lambda_strategy=lambda_strategy)
+    solution = solver.solve_simulated_annealing(
+        problem, lambda_strategy=lambda_strategy, num_reads=1000, annealing_time=100
+    )
     if isinstance(solution, Solution):
         all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
         if constraint_expr == "c >= 1":
@@ -1465,6 +1468,34 @@ def test_simulated_annealing_cost_function_matrix(
         assert solution
 
 
+def test_predict_solver_basic() -> None:
+    """Test for the problem constructions"""
+    variables = Variables()
+    constraint = Constraints()
+    a0 = variables.add_binary_variable("a")
+    b0 = variables.add_binary_variable("b")
+    c0 = variables.add_binary_variable("c")
+    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
+    objective_function = ObjectiveFunction()
+    objective_function.add_objective_function(cost_function)
+    problem = Problem()
+    problem.create_problem(variables, constraint, objective_function)
+    solver = Solver()
+    solution = solver.solve(problem, num_runs=20)
+    if isinstance(solution, Solution):
+        all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
+        print(solution.best_solution)
+        assert solution.best_solution == {"a": 1.0, "b": 0.0, "c": 1.0}
+        print(solution.best_solution)
+        assert solution.best_energy < -5.9  # (the range if for having no issues with numerical errors)
+        assert solution.best_energy > -6.1
+        print(solution.optimal_solution_cost_functions_values())
+        assert solution.optimal_solution_cost_functions_values() == {"-2.0*a*c - a - b*c + 2.0*b - 3.0*c": -6.0}
+        assert all_satisfy
+    else:
+        assert solution
+
+
 def test_gas_solver_basic() -> None:
     """Test for the problem constructions"""
     variables = Variables()
@@ -1551,3 +1582,57 @@ def test_vqe_solver_qubo_basic() -> None:
         assert all_satisfy
     else:
         assert solution
+
+
+@pytest.mark.parametrize(
+    "problem_name",
+    [
+        "maxcut_3_10_1",
+        "maxcut_3_10_5",
+        "maxcut_3_50_1",
+        "maxcut_3_50_2",
+    ],
+)
+def test_predict_solver_maxcut(problem_name: str) -> None:
+    """Test for the problem constructions"""
+    pathfile = Path(__file__).parent / "maxcut" / str(problem_name + ".txt")
+    with pathfile.open("r", encoding="utf-8") as f:
+        lines = f.readlines()
+        el = lines[0].split()
+        nodes = int(el[0])
+        weight = np.zeros((nodes, nodes))
+        for k in range(1, len(lines)):
+            el = lines[k].split()
+            i = int(el[0])
+            j = int(el[1])
+            w = int(el[2])
+            weight[i, j] = w
+
+        variables = Variables()
+        x = variables.add_binary_variables_array("x", [nodes])
+        objective_function = ObjectiveFunction()
+        if not isinstance(x, bool):
+            cut = 0
+            for i in range(nodes):
+                for j in range(i + 1, nodes):
+                    cut += weight.item((i, j)) * (x[j] + x[i] - 2 * x[i] * x[j])
+            objective_function.add_objective_function(cast(Expr, cut), minimization=False)
+            constraint = Constraints()
+            problem = Problem()
+            problem.create_problem(variables, constraint, objective_function)
+            solver = Solver()
+            solution = solver.solve(
+                problem,
+                num_runs=10,
+                coeff_precision=1.0,
+            )
+            pathfilesol = Path(__file__).parent / "maxcutResults" / str(problem_name + "_sol.txt")
+            with pathfilesol.open("r", encoding="utf-8") as fsol:
+                reference_val = float(fsol.readline())
+                if not isinstance(solution, bool) and solution is not None:
+                    _all_satisfy, _each_satisfy = solution.check_constraint_optimal_solution()
+                    assert solution.best_energy == reference_val
+                else:
+                    assert solution
+        else:
+            assert x

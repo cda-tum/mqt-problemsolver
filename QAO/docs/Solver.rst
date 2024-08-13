@@ -187,6 +187,36 @@ The class provides for exploiting the solver:
 
 For each of them, the outcome is a Solution object.
 
+Best Solver Prediction:
+-----------------------
+ - solve(
+        self,
+        problem: Problem,
+        num_runs: int = 10,
+        coeff_precision: float = 1.0,
+        token: str = "",
+        max_lambda_update: int = 5,
+        lambda_update_mechanism: str = "sequential penalty increase",
+        lambda_strategy: str = "upper lower bound posiform and negaform method",
+        lambda_value: float = 1.0,
+        save_time: bool = False,
+        save_compilation_time: bool = False,
+    ) -> Solution | bool | None: Solve the problem using the best solver. The parameters are:
+        - *problem*: the problem to solve
+        - *num_runs*: the number of trial
+        - *coeff_precision*: the wanted precision for coefficients (in case of Grover Adaptive Search)
+        - *token*: the token to access the D-Wave API
+        - *max_lambda_update*: the maximum lambda update if the constraints are not satisfied
+        - *lambda_update_mechanism*: the lambda update mechanism among:
+            - *sequential penalty increase*
+            - *scaled sequential penalty increase*
+            - *binary search penalty algorithm*
+        - *lambda_strategy*: for selecting the lambda generation mechanisms
+        - *save_time*: if save the time required for solver execution
+        - *save_compilation_time*: if save the time required for compilation
+
+
+
 
 Examples:
 ---------
@@ -313,6 +343,12 @@ Variational Quantum Eigensolver
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
 
+    from mqt.qao.constraints import Constraints
+    from mqt.qao.variables import Variables
+    from mqt.qao.objectivefunction import ObjectiveFunction
+    from mqt.qao.problem import Problem
+    from mqt.qao.solver import Solver
+
     variables = Variables()
     constraint = Constraints()
     a0 = variables.add_binary_variable("a")
@@ -325,6 +361,33 @@ Variational Quantum Eigensolver
     problem.create_problem(variables, constraint, objective_function)
     solver = Solver()
     solution = solver.solve_vqe_qubo(
+        problem,
+        num_runs=10,
+    )
+
+
+Predicted Best Solver
+~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: python
+
+    from mqt.qao.constraints import Constraints
+    from mqt.qao.variables import Variables
+    from mqt.qao.objectivefunction import ObjectiveFunction
+    from mqt.qao.problem import Problem
+    from mqt.qao.solver import Solver
+
+    variables = Variables()
+    constraint = Constraints()
+    a0 = variables.add_binary_variable("a")
+    b0 = variables.add_binary_variable("b")
+    c0 = variables.add_binary_variable("c")
+    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
+    objective_function = ObjectiveFunction()
+    objective_function.add_objective_function(cost_function)
+    problem = Problem()
+    problem.create_problem(variables, constraint, objective_function)
+    solver = Solver()
+    solution = solver.solve(
         problem,
         num_runs=10,
     )
