@@ -29,7 +29,8 @@ dependencies = [
     "docplex",
     "qiskit_optimization",
     "tweedledum==1.0.0",
-    "qiskit_aer"
+    "qiskit_aer",
+    "pandas"
 ]
 
 classifiers = [
@@ -82,7 +83,7 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*"]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "qiskit_aer.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
