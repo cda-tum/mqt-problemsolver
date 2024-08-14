@@ -70,19 +70,31 @@ if __name__ == "__main__":
         assert len(counter_examples) == num_counter_examples
         assert res_string == "~a & ~b & ~c | a & ~b & ~c"
 
-    def test_run() -> None:
-        num_qubits = 4
-        num_counter_examples = 2
-        shots = 128
-        delta = 0.7
-        miter, counter_examples = create_condition_string(num_qubits, num_counter_examples)
-        result = executer.find_counter_examples(miter, counter_examples, num_qubits, shots, delta)
-        assert result == "Correct targets found! Total number of iterations: 2"
-
+    def test_try_paramter_combinations() -> None:
         num_qubits = 6
-        num_counter_examples = 10
+        num_counter_examples = 3
+        res_string, counter_examples = create_condition_string(
+            num_qubits=num_qubits, num_counter_examples=num_counter_examples
+        )
         shots = 512
-        delta = 0.8
-        miter, counter_examples = create_condition_string(num_qubits, num_counter_examples)
-        result = executer.find_counter_examples(miter, counter_examples, num_qubits, shots, delta)
-        assert result == "Correct targets found! Total number of iterations: 5"
+        delta = 0.7
+        result = executer.find_counter_examples(
+            miter=res_string, counter_examples=counter_examples, num_bits=num_qubits, shots=shots, delta=delta
+        )
+        assert result == 5
+
+    def test_find_counter_examples() -> None:
+        num_qubits = 8
+        num_counter_examples = 10
+        res_string, counter_examples = create_condition_string(
+            num_qubits=num_qubits, num_counter_examples=num_counter_examples
+        )
+        shots = 512
+        delta = 0.7
+        found_counter_examples = executer.find_counter_examples(
+            miter=res_string, num_bits=num_qubits, shots=shots, delta=delta
+        )
+        assert sorted(found_counter_examples) == sorted(counter_examples)
+
+
+test_find_counter_examples()

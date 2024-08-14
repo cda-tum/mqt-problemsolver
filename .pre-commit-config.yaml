@@ -89,3 +89,4 @@ repos:
           - networkx
           - mqt.ddsim
           - pytest
+          - pandas-stubs
