@@ -28,7 +28,8 @@ dependencies = [
     "python_tsp",
     "docplex",
     "qiskit_optimization",
-    "tweedledum==1.0.0"
+    "tweedledum==1.0.0",
+    "pandas"
 ]
 
 classifiers = [
