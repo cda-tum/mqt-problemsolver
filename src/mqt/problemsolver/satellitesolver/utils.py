@@ -83,8 +83,9 @@ def calc_needed_time_between_acquisition_attempts(
     delta_r1 = first_acq.position - first_acq.get_average_satellite_position()
     delta_r2 = second_acq.position - second_acq.get_average_satellite_position()
     theta = np.arccos(delta_r1 @ delta_r2 / (np.linalg.norm(delta_r1) * np.linalg.norm(delta_r2)))
+    result = theta / (ROTATION_SPEED_SATELLITE * 2 * np.pi)
 
-    return theta / (ROTATION_SPEED_SATELLITE * 2 * np.pi)
+    return cast(np.ndarray[Any, np.dtype[np.float64]], result)
 
 
 def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:

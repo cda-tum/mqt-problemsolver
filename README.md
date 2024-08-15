@@ -12,7 +12,18 @@
 
 # MQT ProblemSolver
 
-MQT ProblemSolver is a framework to utilize quantum computing as a technology for users with little to no
+This repository covers the implementations of multiple research papers in the domain of quantum computing:
+
+1. [Towards an Automated Framework for Realizing Quantum Computing Solutions](#towards-an-automated-framework-for-realizing-quantum-computing-solutions)
+2. [A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem](#a-hybrid-classical-quantum-computing-approach-to-the-satellite-mission-planning-problem)
+3. [Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level](#reducing-the-compilation-time-of-quantum-circuits-using-pre-compilation-on-the-gate-level)
+4. [Utilizing Resource Estimation for the Development of Quantum Computing Applications](#utilizing-resource-estimation-for-the-development-of-quantum-computing-applications)
+
+In the following, each implementation is briefly introduced.
+
+# Towards an Automated Framework for Realizing Quantum Computing Solutions
+
+MQT ProblemSolver provides a framework to utilize quantum computing as a technology for users with little to no
 quantum computing knowledge that is part of the Munich Quantum Toolkit (MQT) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/).
 All necessary quantum parts are embedded by domain experts while the interfaces provided are similar to the ones
 classical solver provide:
@@ -53,7 +64,7 @@ Here, the solution to a Travelling Salesman Problem with 4 cities can be solved 
 
 MQT ProblemSolver will return the shortest path visiting all cities as a list.
 
-## Satellite Mission Planning Problem
+# A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem
 
 Additional to the two case studies, we provide a more complex example for the satellite mission planning problem.
 The goal is to maximize the accumulated values of all images taken by the satellite while it is often not possible
@@ -65,7 +76,7 @@ In the following example, there are five to-be-captured locations which their as
 <img src="img/satellite_mission_planning_problem.png" height=200px>
 </p>
 
-# Pre-Compilation
+# Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level
 
 Every quantum computing application must be encoded into a quantum circuit and then compiled for a specific device.
 This lengthy compilation process is a key bottleneck and intensifies for recurring problems---each of which requires
@@ -86,6 +97,25 @@ Once the real problem instance is known, the previously constructed circuit only
 </p>
 Following this approach, we provide a pre-compilation module that can be used to precompile QAOA circuits
 for the MaxCut problem.
+
+# Utilizing Resource Estimation for the Development of Quantum Computing Applications
+
+Resource estimation is a promising alternative to actually execute quantum circuits on real quantum hardware which is
+currently restricted by the number of qubits and the error rates. By estimating the resources needed for a quantum circuit,
+the development of quantum computing applications can be accelerated without the need to wait for the availability of
+large-enough quantum hardware.
+
+In `resource_estimation/RE_experiments.py`, we evaluate the resources to calculate the ground state energy of a
+Hamiltonian to chemical accuracy of 1 mHartree using the qubitization quantum simulation algorithm. The Hamiltonian
+describes the 64 electron and 56 orbital active space of one of the stable intermediates in the ruthenium-catalyzed
+carbon fixation cycle
+
+In this evaluation, we investigate
+
+- different qubit technologies,
+- the impact of the maximal number of T factories,
+- different design trade-offs, and
+- hypothesis on how quantum hardware might improve and how it affects the required resources.
 
 # Usage
 
@@ -111,20 +141,6 @@ In case you are using MQT ProblemSolver in your work, we would be thankful if yo
 which is also available on arXiv:
 [![a](https://img.shields.io/static/v1?label=arXiv&message=2210.14928&color=inactive&style=flat-square)](https://arxiv.org/abs/2210.14928)
 
-In case you are using our Pre-Compilation approach, we would be thankful if you referred to it by citing the following publication:
-
-```bibtex
-@INPROCEEDINGS{quetschlich2023precompilation,
-    title     = {{Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level}},
-    author    = {N. Quetschlich and L. Burgholzer and R. Wille},
-    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-    year      = {2023},
-}
-```
-
-which is also available on arXiv:
-[![a](https://img.shields.io/static/v1?label=arXiv&message=2305.04941&color=inactive&style=flat-square)](https://arxiv.org/abs/2305.04941)
-
 In case you are using our Satellite Mission Planning Problem approach, we would be thankful if you referred to it by citing the following publication:
 
 ```bibtex
@@ -139,6 +155,20 @@ In case you are using our Satellite Mission Planning Problem approach, we would 
 which is also available on arXiv:
 [![a](https://img.shields.io/static/v1?label=arXiv&message=2308.00029&color=inactive&style=flat-square)](https://arxiv.org/abs/2308.00029)
 
+In case you are using our Pre-Compilation approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@INPROCEEDINGS{quetschlich2023precompilation,
+    title     = {{Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level}},
+    author    = {N. Quetschlich and L. Burgholzer and R. Wille},
+    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+    year      = {2023},
+}
+```
+
+which is also available on arXiv:
+[![a](https://img.shields.io/static/v1?label=arXiv&message=2305.04941&color=inactive&style=flat-square)](https://arxiv.org/abs/2305.04941)
+
 In case you are using our Resources Estimation approach, we would be thankful if you referred to it by citing the following publication:
 
 ```bibtex
@@ -148,6 +178,7 @@ In case you are using our Resources Estimation approach, we would be thankful if
     year            = {2024},
     eprint          = {2402.12434},
     archivePrefix   = {arXiv},
+    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
 }
 ```
 
