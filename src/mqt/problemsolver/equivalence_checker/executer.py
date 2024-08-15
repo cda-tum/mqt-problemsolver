@@ -71,7 +71,7 @@ def run_parameter_combinations(
     delta: float,
 ) -> int | None:
     """
-    Runs Grover's algorithm to find counter examples for a given miter
+    Runs Grover's algorithm to find counter examples for a given miter when knowing the counter examples to test parameters
 
     Parameters
     ----------
@@ -170,11 +170,31 @@ def try_parameter_combinations(
     num_runs: int,
     verbose: bool = False,
 ) -> None:
+    """
+    Tries different parameter combinations for Grover's algorithm to find the optimal parameters
+
+    Parameters
+    ----------
+    path : str
+        Path to save the results
+    range_deltas : list[float]
+        List of delta values to try
+    range_num_bits : list[int]
+        List of numbers of input bits to try
+    range_fraction_counter_examples : list[float]
+        List of fractions of counter examples to try
+    num_runs : int
+        Number of runs for each parameter combination
+    verbose : bool
+        If True, print the current parameter combination
+
+    """
     data = pd.DataFrame(columns=["Input Bits", "Counter Examples", *range_deltas])
     i = 0
     for num_bits in range_num_bits:
         for fraction_counter_examples in range_fraction_counter_examples:
-            row: list[float | int | str] = [num_bits, fraction_counter_examples]
+            num_counter_examples = round(fraction_counter_examples * 2**num_bits)
+            row: list[float | int | str] = [num_bits, num_counter_examples]
             for delta in range_deltas:
                 if verbose:
                     print(
@@ -182,7 +202,6 @@ def try_parameter_combinations(
                     )
                 results = []
                 for _run in range(num_runs):
-                    num_counter_examples = round(fraction_counter_examples * 2**num_bits)
                     miter, counter_examples = create_condition_string(num_bits, num_counter_examples)
                     result = run_parameter_combinations(miter, counter_examples, num_bits, 8 * (2**num_bits), delta)
                     results.append(result)
@@ -203,7 +222,7 @@ def find_counter_examples(
     delta: float,
 ) -> list[str | None]:
     """
-    Runs Grover's algorithm to find counter examples for a given miter
+    Runs Grover's algorithm to find counter examples for a given miter without knowing the counter examples
 
     Parameters
     ----------

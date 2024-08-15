@@ -70,7 +70,7 @@ if __name__ == "__main__":
         assert len(counter_examples) == num_counter_examples
         assert res_string == "~a & ~b & ~c | a & ~b & ~c"
 
-    def test_try_paramter_combinations() -> None:
+    def test_run_paramter_combinations() -> None:
         num_qubits = 6
         num_counter_examples = 3
         res_string, counter_examples = create_condition_string(
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         )
         shots = 512
         delta = 0.7
-        result = executer.find_counter_examples(
+        result = executer.run_parameter_combinations(
             miter=res_string, counter_examples=counter_examples, num_bits=num_qubits, shots=shots, delta=delta
         )
         assert result == 5
@@ -94,7 +94,6 @@ if __name__ == "__main__":
         found_counter_examples = executer.find_counter_examples(
             miter=res_string, num_bits=num_qubits, shots=shots, delta=delta
         )
-        assert sorted(found_counter_examples) == sorted(counter_examples)
-
-
-test_find_counter_examples()
+        found_counter_examples.sort()
+        counter_examples.sort()
+        assert found_counter_examples == counter_examples
