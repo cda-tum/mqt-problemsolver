@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 import numpy.typing as npt
 import sympy as sp
-from qiskit.primitives import Sampler
+from qiskit.primitives import Sampler, StatevectorSampler
 from qiskit_algorithms import QAOA
 from qiskit_algorithms.optimizers import COBYLA, Optimizer
 from qiskit_algorithms.utils import algorithm_globals
@@ -441,7 +441,7 @@ class QUBOGenerator:
         op = self.construct_operator()
 
         if sampler is None:
-            sampler = Sampler()
+            sampler = StatevectorSampler()
         if optimizer is None:
             optimizer = COBYLA()
         qaoa = QAOA(sampler, optimizer, reps=reps)
