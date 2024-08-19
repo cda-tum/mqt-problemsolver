@@ -147,10 +147,12 @@ In case you are using our Satellite Mission Planning Problem approach, we would 
 
 ```bibtex
 @INPROCEEDINGS{quetschlich2023satellite,
-    title     = {{A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem}},
-    author    = {N. Quetschlich and V. Koch and L. Burgholzer and R. Wille},
-    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-    year      = {2023},
+    title           = {{A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem}},
+    author          = {N. Quetschlich and V. Koch and L. Burgholzer and R. Wille},
+    eprint          = {2308.00029},
+    archivePrefix   = {arXiv},
+    year            = {2023},
+    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
 }
 ```
 
@@ -161,10 +163,12 @@ In case you are using our Pre-Compilation approach, we would be thankful if you 
 
 ```bibtex
 @INPROCEEDINGS{quetschlich2023precompilation,
-    title     = {{Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level}},
-    author    = {N. Quetschlich and L. Burgholzer and R. Wille},
-    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-    year      = {2023},
+    title           = {{Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level}},
+    author          = {N. Quetschlich and L. Burgholzer and R. Wille},
+    eprint          = {2305.04941},
+    archivePrefix   = {arXiv},
+    year            = {2023},
+    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
 }
 ```
 
@@ -177,9 +181,9 @@ In case you are using our Resources Estimation approach, we would be thankful if
 @misc{quetschlich2024resource_estimation,
     title           = {{Utilizing Resource Estimation for the Development of Quantum Computing Applications}},
     author          = {N. Quetschlich and M. Soeken and P. Murali and R. Wille},
-    year            = {2024},
     eprint          = {2402.12434},
     archivePrefix   = {arXiv},
+    year            = {2024},
     booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
 }
 ```
