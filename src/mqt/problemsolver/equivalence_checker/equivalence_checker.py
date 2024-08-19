@@ -1,7 +1,9 @@
 """This module provides functions to check the equivalence of two circuits using Grover's algorithm."""
+
 from __future__ import annotations
 
 import string
+from operator import itemgetter
 
 import numpy as np
 import pandas as pd
@@ -119,7 +121,7 @@ def run_parameter_combinations(
         counts_list.sort(reverse=True)
 
         counts_dict = dict(
-            sorted(counts_dict.items(), key=lambda item: item[1])[::-1]
+            sorted(counts_dict.items(), key=itemgetter(1))[::-1]
         )  # Sort state dictionary with respect to values (counts)
 
         found_counter_examples = []
@@ -267,7 +269,7 @@ def find_counter_examples(
         counts_list.sort(reverse=True)
 
         counts_dict = dict(
-            sorted(counts_dict.items(), key=lambda item: item[1])[::-1]
+            sorted(counts_dict.items(), key=itemgetter(1))[::-1]
         )  # Sort state dictionary with respect to values (counts)
 
         counter_examples = []

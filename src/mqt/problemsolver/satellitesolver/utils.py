@@ -23,7 +23,7 @@ from qiskit_optimization.translators import from_docplex_mp
 
 
 def init_random_location_requests(n: int) -> list[LocationRequest]:
-    """Returns list of n random acquisition requests"""
+    """Returns list of n random acquisition requests."""
     np.random.seed(10)
     acquisition_requests = [
         LocationRequest(position=create_acquisition_position(), imaging_attempt_score=np.random.randint(1, 3))
@@ -39,16 +39,14 @@ def get_success_ratio(ac_reqs: list[LocationRequest], qubo: QuadraticProgram, so
     exact_mes = NumPyMinimumEigensolver()
     exact_result = MinimumEigenOptimizer(exact_mes).solve(qubo).fval
     # sum over all LocationRequests and sum over their imaging_attempt_score if the respective indicator in sol[index] is 1
-    solution_vector = solution_vector[::-1]
+    solution_vector.reverse()
     return cast(
         float,
         (
             sum(
-                [
-                    -ac_req.imaging_attempt_score
-                    for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
-                    if solution_vector[index] == 1
-                ]
+                -ac_req.imaging_attempt_score
+                for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
+                if solution_vector[index] == 1
             )
             / exact_result
         ),
@@ -64,13 +62,11 @@ def create_acquisition_position(
     if latitude is None:
         latitude = np.random.uniform(np.pi / 2 - 15 / 360 * 2 * np.pi, np.pi / 2 + 15 / 360 * 2 * np.pi)
 
-    res = R_E * np.array(
-        [
-            np.cos(longitude) * np.sin(latitude),
-            np.sin(longitude) * np.sin(latitude),
-            np.cos(latitude),
-        ]
-    )
+    res = R_E * np.array([
+        np.cos(longitude) * np.sin(latitude),
+        np.sin(longitude) * np.sin(latitude),
+        np.cos(latitude),
+    ])
     return cast(np.ndarray[Any, np.dtype[np.float64]], res)
 
 
@@ -89,7 +85,7 @@ def calc_needed_time_between_acquisition_attempts(
 
 
 def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:
-    """Returns True if transition between acq_1 and acq_2 is possible, False otherwise"""
+    """Returns True if transition between acq_1 and acq_2 is possible, False otherwise."""
     t_maneuver = cast(float, calc_needed_time_between_acquisition_attempts(acq_1, acq_2))
     t1 = acq_1.imaging_attempt
     t2 = acq_2.imaging_attempt
@@ -151,7 +147,7 @@ def sample_most_likely(state_vector: dict[str, int]) -> list[int]:
 
 def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -> bool:
     """Checks if the determined solution is valid and does not violate any constraints."""
-    solution_vector = solution_vector[::-1]
+    solution_vector.reverse()
     for i in range(len(ac_reqs) - 1):
         for j in range(i + 1, len(ac_reqs)):
             if (solution_vector[i] + solution_vector[j] == 2) and not transition_possible(ac_reqs[i], ac_reqs[j]):
@@ -160,7 +156,7 @@ def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -
 
 
 def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
-    """Returns a doxplex model for the satellite problem"""
+    """Returns a doxplex model for the satellite problem."""
     mdl = Model("satellite model")
     # Create binary variables for each acquisition request
     requests = mdl.binary_var_list(len(all_acqs), name="location")
@@ -180,7 +176,7 @@ def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
 
 
 def convert_docplex_to_qubo(model: Model, penalty: int | None = None) -> QuadraticProgram:
-    """Converts a docplex model to a qubo"""
+    """Converts a docplex model to a qubo."""
     return QuadraticProgramToQubo(penalty=penalty).convert(from_docplex_mp(model))
 
 

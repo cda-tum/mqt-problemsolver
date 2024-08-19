@@ -12,9 +12,7 @@ if TYPE_CHECKING:
 
 
 class Constraint(TypedDict, total=False):
-    """
-    Class to store the properties of a single constraint.
-    """
+    """Class to store the properties of a single constraint."""
 
     constraint_type: str
     operand_one: str
@@ -30,7 +28,7 @@ class CSP:
     ) -> tuple[int, int, int, int] | bool:
         """Method to solve the problem.
 
-        Keyword arguments:
+        Keyword Arguments:
         constraints -- List of to be satisfied constraints.
         quantum_algorithm -- Selected quantum algorithm to solve problem.
 
@@ -66,11 +64,10 @@ class CSP:
     ) -> None:
         """Method to visualize the problem.
 
-        Keyword arguments:
+        Keyword Arguments:
         sum_* -- Sums to be satisfied.
         a to d -- Variable values satisfying the respective sums.
         """
-
         print("     | ", sum_s0, " | ", sum_s1, " | ")
         print("------------------")
         print(" ", sum_s2, " | ", a, " | ", b, " |")

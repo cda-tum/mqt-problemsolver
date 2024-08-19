@@ -18,6 +18,7 @@ This repository covers the implementations of multiple research papers in the do
 2. [A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem](#a-hybrid-classical-quantum-computing-approach-to-the-satellite-mission-planning-problem)
 3. [Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level](#reducing-the-compilation-time-of-quantum-circuits-using-pre-compilation-on-the-gate-level)
 4. [Utilizing Resource Estimation for the Development of Quantum Computing Applications](#utilizing-resource-estimation-for-the-development-of-quantum-computing-applications)
+5. [Towards Equivalence Checking of Classical Circuits Using Quantum Computing](#towards-equivalence-checking-of-classical-circuits-using-quantum-computing)
 
 In the following, each implementation is briefly introduced.
 
@@ -117,6 +118,13 @@ In this evaluation, we investigate
 - different design trade-offs, and
 - hypothesis on how quantum hardware might improve and how it affects the required resources.
 
+# Towards Equivalence Checking of Classical Circuits Using Quantum Computing
+
+Equivalence checking, i.e., verifying whether two circuits realize the same functionality or not, is a typical task in the semiconductor industry. Due to the fact, that the designs grow faster than the ability to efficiently verify them, all alternative directions to close the resulting verification gap should be considered. In the `equivalence_checker.py` module, our approach to this problem by utilizing quantum computing is implemented in two versions:
+
+- With `try_parameter_combinations()` different parameter combinations can be evaluated with miters for which the counter examples are known
+- `find_counter_examples()` is used to find counter examples for a miter for which counter examples should be found in the case of non-equivalence
+
 # Usage
 
 MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemsolver/):
@@ -179,6 +187,17 @@ In case you are using our Resources Estimation approach, we would be thankful if
     eprint          = {2402.12434},
     archivePrefix   = {arXiv},
     booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+}
+```
+
+In case you are using our Equivalence-Checking approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@INPROCEEDINGS{quetschlich2024equivalence_checking,
+    title     = {{Towards Equivalence Checking of Classical Circuits Using Quantum Computing}},
+    author    = {N. Quetschlich and T. Forster and A. Osterwind and D. Helms and R. Wille},
+    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+    year      = {2024},
 }
 ```
 

@@ -29,7 +29,7 @@ def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Mini
                 "sampler": Sampler(),
             }
         )
-    qc_wqaoa, res_wqaoa = wqaoa.get_solution(qubo)
+    _qc_wqaoa, res_wqaoa = wqaoa.get_solution(qubo)
     return res_wqaoa
 
 
@@ -46,7 +46,7 @@ def solve_using_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
                 "sampler": Sampler(),
             }
         )
-    qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
+    _qc_qaoa, res_qaoa = qaoa.get_solution(qubo)
     return res_qaoa
 
 
@@ -61,7 +61,7 @@ def solve_using_vqe(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
                 "ansatz": RealAmplitudes(num_qubits=qubo.get_num_binary_vars(), reps=3),
             }
         )
-    qc_vqe, res_vqe = vqe.get_solution(qubo)
+    _qc_vqe, res_vqe = vqe.get_solution(qubo)
     return res_vqe
 
 
@@ -110,7 +110,6 @@ class QAOA(qiskitQAOA):  # type: ignore[misc]
 class W_QAOA:
     def __init__(self, W_QAOA_params: dict[str, Any] | None = None, QAOA_params: dict[str, Any] | None = None) -> None:
         """Function which initializes the QAOA class."""
-
         if not isinstance(W_QAOA_params, dict):
             W_QAOA_params = {}
         if W_QAOA_params.get("pre_solver") is None:
@@ -128,7 +127,6 @@ class W_QAOA:
 
     def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
         """Function which returns the quantum circuit of the W-QAOA algorithm and the resulting solution."""
-
         ws_qaoa = WarmStartQAOAOptimizer(**self.W_QAOA_params)
         res = ws_qaoa.solve(qubo)
         qc = self.W_QAOA_params["qaoa"].ansatz

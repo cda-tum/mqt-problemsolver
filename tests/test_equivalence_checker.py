@@ -1,15 +1,16 @@
+"""Test the equivalence_checker.py module."""
+
 from __future__ import annotations
 
 import string
 
-from mqt.problemsolver.equivalence_checker import executer
+from mqt.problemsolver.equivalence_checker import equivalence_checker
 
 alphabet = list(string.ascii_lowercase)
 
 
 def create_condition_string(num_qubits: int, num_counter_examples: int) -> tuple[str, list[str]]:
-    """
-    Creates a string to simulate a miter out of bitstring combinations (e.g. '0000' -> 'a & b & c & d')
+    """Creates a string to simulate a miter out of bitstring combinations (e.g. '0000' -> 'a & b & c & d').
 
     Parameters
     ----------
@@ -18,14 +19,13 @@ def create_condition_string(num_qubits: int, num_counter_examples: int) -> tuple
     num_counter_examples : int
         Number of counter examples
 
-    Returns
+    Returns:
     -------
     res_string : str
         Resulting condition string
     counter_examples : list[str]
         The corresponding bitstrings to res_string (e.g. counter_examples is ['0000'] for res_string 'a & b & c & d')
     """
-
     if num_qubits < 0 or num_counter_examples < 0:
         raise ValueError
 
@@ -59,6 +59,7 @@ def create_condition_string(num_qubits: int, num_counter_examples: int) -> tuple
 if __name__ == "__main__":
 
     def test_create_condition_string() -> None:
+        """Test the function create_condition_string."""
         num_qubits = 3
         num_counter_examples = 2
         res_string, counter_examples = create_condition_string(
@@ -71,6 +72,7 @@ if __name__ == "__main__":
         assert res_string == "~a & ~b & ~c | a & ~b & ~c"
 
     def test_run_paramter_combinations() -> None:
+        """Test the function run_parameter_combinations."""
         num_qubits = 6
         num_counter_examples = 3
         res_string, counter_examples = create_condition_string(
@@ -78,12 +80,13 @@ if __name__ == "__main__":
         )
         shots = 512
         delta = 0.7
-        result = executer.run_parameter_combinations(
+        result = equivalence_checker.run_parameter_combinations(
             miter=res_string, counter_examples=counter_examples, num_bits=num_qubits, shots=shots, delta=delta
         )
         assert result == 5
 
     def test_find_counter_examples() -> None:
+        """Test the function find_counter_examples."""
         num_qubits = 8
         num_counter_examples = 10
         res_string, counter_examples = create_condition_string(
@@ -91,7 +94,7 @@ if __name__ == "__main__":
         )
         shots = 512
         delta = 0.7
-        found_counter_examples = executer.find_counter_examples(
+        found_counter_examples = equivalence_checker.find_counter_examples(
             miter=res_string, num_bits=num_qubits, shots=shots, delta=delta
         )
         found_counter_examples.sort()
