@@ -3,21 +3,14 @@
 from __future__ import annotations
 
 import string
-from pathlib import Path
-
-import pytest
+from typing import TYPE_CHECKING
 
 from mqt.problemsolver.equivalence_checker import equivalence_checker
 
+if TYPE_CHECKING:
+    import py
+
 alphabet = list(string.ascii_lowercase)
-
-
-@pytest.fixture
-def output_path() -> str:
-    """Fixture to create the output path for the tests."""
-    output_path = Path("./tests/test_output/")
-    output_path.mkdir(parents=True, exist_ok=True)
-    return str(output_path)
 
 
 def test_create_condition_string() -> None:
@@ -49,15 +42,17 @@ def test_run_paramter_combinations() -> None:
     assert result == 5
 
 
-def test_try_parameter_combinations(output_path: str) -> None:
+def test_try_parameter_combinations(tmpdir: py.path.local) -> None:
     """Test the function try_parameter_combinations."""
+    p = tmpdir.mkdir("sub")
     equivalence_checker.try_parameter_combinations(
-        path=output_path,
+        path=(p / "test.csv"),
         range_deltas=[0.7, 0.8],
         range_num_bits=[5],
         range_fraction_counter_examples=[0.1, 0.2],
         num_runs=5,
     )
+    assert len(tmpdir.listdir()) == 1
 
 
 def test_find_counter_examples() -> None:
@@ -75,11 +70,3 @@ def test_find_counter_examples() -> None:
     found_counter_examples.sort()
     counter_examples.sort()
     assert found_counter_examples == counter_examples
-
-
-def test_configure_end(output_path: str) -> None:
-    """Removes all temporarily created files while testing."""
-    # delete all files in the test directory and the directory itself
-    for f in Path(output_path).iterdir():
-        f.unlink()
-    Path(output_path).rmdir()
