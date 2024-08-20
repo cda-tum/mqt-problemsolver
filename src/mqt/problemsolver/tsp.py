@@ -219,12 +219,14 @@ class TSP:
         return cast(str, count.most_frequent())
 
     def get_classical_result(self) -> list[int]:
-        distance_matrix = np.array([
-            [0, self.dist_1_2, self.dist_1_3, self.dist_1_4],
-            [self.dist_1_2, 0, self.dist_2_3, self.dist_2_4],
-            [self.dist_1_3, self.dist_2_3, 0, self.dist_3_4],
-            [self.dist_1_4, self.dist_1_3, self.dist_3_4, 0],
-        ])
+        distance_matrix = np.array(
+            [
+                [0, self.dist_1_2, self.dist_1_3, self.dist_1_4],
+                [self.dist_1_2, 0, self.dist_2_3, self.dist_2_4],
+                [self.dist_1_3, self.dist_2_3, 0, self.dist_3_4],
+                [self.dist_1_4, self.dist_1_3, self.dist_3_4, 0],
+            ]
+        )
         permutation, _distance = solve_tsp_dynamic_programming(distance_matrix)
 
         return cast(list[int], (np.array(permutation) + 1).T)
