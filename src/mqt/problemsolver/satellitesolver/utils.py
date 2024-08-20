@@ -62,13 +62,11 @@ def create_acquisition_position(
     if latitude is None:
         latitude = np.random.uniform(np.pi / 2 - 15 / 360 * 2 * np.pi, np.pi / 2 + 15 / 360 * 2 * np.pi)
 
-    res = R_E * np.array(
-        [
-            np.cos(longitude) * np.sin(latitude),
-            np.sin(longitude) * np.sin(latitude),
-            np.cos(latitude),
-        ]
-    )
+    res = R_E * np.array([
+        np.cos(longitude) * np.sin(latitude),
+        np.sin(longitude) * np.sin(latitude),
+        np.cos(latitude),
+    ])
     return cast(np.ndarray[Any, np.dtype[np.float64]], res)
 
 
