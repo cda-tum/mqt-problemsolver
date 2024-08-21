@@ -19,7 +19,7 @@ class QAOA:
         sample_probability: float = 0.5,
         considered_following_qubits: int = 3,
         satellite_use_case: bool = False,
-    ) -> None:
+    ):
         self.num_qubits = num_qubits
         self.repetitions = repetitions
 
@@ -41,8 +41,8 @@ class QAOA:
         considered_following_qubits: int,
     ) -> tuple[QuantumCircuit, QuantumCircuit, list[bool | str], list[tuple[int, int]]]:
         """Returns the uncompiled circuits (both with only the actual needed two-qubit gates and with all possible
-        two-qubit gates) and the list of gates to be removed.
-        """
+        two-qubit gates) and the list of gates to be removed."""
+
         qc = QuantumCircuit(self.num_qubits)  # QC with all gates
         qc_baseline = QuantumCircuit(self.num_qubits)  # QC with only the sampled gates
         qc.h(range(self.num_qubits))
@@ -101,7 +101,7 @@ class QAOA:
         return qc, qc_baseline, remove_gates, remove_pairs
 
     def compile_qc(self, baseline: bool = False, opt_level: int = 3) -> QuantumCircuit:
-        """Compiles the circuit."""
+        """Compiles the circuit"""
         circ = self.qc_baseline if baseline else self.qc
         assert self.backend is not None
         qc_comp = transpile(circ, backend=self.backend, optimization_level=opt_level, seed_transpiler=42)
@@ -110,7 +110,7 @@ class QAOA:
         return qc_comp
 
     def get_to_be_removed_gate_indices(self) -> list[int]:
-        """Returns the indices of the gates to be removed."""
+        """Returns the indices of the gates to be removed"""
         indices_to_be_removed_parameterized_gates = []
         for i, gate in enumerate(self.qc_compiled._data):
             if (
@@ -123,7 +123,7 @@ class QAOA:
         return indices_to_be_removed_parameterized_gates
 
     def remove_unnecessary_gates(self, qc: QuantumCircuit, optimize_swaps: bool = True) -> QuantumCircuit:
-        """Removes the gates to be checked from the circuit at online time."""
+        """Removes the gates to be checked from the circuit at online time"""
         indices = set()
 
         # Iterate over all gates to be removed
@@ -165,7 +165,7 @@ class QAOA:
         return qc
 
     def create_model_from_pair_list(self) -> Model:
-        """Creates a model from the interaction pairs."""
+        """Creates a model from the interaction pairs"""
         mdl = Model("satellite model")
         locations = mdl.binary_var_list(self.num_qubits, name="locations")
         for i, j in self.remove_pairs:

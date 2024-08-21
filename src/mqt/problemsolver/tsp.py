@@ -20,7 +20,7 @@ class TSP:
     def print_problem(self, solution: list[int] | None = None) -> None:
         """Method to visualize the problem.
 
-        Keyword Arguments:
+        Keyword arguments:
         solution -- If provided, the solution is visualized. Otherwise, the problem without solution is shown.
 
         """
@@ -111,7 +111,7 @@ class TSP:
     ) -> list[int] | bool:
         """Method to solve the problem.
 
-        Keyword Arguments:
+        Keyword arguments:
         dist_*_* -- Defining the adjacency matrix by the distances between the vertices.
         objective_function -- Optimization goal.
         quantum_algorithm -- Selected quantum algorithm to solve problem.
@@ -227,7 +227,7 @@ class TSP:
                 [self.dist_1_4, self.dist_1_3, self.dist_3_4, 0],
             ]
         )
-        permutation, _distance = solve_tsp_dynamic_programming(distance_matrix)
+        permutation, distance = solve_tsp_dynamic_programming(distance_matrix)
 
         return cast(list[int], (np.array(permutation) + 1).T)
 

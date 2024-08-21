@@ -15,7 +15,7 @@ class LocationRequest:
         self,
         position: np.ndarray[Any, np.dtype[np.float64]],
         imaging_attempt_score: float,
-    ) -> None:
+    ):
         self.position = position
         self.imaging_attempt = self.get_imaging_attempt()
         self.imaging_attempt_score = imaging_attempt_score
