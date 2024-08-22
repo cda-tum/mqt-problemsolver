@@ -28,7 +28,6 @@ dependencies = [
     "python_tsp",
     "docplex",
     "qiskit_optimization",
-    "tweedledum==1.0.0",
     "qiskit_aer",
     "pandas"
 ]
@@ -44,6 +43,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
@@ -53,6 +53,7 @@ classifiers = [
 test = ["pytest>=7"]
 coverage = ["mqt.problemsolver[test]", "coverage[toml]~=6.5.0", "pytest-cov~=4.0.0"]
 dev = ["mqt.problemsolver[coverage]"]
+tweedledum = ["tweedledum==1.0.0"]
 
 [project.urls]
 Homepage = "https://github.com/cda-tum/mqtproblemsolver"
@@ -83,7 +84,7 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "qiskit_aer.*", "py.*"]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "qiskit_aer.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

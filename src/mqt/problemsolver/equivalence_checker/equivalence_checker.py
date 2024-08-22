@@ -10,6 +10,8 @@ import pandas as pd
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import GroverOperator, PhaseOracle
 from qiskit.compiler import transpile
+
+# from qiskit.utils import optionals as _optionals
 from qiskit_aer import AerSimulator
 
 sim_counts = AerSimulator(method="statevector")
@@ -34,8 +36,13 @@ def create_condition_string(num_bits: int, num_counter_examples: int) -> tuple[s
     counter_examples : list[str]
         The corresponding bitstrings to res_string (e.g. counter_examples is ['0000'] for res_string 'a & b & c & d')
     """
-    if num_bits < 0 or num_counter_examples < 0:
-        raise ValueError
+    try:
+        assert num_bits > 0
+        assert num_counter_examples >= 0
+    except AssertionError as e:
+        print("Number of bits and number of counter examples must be greater than 0.")
+        msg = "The number of bits or counter examples cannot be used."
+        raise ValueError(msg) from e
 
     counter_examples: list[str] = []
     if num_counter_examples == 0:
@@ -92,8 +99,9 @@ def run_parameter_combinations(
     """
     try:
         assert 0 <= delta <= 1
-    except ValueError:
-        print(f"Invalid delta of {delta}. It must be between 0 and 1.")
+    except AssertionError as e:
+        msg = f"Invalid value for delta {delta}, which must be between 0 and 1."
+        raise ValueError(msg) from e
 
     total_num_combinations = 2**num_bits
     start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
@@ -240,8 +248,9 @@ def find_counter_examples(
     """
     try:
         assert 0 <= delta <= 1
-    except ValueError:
-        print(f"Invalid delta of {delta}. It must be between 0 and 1.")
+    except AssertionError as e:
+        msg = f"Invalid value for delta {delta}, which must be between 0 and 1."
+        raise ValueError(msg) from e
 
     total_num_combinations = 2**num_bits
     start_iterations = np.floor(np.pi / (4 * np.arcsin((1 / total_num_combinations) ** 0.5)) - 0.5).astype(int)
