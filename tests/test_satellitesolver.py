@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from qiskit_optimization import QuadraticProgram
 
 
-@pytest.fixture()
+@pytest.fixture
 def qubo() -> QuadraticProgram:
     ac_reqs = utils.init_random_location_requests(3)
     mdl = utils.create_satellite_doxplex(ac_reqs)
