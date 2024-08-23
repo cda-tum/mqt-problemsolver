@@ -126,7 +126,7 @@ Equivalence checking, i.e., verifying whether two circuits realize the same func
 <img src="img/miter_structure.png" height=250px>
 </p>
 
-In the `equivalence_checker.py` module, our approach to this problem by utilizing quantum computing is implemented. There are two different ways to run this code.
+In the `equivalence_checking` module, our approach to this problem by utilizing quantum computing is implemented. There are two different ways to run this code.
 
 - One to test, how well certain parameter combinations work. The parameters consist of the number of bits of the circuits to be verified, the threshold parameter delta (which is explained in detail in the paper), the fraction of input combinations that induce non-equivalence of the circuits (further called "counter examples"), the number of shots to run the quantum circuit for and the number of individual runs of the experiment. Multiple parameter combinations can be tested and exported as a .csv-file at a provided location.
 - A second one to actually input a miter expression (in form of a string) together with some parameters independent from the miter (shots and delta) and use our approach to find the counter examples (if the circuits are non-equivalent).

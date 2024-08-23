@@ -8,19 +8,17 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from mqt.problemsolver.equivalence_checker import equivalence_checker
+from mqt.problemsolver.equivalence_checking import equivalence_checking
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-alphabet = list(string.ascii_lowercase)
 
 
 def test_create_condition_string() -> None:
     """Test the function create_condition_string."""
     num_bits = 3
     num_counter_examples = 2
-    res_string, counter_examples = equivalence_checker.create_condition_string(
+    res_string, counter_examples = equivalence_checking.create_condition_string(
         num_bits=num_bits, num_counter_examples=num_counter_examples
     )
     assert len(res_string) == 26
@@ -28,7 +26,7 @@ def test_create_condition_string() -> None:
     assert res_string == "~a & ~b & ~c | a & ~b & ~c"
 
     with pytest.raises(ValueError, match="The number of bits or counter examples cannot be used."):
-        equivalence_checker.create_condition_string(num_bits=-5, num_counter_examples=-2)
+        equivalence_checking.create_condition_string(num_bits=-5, num_counter_examples=-2)
 
 
 @pytest.mark.skipif(not importlib.util.find_spec("tweedledum"), reason="tweedledum is not installed")
@@ -36,7 +34,7 @@ def test_try_parameter_combinations(tmp_path: Path) -> None:
     """Test the function try_parameter_combinations."""
     path_to_csv = tmp_path / "sub" / "test1.csv"
     path_to_csv.parent.mkdir(parents=True, exist_ok=True)
-    equivalence_checker.try_parameter_combinations(
+    equivalence_checking.try_parameter_combinations(
         path=path_to_csv,
         range_deltas=[0.7, 0.8],
         range_num_bits=[5],
@@ -54,12 +52,12 @@ def test_find_counter_examples() -> None:
     """Test the function find_counter_examples."""
     num_bits = 6
     num_counter_examples = 10
-    res_string, counter_examples = equivalence_checker.create_condition_string(
+    res_string, counter_examples = equivalence_checking.create_condition_string(
         num_bits=num_bits, num_counter_examples=num_counter_examples
     )
     shots = 512
     delta = 0.7
-    found_counter_examples = equivalence_checker.find_counter_examples(
+    found_counter_examples = equivalence_checking.find_counter_examples(
         miter=res_string, num_bits=num_bits, shots=shots, delta=delta
     )
     if isinstance(found_counter_examples, list):

@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.9"
       - name: Install MQT ProblemSolver
-        run: pip install .[coverage, tweedledum]
+        run: pip install .[coverage,tweedledum]
       - name: Generate Report
         run: pytest -v --cov --cov-config=pyproject.toml --cov-report=xml
       - name: Upload coverage to Codecov
