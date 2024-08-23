@@ -57,12 +57,12 @@ def create_condition_string(num_bits: int, num_counter_examples: int) -> tuple[s
             ::-1
         ]  # e.g. ['0', '0', '0', '0'] for num = 0 and num_bits = 4
         counter_examples.append(str(format(num, f"0{num_bits}b")))  # appends ['0000'] for num = 0 and num_bits = 4
-        for i, char in enumerate(bitstring):  # the following lines add a negated letter (e.g. "~a") for
-            if char == "0" and i == 0:        # each "0" and a letter (e.g. "a") for each "1" in the bitstring list.
-                bitstring[i] = (              # If the first letter is added (so i > 0), the subsequent letters are added together
-                    "~" + alphabet[i]         # with a logical AND operator (e.g. "~a & ~b & ~c & ~d").
-                )  
-            elif char == "1" and i == 0:  
+        # The following lines add a negated letter (e.g. "~a") for each "0" and a letter (e.g. "a") for each "1" in the bitstring list.
+        # If the first letter is added (so i > 0), the subsequent letters are added together with a logical AND operator (e.g. "~a & ~b & ~c & ~d").
+        for i, char in enumerate(bitstring):
+            if char == "0" and i == 0:
+                bitstring[i] = "~" + alphabet[i]
+            elif char == "1" and i == 0:
                 bitstring[i] = alphabet[i]
             elif char == "0":
                 bitstring[i] = " & " + "~" + alphabet[i]
