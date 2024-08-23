@@ -120,10 +120,18 @@ In this evaluation, we investigate
 
 # Towards Equivalence Checking of Classical Circuits Using Quantum Computing
 
-Equivalence checking, i.e., verifying whether two circuits realize the same functionality or not, is a typical task in the semiconductor industry. Due to the fact, that the designs grow faster than the ability to efficiently verify them, all alternative directions to close the resulting verification gap should be considered. In the `equivalence_checker.py` module, our approach to this problem by utilizing quantum computing is implemented in two versions:
+Equivalence checking, i.e., verifying whether two circuits realize the same functionality or not, is a typical task in the semiconductor industry. Due to the fact, that the designs grow faster than the ability to efficiently verify them, all alternative directions to close the resulting verification gap should be considered. In this work, we consider the problem through the miter structure. Here, two circuits to be checked are applied with the same primary inputs. Then, for each pair of to-be-equal output bits, an exclusive-OR (XOR) gate is applied-evaluating to 1 if the two outputs generate different values (which only happens in the case of non-equivalence). By OR-ing the outputs of all these XOR gates, eventually an indicator results that shows whether both circuits are equivalent. Then, the goal is to determine an input assignment so that this indicator evaluates to 1 (providing a counter example that shows non-equivalence) or to prove that no such assignment exists (proving equivalence).
 
-- With `try_parameter_combinations()` different parameter combinations can be evaluated with miters for which the counter examples are known
-- `find_counter_examples()` is used to find counter examples for a miter for which counter examples should be found in the case of non-equivalence
+<p align="center">
+<img src="img/miter_structure.png" height=250px>
+</p>
+
+In the `equivalence_checker.py` module, our approach to this problem by utilizing quantum computing is implemented. There are two different ways to run this code.
+
+- One to test, how well certain parameter combinations work. The parameters consist of the number of bits of the circuits to be verified, the threshold parameter delta (which is explained in detail in the paper), the fraction of input combinations that induce non-equivalence of the circuits (further called "counter examples"), the number of shots to run the quantum circuit for and the number of individual runs of the experiment. Multiple parameter combinations can be tested and exported as a .csv-file at a provided location.
+- A second one to actually input a miter expression (in form of a string) together with some parameters independent from the miter (shots and delta) and use our approach to find the counter examples (if the circuits are non-equivalent).
+
+These two implementations are provided by the functions `try_parameter_combinations()` and `find_counter_examples()`, respectively. Examples for their usages are shown in `notebooks/equivalence_checking/example.ipynb`.
 
 # Usage
 
@@ -196,6 +204,9 @@ In case you are using our Resources Estimation approach, we would be thankful if
 }
 ```
 
+which is also available on arXiv:
+[![a](https://img.shields.io/static/v1?label=arXiv&message=2402.12434&color=inactive&style=flat-square)](https://arxiv.org/abs/2402.12434)
+
 In case you are using our Equivalence-Checking approach, we would be thankful if you referred to it by citing the following publication:
 
 ```bibtex
@@ -208,7 +219,7 @@ In case you are using our Equivalence-Checking approach, we would be thankful if
 ```
 
 which is also available on arXiv:
-[![a](https://img.shields.io/static/v1?label=arXiv&message=2402.12434&color=inactive&style=flat-square)](https://arxiv.org/abs/2402.12434)
+[![a]()
 
 ## Acknowledgements
 
