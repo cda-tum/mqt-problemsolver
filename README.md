@@ -18,6 +18,7 @@ This repository covers the implementations of multiple research papers in the do
 2. [A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem](#a-hybrid-classical-quantum-computing-approach-to-the-satellite-mission-planning-problem)
 3. [Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level](#reducing-the-compilation-time-of-quantum-circuits-using-pre-compilation-on-the-gate-level)
 4. [Utilizing Resource Estimation for the Development of Quantum Computing Applications](#utilizing-resource-estimation-for-the-development-of-quantum-computing-applications)
+5. [Towards Equivalence Checking of Classical Circuits Using Quantum Computing](#towards-equivalence-checking-of-classical-circuits-using-quantum-computing)
 
 In the following, each implementation is briefly introduced.
 
@@ -117,6 +118,21 @@ In this evaluation, we investigate
 - different design trade-offs, and
 - hypothesis on how quantum hardware might improve and how it affects the required resources.
 
+# Towards Equivalence Checking of Classical Circuits Using Quantum Computing
+
+Equivalence checking, i.e., verifying whether two circuits realize the same functionality or not, is a typical task in the semiconductor industry. Due to the fact, that the designs grow faster than the ability to efficiently verify them, all alternative directions to close the resulting verification gap should be considered. In this work, we consider the problem through the miter structure. Here, two circuits to be checked are applied with the same primary inputs. Then, for each pair of to-be-equal output bits, an exclusive-OR (XOR) gate is applied-evaluating to 1 if the two outputs generate different values (which only happens in the case of non-equivalence). By OR-ing the outputs of all these XOR gates, eventually an indicator results that shows whether both circuits are equivalent. Then, the goal is to determine an input assignment so that this indicator evaluates to 1 (providing a counter example that shows non-equivalence) or to prove that no such assignment exists (proving equivalence).
+
+<p align="center">
+<img src="img/miter_structure.png" height=250px>
+</p>
+
+In the `equivalence_checking` module, our approach to this problem by utilizing quantum computing is implemented. There are two different ways to run this code.
+
+- One to test, how well certain parameter combinations work. The parameters consist of the number of bits of the circuits to be verified, the threshold parameter delta (which is explained in detail in the paper), the fraction of input combinations that induce non-equivalence of the circuits (further called "counter examples"), the number of shots to run the quantum circuit for and the number of individual runs of the experiment. Multiple parameter combinations can be tested and exported as a .csv-file at a provided location.
+- A second one to actually input a miter expression (in form of a string) together with some parameters independent from the miter (shots and delta) and use our approach to find the counter examples (if the circuits are non-equivalent).
+
+These two implementations are provided by the functions `try_parameter_combinations()` and `find_counter_examples()`, respectively. Examples for their usages are shown in `notebooks/equivalence_checking/example.ipynb`.
+
 # Usage
 
 MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemsolver/):
@@ -190,6 +206,20 @@ In case you are using our Resources Estimation approach, we would be thankful if
 
 which is also available on arXiv:
 [![a](https://img.shields.io/static/v1?label=arXiv&message=2402.12434&color=inactive&style=flat-square)](https://arxiv.org/abs/2402.12434)
+
+In case you are using our Equivalence-Checking approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@INPROCEEDINGS{quetschlich2024equivalence_checking,
+    title     = {{Towards Equivalence Checking of Classical Circuits Using Quantum Computing}},
+    author    = {N. Quetschlich and T. Forster and A. Osterwind and D. Helms and R. Wille},
+    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+    year      = {2024},
+}
+```
+
+which is also available on arXiv:
+[![a]()
 
 ## Acknowledgements
 
