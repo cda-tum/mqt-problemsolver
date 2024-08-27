@@ -15,12 +15,6 @@ from qsharp.estimator import EstimatorParams, EstimatorResult, LogicalCounts, QE
 # $ jq '.logicalCounts' < resource_estimate.json
 # ```
 
-logical_qubits = 0
-ccz_count = 0
-t_count = 0
-rotation_count = 0
-rotation_depth = 0
-measurement_count = 0
 
 logical_counts = LogicalCounts(
     {
