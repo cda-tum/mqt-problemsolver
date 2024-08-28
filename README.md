@@ -211,15 +211,17 @@ In case you are using our Equivalence-Checking approach, we would be thankful if
 
 ```bibtex
 @INPROCEEDINGS{quetschlich2024equivalence_checking,
-    title     = {{Towards Equivalence Checking of Classical Circuits Using Quantum Computing}},
-    author    = {N. Quetschlich and T. Forster and A. Osterwind and D. Helms and R. Wille},
-    booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-    year      = {2024},
+    title           = {{Towards Equivalence Checking of Classical Circuits Using Quantum Computing}},
+    author          = {N. Quetschlich and T. Forster and A. Osterwind and D. Helms and R. Wille},
+    eprint          = {2402.14539},
+    archivePrefix   = {arXiv},
+    year            = {2024},
+    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
 }
 ```
 
 which is also available on arXiv:
-[![a]()
+[![a](https://img.shields.io/static/v1?label=arXiv&message=2402.14539&color=inactive&style=flat-square)](https://arxiv.org/abs/2408.14539)
 
 ## Acknowledgements
 
