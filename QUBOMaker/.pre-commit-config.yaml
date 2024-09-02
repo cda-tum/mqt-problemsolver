@@ -51,14 +51,14 @@ repos:
         args: ["-L", "wille,linz", "--skip", "*.ipynb"]
 
   # Format configuration files with prettier
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: "v4.0.0-alpha.8"
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: "v3.3.3"
     hooks:
       - id: prettier
         types_or: [yaml, markdown, html, css, javascript, json]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.1
+    rev: v0.6.2
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
@@ -80,7 +80,7 @@ repos:
       - id: nb-clean
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+    rev: v1.11.2
     hooks:
       - id: mypy
         files: ^(src|tests|setup.py)
@@ -109,7 +109,7 @@ repos:
 
   # Check best practices for scientific Python code
   - repo: https://github.com/scientific-python/cookie
-    rev: 2024.04.23
+    rev: 2024.08.19
     hooks:
       - id: sp-repo-review
         additional_dependencies: ["repo-review[cli]"]
