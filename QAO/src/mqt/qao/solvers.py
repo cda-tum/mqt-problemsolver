@@ -1265,7 +1265,7 @@ class Solution:
 
         Return values:
         constraints_satisfy -- bool which is equal to True if all the constraints are satisfied
-        single_constraint_satisfy -- list of bool, saying which are the satisfied constraint and which are not
+        single_constraint_satisfy -- list of bool, saying which are the satisfied constraint and which are not satisfied
 
         """
         self.constraints_satisfy, self.single_constraint_satisfy = self.problem.constraints.check_constraint(
