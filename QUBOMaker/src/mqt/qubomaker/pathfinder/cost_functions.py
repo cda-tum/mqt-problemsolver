@@ -1284,7 +1284,7 @@ class PathIsValid(PathBound):
     @override
     def get_formula_domain_wall(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         general = self.get_formula_general(graph, settings, FormulaHelpers.get_encoding_variable_domain_wall)
-        enforce_domain_wall_penalty = (
+        enforce_domain_wall_penalty: sp.Expr = (
             2 * settings.max_path_length * np.max(graph.adjacency_matrix) + graph.n_vertices**2
         )
         # This ensures that the domain wall condition (x_i = 0 -> x_{i+1} = 0) is not broken to achieve better cost in other cost functions.

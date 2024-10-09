@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union, cast
 
 import networkx as nx
 import numpy as np
@@ -162,7 +162,7 @@ class Graph:
         """
         if not isinstance(value, Graph):
             return False
-        return np.array_equal(self.adjacency_matrix, value.adjacency_matrix)
+        return cast(bool, np.array_equal(self.adjacency_matrix, value.adjacency_matrix))
 
     def __hash__(self) -> int:
         """Returns the hash of the graph.
