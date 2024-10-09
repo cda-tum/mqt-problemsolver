@@ -88,7 +88,6 @@ repos:
         additional_dependencies:
           - importlib_resources
           - types-setuptools
-          - python_tsp
           - networkx
           - pytest
           - sympy

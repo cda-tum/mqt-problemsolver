@@ -29,7 +29,6 @@ dependencies = [
     "matplotlib>=3.9.0; python_version > '3.11'",
     "matplotlib>=3.7.0; python_version <= '3.11'",
     "networkx>=2.8.8",
-    "python_tsp>=0.4.0",
     "docplex>=2.25.236",
     "qiskit_optimization>=0.6.0",
     "tsplib95>=0.7.1",
@@ -61,7 +60,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=7"]
+test = ["pytest>=7.2"]
 coverage = ["mqt.qubomaker[test]", "pytest-cov>=4"]
 docs = [
     "furo>=2023.08.17",
@@ -92,7 +91,7 @@ Discussions = "https://github.com/cda-tum/mqt-qubomaker/discussions"
 "mqt.qubomaker.pathfinder" = ["resources/*", "resources/constraints/*"]
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "7.2"
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--showlocals"]
 log_cli_level = "INFO"
@@ -123,7 +122,7 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*", "qiskit_algorithms.*", "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "typing_extensions.*"]
+module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*", "qiskit_algorithms.*", "matplotlib.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "typing_extensions.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
