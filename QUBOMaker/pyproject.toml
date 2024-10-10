@@ -63,17 +63,13 @@ classifiers = [
 test = ["pytest>=7.2"]
 coverage = ["mqt.qubomaker[test]", "pytest-cov>=4"]
 docs = [
-    "furo>=2023.08.17",
-    "sphinx>=7,<9",
-    "setuptools-scm>=8",
+    "furo>=2023.9.10",
+    "setuptools-scm>=8.1",
     "sphinxcontrib-bibtex>=2.4.2",
-    "sphinx-copybutton",
-    "sphinx-hoverxref",
-    "pybtex>=0.24",
-    "ipython",
+    "sphinx-copybutton>=0.5",
     "ipykernel",
     "nbsphinx",
-    "sphinxext-opengraph",
+    "sphinxext-opengraph>=0.9",
     "sphinx-autodoc-typehints",
     "qiskit[visualization]",
 ]
