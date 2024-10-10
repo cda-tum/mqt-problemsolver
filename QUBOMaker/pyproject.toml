@@ -96,7 +96,6 @@ xfail_strict = true
 filterwarnings = [
     "error",
     "ignore:.*invalid escape sequence.*::.*docplex.*",
-    "ignore:.*Qiskit with Python 3.8.*:DeprecationWarning:",
 ]
 
 [tool.coverage]
