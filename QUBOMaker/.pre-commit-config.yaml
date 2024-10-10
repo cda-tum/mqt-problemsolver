@@ -44,11 +44,10 @@ repos:
       - id: rst-inline-touching-normal
 
   # Check for spelling
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.26.0
     hooks:
-      - id: codespell
-        args: ["-L", "wille,linz", "--skip", "*.ipynb"]
+      - id: typos
 
   # Format configuration files with prettier
   - repo: https://github.com/rbubley/mirrors-prettier
@@ -94,6 +93,7 @@ repos:
           - tsplib95
           - types-Pillow
           - referencing
+          - nox
 
   # Catch common capitalization mistakes
   - repo: local
