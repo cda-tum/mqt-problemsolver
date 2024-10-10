@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Union, cast
 
 import numpy as np
 import sympy as sp
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     GetVariableFunction = Callable[[Any, Any, Any, int], sp.Expr]
 
-SetCallback = Callable[[], List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]]]
+SetCallback = Callable[[], list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]]]
 
 
 class EncodingType(Enum):
@@ -1222,7 +1222,7 @@ class PathsShareNoEdges(PathComparison):
             ),
             ["v", "w"],
             "\\in E",
-            lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
+            lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
         )
 
 
@@ -1260,7 +1260,7 @@ class PathIsValid(PathBound):
                 ),
                 ["v", "w"],
                 "\\not\\in E",
-                lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.non_edges),
+                lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.non_edges),
             ),
             self.path_ids,
         )
@@ -1284,7 +1284,7 @@ class PathIsValid(PathBound):
     @override
     def get_formula_domain_wall(self, graph: Graph, settings: pathfinder.PathFindingQUBOGeneratorSettings) -> sp.Expr:
         general = self.get_formula_general(graph, settings, FormulaHelpers.get_encoding_variable_domain_wall)
-        enforce_domain_wall_penalty = (
+        enforce_domain_wall_penalty: sp.Expr = (
             2 * settings.max_path_length * np.max(graph.adjacency_matrix) + graph.n_vertices**2
         )
         # This ensures that the domain wall condition (x_i = 0 -> x_{i+1} = 0) is not broken to achieve better cost in other cost functions.
@@ -1338,7 +1338,7 @@ class MinimizePathLength(PathBound):
                 ),
                 ["v", "w"],
                 "\\in E",
-                lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
+                lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
             ),
             self.path_ids,
         )
@@ -1375,7 +1375,7 @@ class MaximizePathLength(PathBound):
                 ),
                 ["v", "w"],
                 "\\in E",
-                lambda: cast(List[Union[sp.Expr, int, float, Tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
+                lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
             ),
             self.path_ids,
         )

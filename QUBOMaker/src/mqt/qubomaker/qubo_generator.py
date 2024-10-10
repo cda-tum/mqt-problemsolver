@@ -140,8 +140,8 @@ class QUBOGenerator:
         """
         if not isinstance(expression, sp.Mul):
             return expression
-        used_auxilliaries = {term for term in expression.args if term in auxiliary_dict.values()}
-        redundant_variables = {term for term in auxiliary_dict if auxiliary_dict[term] in used_auxilliaries}
+        used_auxiliaries = {term for term in expression.args if term in auxiliary_dict.values()}
+        redundant_variables = {term for term in auxiliary_dict if auxiliary_dict[term] in used_auxiliaries}
         remaining_variables = [arg for arg in expression.args if arg not in redundant_variables]
         return sp.Mul(*remaining_variables) if len(remaining_variables) > 1 else remaining_variables[0]
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Union, cast
 
 import networkx as nx
 import numpy as np
@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 if TYPE_CHECKING:
     from io import TextIOWrapper
 
-    Edge = Union[Tuple[int, int], Tuple[int, int, int], Tuple[int, int, float]]
+    Edge = Union[tuple[int, int], tuple[int, int, int], tuple[int, int, float]]
 
 
 class Graph:
@@ -162,7 +162,7 @@ class Graph:
         """
         if not isinstance(value, Graph):
             return False
-        return np.array_equal(self.adjacency_matrix, value.adjacency_matrix)
+        return cast(bool, np.array_equal(self.adjacency_matrix, value.adjacency_matrix))
 
     def __hash__(self) -> int:
         """Returns the hash of the graph.

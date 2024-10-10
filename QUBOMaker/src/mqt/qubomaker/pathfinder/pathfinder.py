@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sys
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, cast
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING or sys.version_info < (3, 10, 0):
     import importlib_resources as resources
@@ -165,7 +165,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             vertices = constraint.get("vertices", [])
             if len(vertices) == 0:
                 vertices = graph.all_vertices
-            return cast(List[int], vertices)
+            return cast(list[int], vertices)
 
         def get_edges_possibly_all(constraint: dict[str, Any]) -> list[tuple[int, int]]:
             edges = [tuple(edge) for edge in constraint.get("edges", [])]
