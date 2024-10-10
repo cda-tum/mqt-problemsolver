@@ -16,7 +16,7 @@ authors = [
 ]
 keywords = ["MQT", "quantum-computing", "qubo", "shortest-path", "design-automation"]
 license = { file = "LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dynamic = ["version"]
 
 dependencies = [
