@@ -7,6 +7,7 @@ from typing import cast
 
 import numpy as np
 import pytest
+import networkx as nx
 
 # for managing symbols
 from qubovert import PUBO, boolean_var
@@ -17,7 +18,7 @@ from mqt.qao.objectivefunction import ObjectiveFunction
 from mqt.qao.problem import Problem
 from mqt.qao.solvers import Solution, Solver
 from mqt.qao.variables import Variables
-
+from mqt.qao.karp import KarpGraphs, KarpSets, KarpNumber
 
 def test_binary_only() -> None:
     """Test only the construction of binary variables"""
@@ -29,6 +30,1129 @@ def test_binary_only() -> None:
     post_dict = variables.binary_variables_name_weight
     print(post_dict)
     assert post_dict == {"a": (boolean_var("b0"),), "A_0": (boolean_var("b1"),), "A_1": (boolean_var("b2"),)}
+
+def test_set_cover_initialization():
+    """Verify that initializing a set cover problem returns a Problem instance without solving it."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    problem = KarpSets.set_cover(input_data, solve=False)
+    assert isinstance(problem, Problem)
+
+
+def test_set_cover_solving_basic():
+    """Ensure that solving a basic set cover problem returns a list of tuples as the solution."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    solution = KarpSets.set_cover(input_data, solve=True)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(item, tuple) for item in solution), "Each solution item should be a tuple"
+
+
+def test_set_cover_with_weights():
+    """Test that the weighted set cover problem returns the minimum cost solution."""
+    input_data = [(1, [1, 2]), (10, [2, 3]), (5, [1, 3])]
+    solution = KarpSets.set_cover(input_data, solve=True, weighted=True)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert sum(cost for cost, _ in solution) == 6, "Expected the minimum weighted cost solution"
+
+
+def test_set_cover_solution_validation_correct():
+    """Check that a known valid solution for set cover is validated correctly."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    solution = [(1, [1, 2]), (2, [2, 3])]
+    validation = KarpSets.check_set_cover_solution(input_data, solution)
+    assert validation["Valid Solution"]
+
+
+def test_set_cover_solution_validation_incomplete():
+    """Verify that an incomplete set cover solution is marked invalid due to missing elements."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    solution = [(1, [1, 2])]
+    validation = KarpSets.check_set_cover_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to missing elements"
+
+
+def test_set_cover_solution_validation_extraneous():
+    """Confirm that a solution with extraneous sets for set cover is marked invalid."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    solution = [(1, [1, 2]), (2, [2, 3]), (3, [3, 4])]
+    validation = KarpSets.check_set_cover_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to extraneous sets"
+
+
+def test_set_cover_empty_input():
+    """Ensure that initializing a set cover problem with empty input returns a Problem instance."""
+    input_data = []
+    problem = KarpSets.set_cover(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+
+def test_set_packing_initialization():
+    """Verify that initializing a set packing problem returns a Problem instance without solving it."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    problem = KarpSets.set_packing(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance"
+
+
+def test_set_packing_solving_basic():
+    """Ensure that solving a basic set packing problem returns a list of tuples as the solution."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    solution = KarpSets.set_packing(input_data, solve=True)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(item, tuple) for item in solution), "Each solution item should be a tuple"
+
+
+def test_set_packing_solution_validation_correct():
+    """Check that a known valid solution for set packing is validated correctly."""
+    input_data = [(1, [1, 2]), (2, [3, 4]), (1, [4])]
+    solution = [(1, [1, 2]), (1, [4])]
+    validation = KarpSets.check_set_packing_solution(input_data, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_set_packing_solution_validation_extraneous():
+    """Confirm that a solution with extraneous sets for set packing is marked invalid."""
+    input_data = [(1, [1, 2]), (2, [3, 4])]
+    solution = [(1, [1, 2]), (2, [3, 4]), (3, [1, 3])]
+    validation = KarpSets.check_set_packing_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to extraneous sets"
+
+
+def test_set_packing_empty_input():
+    """Ensure that initializing a set packing problem with empty input returns a Problem instance."""
+    input_data = []
+    problem = KarpSets.set_packing(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+
+def test_exact_cover_initialization():
+    """Verify that initializing an exact cover problem returns a Problem instance without solving it."""
+    input_data = [(1, [1, 2]), (1, [2, 3]), (1, [3, 4])]
+    problem = KarpSets.exact_cover(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance"
+
+
+def test_exact_cover_solving_basic():
+    """Ensure that solving a basic exact cover problem returns a list of tuples as the solution."""
+    input_data = [(1, [1, 2]), (1, [2, 3]), (1, [3, 4])]
+    solution = KarpSets.exact_cover(input_data, solve=True)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(item, tuple) for item in solution), "Each solution item should be a tuple"
+
+
+def test_exact_cover_solution_validation_correct():
+    """Check that a known valid solution for exact cover is validated correctly."""
+    input_data = [(1, [1, 2]), (1, [2, 3]), (1, [3, 4])]
+    solution = [(1, [1, 2]), (1, [3, 4])]
+    validation = KarpSets.check_exact_cover_solution(input_data, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_exact_cover_solution_validation_incomplete():
+    """Verify that an incomplete exact cover solution is marked invalid due to missing elements."""
+    input_data = [(1, [1, 2]), (1, [2, 3]), (1, [3, 4])]
+    solution = [(1, [1, 2])]
+    validation = KarpSets.check_exact_cover_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to missing elements"
+
+
+def test_exact_cover_solution_validation_extraneous():
+    """Confirm that a solution with extraneous sets for exact cover is marked invalid."""
+    input_data = [(1, [1, 2]), (1, [2, 3]), (1, [3, 4])]
+    solution = [(1, [1, 2]), (1, [3, 4]), (2, [1, 3])]
+    validation = KarpSets.check_exact_cover_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to extraneous sets"
+
+
+def test_exact_cover_empty_input():
+    """Ensure that initializing an exact cover problem with empty input returns a Problem instance."""
+    input_data = []
+    problem = KarpSets.exact_cover(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+
+graph = nx.Graph()
+graph.add_edges_from([(1, 3), (3, 5), (2, 4), (4, 6), (1, 4)])
+x = [1, 2]
+y = [3, 4]
+z = [5, 6]
+
+
+def test_three_d_matching_initialization():
+    """Verify that initializing a 3D matching problem returns a Problem instance without solving it."""
+    problem = KarpSets.three_d_matching(graph, x, y, z, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance for 3D matching initialization"
+
+
+def test_three_d_matching_solving_basic():
+    """Ensure that solving a basic 3D matching problem returns a list of triples as the solution."""
+    solution = KarpSets.three_d_matching(graph, x, y, z, solve=True)
+    print(solution)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(
+        isinstance(item, list) and len(item) == 3 for item in solution
+    ), "Each solution item should be a tuple of length 3"
+
+
+def test_three_d_matching_solution_validation_correct():
+    """Check that a known valid solution is correctly validated by the 3D matching problem."""
+    solution = [(1, 3, 5)]
+    validation = KarpSets.check_three_d_matching(x, y, z, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_three_d_matching_solution_validation_incomplete():
+    """Verify that an incomplete 3D matching solution is identified as invalid due to repeated elements."""
+    solution = [(1, 2, 3)]
+    validation = KarpSets.check_three_d_matching(x, y, z, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to repeated elements"
+
+
+def test_three_d_matching_solution_validation_extraneous():
+    """Confirm that a solution with extraneous triples is identified as invalid."""
+    solution = [(1, 2, 3), (3, 2, 1)]
+    validation = KarpSets.check_three_d_matching(x, y, z, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to extraneous triples"
+
+
+def test_three_d_matching_solving_with_graph():
+    """Solving a 3D matching problem with a graph returns a list of valid triples."""
+    solution = KarpSets.three_d_matching(graph, x, y, z, solve=True)
+    assert all(
+        isinstance(item, list) and len(item) == 3 for item in solution
+    ), "Each solution item should be a tuple of length 3"
+
+
+def test_hitting_set_initialization():
+    """Test the initialization of the hitting set problem."""
+    input_data = [(1, [1, 2]), (2, [2, 3]), (3, [3, 4])]
+    problem = KarpSets.hitting_set(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance for hitting set initialization"
+
+
+def test_hitting_set_solving_basic():
+    """Test the basic solving of the hitting set problem without weights."""
+    input_data = [(1, [1, 2]), (2, [2, 3]), (3, [3, 4])]
+    solution = KarpSets.hitting_set(input_data, solve=True)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(item, int) for item in solution), "Each solution item should be an integer (element index)"
+
+
+def test_hitting_set_solution_validation_correct():
+    """Test the validation of a correct hitting set solution."""
+    input_data = [(1, [1, 2]), (2, [2, 3]), (3, [3, 4])]
+    solution = [1, 3]
+    validation = KarpSets.check_hitting_set_solution(input_data, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_hitting_set_solution_validation_incomplete():
+    """Test the validation of an incomplete hitting set solution."""
+    input_data = [(1, [1, 2]), (2, [2, 3]), (3, [3, 4])]
+    solution = [1]
+    validation = KarpSets.check_hitting_set_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to missing elements"
+
+
+def test_hitting_set_solution_validation_extraneous():
+    """Test the validation of a hitting set solution with extraneous elements."""
+    input_data = [(1, [1, 2]), (2, [2, 3])]
+    solution = [1, 2, 4]
+    validation = KarpSets.check_hitting_set_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to extraneous elements"
+
+
+def test_hitting_set_empty_input():
+    """Test the handling of an empty input for the hitting set problem."""
+    input_data = []
+    problem = KarpSets.hitting_set(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+
+def test_sat_initialization():
+    """Test the initialization of the SAT problem."""
+    input_data = [["a", "!b"], ["b", "c"], ["!a", "d"]]
+    problem = KarpNumber.sat(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance for SAT initialization"
+
+
+def test_sat_solving_basic():
+    """Test the basic solving of the SAT problem without specifying solver parameters."""
+    input_data = [["a", "!b"], ["b", "c"], ["!a", "d"]]
+    solution = KarpNumber.sat(input_data, solve=True)
+    assert isinstance(solution, dict), "Expected a dictionary as the solution"
+    assert all(
+        isinstance(key, str) and isinstance(value, float) for key, value in solution.items()
+    ), "Expected solution to contain variable names as keys and floats as values"
+
+
+def test_sat_solution_validation_correct():
+    """Test validation for a correct SAT solution."""
+    input_data = [["a", "!b"], ["b", "c"], ["!a", "d"]]
+    solution = {"a": 1.0, "b": 0.0, "c": 1.0, "d": 1.0}
+    validation = KarpNumber.check_three_sat_solution(input_data, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_sat_solution_validation_incorrect():
+    """Test validation for an incorrect SAT solution."""
+    input_data = [["a", "!b"], ["b", "c"], ["!a", "d"]]
+    solution = {"a": 0.0, "b": 1.0, "c": 0.0, "d": 0.0}
+    validation = KarpNumber.check_three_sat_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to unsatisfied clauses"
+
+
+def test_three_sat_initialization():
+    """Test the initialization of the 3-SAT problem."""
+    input_data = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
+    problem = KarpNumber.three_sat(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance for 3-SAT initialization"
+
+
+def test_three_sat_solving_basic():
+    """Test the basic solving of the 3-SAT problem without specifying solver parameters."""
+    input_data = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
+    solution = KarpNumber.three_sat(input_data, solve=True)
+    assert isinstance(solution, dict), "Expected a dictionary as the solution"
+    assert all(
+        isinstance(key, str) and isinstance(value, float) for key, value in solution.items()
+    ), "Expected solution to contain variable names as keys and floats as values"
+
+
+def test_three_sat_solution_validation_correct():
+    """Test validation for a correct 3-SAT solution."""
+    input_data = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
+    solution = {"a": 1.0, "b": 0.0, "c": 1.0, "d": 0.0, "e": 1.0}
+    validation = KarpNumber.check_three_sat_solution(input_data, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_three_sat_solution_validation_incorrect():
+    """Test validation for an incorrect 3-SAT solution."""
+    input_data = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
+    solution = {"a": 0.0, "b": 1.0, "c": 0.0, "d": 0.0, "e": 0.0}
+    validation = KarpNumber.check_three_sat_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to unsatisfied clauses"
+
+
+def test_sat_empty_input():
+    """Test handling of an empty input for the SAT problem."""
+    input_data = []
+    problem = KarpNumber.sat(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+
+def test_three_sat_empty_input():
+    """Test handling of an empty input for the 3-SAT problem."""
+    input_data = []
+    problem = KarpNumber.three_sat(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+
+def test_number_partition_initialization():
+    """Test the initialization of the number partition problem."""
+    input_data = [3, 1, 4, 2, 2]
+    problem = KarpNumber.number_partition(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance for number partition initialization"
+
+
+def test_number_partition_solving_basic():
+    """Test the basic solving of the number partition problem."""
+    input_data = [3, 1, 4, 2, 2]
+    set_1, set_2 = KarpNumber.number_partition(input_data, solve=True)
+    assert isinstance(set_1, list)
+    assert isinstance(set_2, list)
+
+
+def test_number_partition_balanced_solution():
+    """Test that the partitioned sets are approximately balanced."""
+    input_data = [3, 1, 4, 2, 2]
+    set_1, set_2 = KarpNumber.number_partition(input_data, solve=True)
+    sum_set_1 = sum(set_1)
+    sum_set_2 = sum(set_2)
+    assert abs(sum_set_1 - sum_set_2) <= 1, "Expected partitions to have approximately balanced sums"
+
+
+def test_number_partition_solution_validation_correct():
+    """Test validation for a correct number partition solution."""
+    input_data = [3, 1, 4, 2, 2]
+    solution = {"s_1": 1.0, "s_2": 1.0, "s_3": -1.0, "s_4": -1.0, "s_5": 1.0}  # thiswould create two balanced sets
+    validation = KarpNumber.check_number_partition_solution(input_data, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_number_partition_solution_validation_incorrect():
+    """Test validation for an incorrect number partition solution."""
+    input_data = [3, 1, 4, 2, 2]
+    solution = {"s_1": 1.0, "s_2": 1.0, "s_3": 1.0, "s_4": -1.0, "s_5": -1.0}  # imbalanced partition
+    validation = KarpNumber.check_number_partition_solution(input_data, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to imbalance in sums"
+
+
+def test_number_partition_empty_input():
+    """Test handling of an empty input for the number partition problem."""
+    input_data = []
+    problem = KarpNumber.number_partition(input_data, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+
+# def test_number_partition_visualization():
+#    """Test the visualization option for number partition."""
+#    input_data = [3, 1, 4, 2, 2]
+#    set_1, set_2 = KarpNumber.number_partition(input_data, solve=True, visualize=True)
+#    assert isinstance(set_1, list) and isinstance(set_2, list), "Expected two lists as the solution"
+
+
+def test_job_sequencing_initialization():
+    """Test the initialization of the job sequencing problem."""
+    job_lengths = [3, 1, 2, 2]
+    m = 2
+    problem = KarpNumber.job_sequencing(job_lengths, m, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance for job sequencing initialization"
+
+
+def test_job_sequencing_solving_basic():
+    """Test the basic solving of the job sequencing problem."""
+    job_lengths = [3, 1, 2, 2]
+    m = 2
+    solution = KarpNumber.job_sequencing(job_lengths, m, solve=True)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(machine_jobs, list) for machine_jobs in solution), "Each machine's job list should be a list"
+    assert len(solution) == m, f"Expected {m} machines in the solution"
+
+
+def test_job_sequencing_with_single_machine():
+    """Test job sequencing when only one machine is available."""
+    job_lengths = [3, 5, 2, 7, 1]
+    m = 1
+    solution = KarpNumber.job_sequencing(job_lengths, m, solve=True)
+    assert len(solution) == 1, "Expected only one machine in the solution"
+    assert sum(job_lengths) == sum(
+        job_lengths[job] for job in solution[0]
+    ), "All jobs should be assigned to the single machine available"
+
+
+def test_knapsack_initialization():
+    """Test the initialization of the knapsack problem."""
+    items = [(3, 4), (2, 3), (4, 5), (5, 8)]
+    max_weight = 5
+    problem = KarpNumber.knapsack(items, max_weight, solve=False)
+    assert isinstance(problem, Problem), "Expected a Problem instance for knapsack initialization"
+
+
+def test_knapsack_solving_basic():
+    """Test the basic solving of the knapsack problem."""
+    items = [(3, 4), (2, 3), (4, 5), (5, 8)]
+    max_weight = 5
+    solution = KarpNumber.knapsack(items, max_weight, solve=True)
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(
+        isinstance(item, tuple) and len(item) == 2 for item in solution
+    ), "Each solution item should be a tuple of (weight, value)"
+
+
+def test_knapsack_solution_optimization():
+    """Test that the knapsack solution maximizes the value without exceeding max weight."""
+    items = [(3, 4), (2, 3), (4, 5), (5, 8)]
+    max_weight = 5
+    solution = KarpNumber.knapsack(items, max_weight, solve=True)
+    total_weight = sum(item[0] for item in solution)
+    total_value = sum(item[1] for item in solution)
+
+    assert total_weight <= max_weight, "Total weight should not exceed the maximum allowed weight"
+    assert total_value == 8, "Expected maximum value to be 7 for this input"
+
+
+def test_knapsack_solution_validation_correct():
+    """Test validation for a correct knapsack solution."""
+    max_weight = 5
+    solution = [(2, 3), (3, 4)]
+    validation = KarpNumber.check_knapsack_solution(max_weight, solution)
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_knapsack_solution_validation_incorrect():
+    """Test validation for an incorrect knapsack solution (overweight)."""
+    max_weight = 5
+    solution = [(3, 4), (4, 5)]
+    validation = KarpNumber.check_knapsack_solution(max_weight, solution)
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to exceeding weight limit"
+
+
+def test_knapsack_with_zero_max_weight():
+    """Test knapsack when max weight is zero, expecting an empty solution."""
+    items = [(3, 4), (2, 3), (4, 5), (5, 8)]
+    max_weight = 0
+    solution = KarpNumber.knapsack(items, max_weight, solve=True)
+    assert solution == [], "Expected an empty solution when max weight is zero"
+
+
+def test_knapsack_with_large_max_weight():
+    """Test knapsack with a large max weight, expecting all items to be included if possible."""
+    items = [(3, 4), (2, 3), (4, 5), (5, 8)]
+    max_weight = 15
+    solution = KarpNumber.knapsack(items, max_weight, solve=True)
+    total_weight = sum(item[0] for item in solution)
+    total_value = sum(item[1] for item in solution)
+
+    assert total_weight <= max_weight, "Total weight should not exceed the maximum allowed weight"
+    assert total_value <= 20, "Expected total value to be the sum of all item values"
+
+
+def test_clique_initialization():
+    """Test the initialization of the clique problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    k = 3
+    problem = KarpGraphs.clique(graph, k=k, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for clique initialization"
+
+
+def test_clique_solving_basic():
+    """Test the basic solving of the clique problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    k = 3
+    solution = KarpGraphs.clique(graph, k=k, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(
+        isinstance(node, int) for node in solution
+    ), "Each element in the solution should be an integer representing a node"
+
+
+def test_clique_solution_k_value():
+    """Test that the solution has the correct number of nodes for the clique size k."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5), (2, 4), (4, 3)])
+    k = 3
+    solution = KarpGraphs.clique(graph, k=k, solve=True)
+
+    assert len(solution) == k, f"Expected a clique of size {k}, but got {len(solution)}"
+
+
+def test_clique_solution_maximal_clique():
+    """Test finding the maximal clique (k=0) in the graph."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 1)])
+    solution = KarpGraphs.clique(graph, k=0, solve=True)
+
+    assert len(solution) == 3, "Expected maximal clique of size 3 for this input graph"
+
+
+def test_clique_solution_validation_correct():
+    """Test validation for a correct clique solution."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5), (2, 4)])
+    solution = [1, 2, 3]
+    validation = KarpGraphs.check_clique_solution(graph, solution)
+
+    assert validation["Valid Solution"], "Expected solution to be valid"
+
+
+def test_clique_solution_validation_incorrect():
+    """Test validation for an incorrect clique solution (not a complete subgraph)."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (1, 4)])
+    solution = [1, 2, 4]
+    validation = KarpGraphs.check_clique_solution(graph, solution)
+
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to missing edge"
+
+
+def test_clique_empty_graph():
+    """Test handling of an empty graph."""
+    graph = nx.Graph()
+    k = 3
+    problem = KarpGraphs.clique(graph, k=k, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance even with an empty graph"
+
+
+def test_clique_single_node_graph():
+    """Test a graph with a single node."""
+    graph = nx.Graph()
+    graph.add_node(1)
+    k = 1
+    solution = KarpGraphs.clique(graph, k=k, solve=True)
+
+    assert solution == [1], "Expected the single node as the solution"
+
+
+def test_clique_large_k_value():
+    """Test the clique method with a k value larger than the graph's maximum clique size."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    k = 2
+    solution = KarpGraphs.clique(graph, k=k, solve=True)
+
+    assert len(solution) == k, "Expected an empty solution as no clique of size 5 exists in the graph"
+
+
+def test_clique_cover_initialization():
+    """Test the initialization of the clique cover problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    num_colors = 2
+    problem = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for clique cover initialization"
+
+
+def test_clique_cover_solving_basic():
+    """Test the basic solving of the clique cover problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    num_colors = 2
+    solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(
+        isinstance(pair, tuple) and len(pair) == 2 for pair in solution
+    ), "Each element in the solution should be a tuple representing (node, color)"
+
+
+def test_clique_cover_solution_num_colors():
+    """Test that the solution uses the correct number of colors."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5), (5, 6)])
+    num_colors = 2
+    solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
+
+    used_colors = {color for _, color in solution}
+    assert (
+        len(used_colors) <= num_colors
+    ), f"Expected solution to use up to {num_colors} colors, but used {len(used_colors)}"
+
+
+def test_clique_cover_solution_correct_cover():
+    """Test validation for a correct clique cover solution."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    solution = [(1, 1), (2, 1), (3, 1), (4, 2), (5, 2)]  # known correctcover
+    validation = KarpGraphs.check_clique_cover_solution(graph, solution)
+
+    assert validation["Valid Solution"], "Expected solution to be valid for correct clique cover"
+
+
+def test_clique_cover_solution_incorrect_cover():
+    """Test validation for an incorrect clique cover solution (non-clique assignment)."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (1, 4)])
+    solution = [(1, 1), (2, 1), (3, 2), (4, 1)]  # Invalid cover (node 4 doesn't connect to 2 or 3)
+    validation = KarpGraphs.check_clique_cover_solution(graph, solution)
+
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to non-clique assignment"
+
+
+def test_clique_cover_single_node_graph():
+    """Test a graph with a single node."""
+    graph = nx.Graph()
+    graph.add_node(1)
+    num_colors = 1
+    solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
+
+    assert solution == [(1, 1)], "Expected the single node with color 1 in the solution"
+
+
+def test_clique_cover_large_num_colors():
+    """Test the clique cover with a large number of colors, exceeding the minimum requirement."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    num_colors = 5  # more colors than required
+    solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
+
+    assert (
+        len({color for _, color in solution}) <= num_colors
+    ), "Expected the number of colors used to be within the specified num_colors"
+
+
+def test_clique_cover_disconnected_graph():
+    """Test the clique cover with a disconnected graph."""
+    graph = nx.Graph([(1, 2), (3, 4), (5, 6)])
+    num_colors = 3
+    solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
+
+    used_colors = {color for _, color in solution}
+    assert (
+        len(used_colors) <= num_colors
+    ), f"Expected solution to use up to {num_colors} colors, but used {len(used_colors)}"
+    assert len(solution) == 6, "Expected each node to be assigned a color in the solution"
+
+
+def test_vertex_cover_initialization():
+    """Test the initialization of the vertex cover problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    problem = KarpGraphs.vertex_cover(graph, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for vertex cover initialization"
+
+
+def test_vertex_cover_solving_basic():
+    """Test the basic solving of the vertex cover problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
+    solution = KarpGraphs.vertex_cover(graph, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(node, int) for node in solution), "Each element in the solution should be an integer node"
+
+
+def test_vertex_cover_solution_minimum_size():
+    """Test that the solution provides a minimum vertex cover size."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5), (5, 6)])
+    solution = KarpGraphs.vertex_cover(graph, solve=True)
+
+    # a valid cover for this graph is of size 3 (e.g., nodes 2, 4, and 5 or any equivalent valid cover)
+    assert len(solution) <= 3, "Expected solution to provide a minimum vertex cover size"
+
+
+def test_vertex_cover_solution_correct_cover():
+    """Test validation for a correct vertex cover solution."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 1)])
+    solution = [2, 1]  # known correct cover for this graph
+    validation = KarpGraphs.check_vertex_cover_solution(graph, solution)
+
+    assert validation["Valid Solution"], "Expected solution to be valid for correct vertex cover"
+
+
+def test_vertex_cover_solution_incorrect_cover():
+    """Test validation for an incorrect vertex cover solution (missing required nodes)."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1), (1, 4)])
+    solution = [2]  # Invalid cover (node 3 is not covered)
+    validation = KarpGraphs.check_vertex_cover_solution(graph, solution)
+
+    assert not validation["Valid Solution"], "Expected solution to be invalid due to uncovered edges"
+
+
+def test_vertex_cover_single_node_graph():
+    """Test a graph with a single node."""
+    graph = nx.Graph()
+    graph.add_node(1)
+    solution = KarpGraphs.vertex_cover(graph, solve=True)
+
+    assert solution == [], "Expected no nodes in the cover as a single node with no edges does not require covering"
+
+
+def test_vertex_cover_large_num_nodes():
+    """Test the vertex cover on a graph with many nodes but few edges."""
+    graph = nx.Graph([(1, 2), (3, 4), (5, 6)])
+    solution = KarpGraphs.vertex_cover(graph, solve=True)
+
+    assert len(solution) <= 3, "Expected the vertex cover to include at most one node per edge"
+    assert all(isinstance(node, int) for node in solution), "Each element in the solution should be an integer node"
+
+
+def test_vertex_cover_disconnected_graph():
+    """Test the vertex cover with a disconnected graph."""
+    graph = nx.Graph([(1, 2), (3, 4), (5, 6)])
+    solution = KarpGraphs.vertex_cover(graph, solve=True)
+
+    assert len(solution) <= 3, "Expected each disconnected component to be covered individually with minimum nodes"
+    assert len(solution) == len(set(solution)), "Expected each node in the solution to be unique"
+
+
+def test_graph_coloring_initialization():
+    """Test the initialization of the graph coloring problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    problem = KarpGraphs.graph_coloring(graph, num_colors=3, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for graph coloring initialization"
+
+
+def test_graph_coloring_basic_solution():
+    """Test the basic solution of the graph coloring problem with 3 colors."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.graph_coloring(graph, num_colors=3, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(
+        isinstance(node_color, tuple) and len(node_color) == 2 for node_color in solution
+    ), "Each element in the solution should be a tuple of (node, color)"
+
+
+def test_graph_coloring_validity():
+    """Test that the coloring solution is valid for a simple graph."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.graph_coloring(graph, num_colors=3, solve=True)
+
+    validation = KarpGraphs.check_graph_coloring_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be a valid coloring"
+
+
+def test_graph_coloring_invalid_colors():
+    """Test that the graph coloring fails when not enough colors are provided."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.graph_coloring(graph, num_colors=2, solve=True)
+
+    validation = KarpGraphs.check_graph_coloring_solution(graph, solution)
+    assert not validation["Valid Solution"], "Expected the solution to be invalid with insufficient colors"
+
+
+def test_graph_coloring_chromatic_number():
+    """Test that the solution respects the chromatic number of a small cycle graph."""
+    graph = nx.cycle_graph(4)
+    solution = KarpGraphs.graph_coloring(graph, num_colors=2, solve=True)
+
+    validation = KarpGraphs.check_graph_coloring_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be valid with 2 colors for C4 graph"
+
+
+def test_graph_coloring_disconnected_graph():
+    """Test coloring on a disconnected graph with 2 components."""
+    graph = nx.Graph([(1, 2), (3, 4)])
+    solution = KarpGraphs.graph_coloring(graph, num_colors=2, solve=True)
+
+    validation = KarpGraphs.check_graph_coloring_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be valid with disconnected components"
+
+
+def test_graph_coloring_single_node():
+    """Test coloring on a single-node graph."""
+    graph = nx.Graph()
+    graph.add_node(1)
+    solution = KarpGraphs.graph_coloring(graph, num_colors=1, solve=True)
+
+    assert solution == [(1, 1)], "Expected the single node to be colored with the only available color"
+
+
+def test_graph_coloring_complete_graph():
+    """Test coloring on a complete graph with n nodes, requiring n colors."""
+    n = 4
+    graph = nx.complete_graph(n)
+    solution = KarpGraphs.graph_coloring(graph, num_colors=n, solve=True)
+
+    validation = KarpGraphs.check_graph_coloring_solution(graph, solution)
+    assert validation["Valid Solution"], f"Expected a valid coloring with {n} colors for K{n} graph"
+
+
+def test_graph_coloring_large_sparse_graph():
+    """Test graph coloring on a large sparse graph with fewer colors than nodes."""
+    graph = nx.Graph([(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)])
+    solution = KarpGraphs.graph_coloring(graph, num_colors=3, solve=True)
+
+    validation = KarpGraphs.check_graph_coloring_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be valid for sparse graph with 3 colors"
+
+
+def test_independent_set_initialization():
+    """Test the initialization of the independent set problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    problem = KarpGraphs.independent_set(graph, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for independent set initialization"
+
+
+def test_independent_set_basic_solution():
+    """Test the basic solution of the independent set problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(node, int) for node in solution), "Each element in the solution should be an integer node"
+
+
+def test_independent_set_validity():
+    """Test that the independent set solution is valid for a simple graph."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    validation = KarpGraphs.check_independent_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be a valid independent set"
+
+
+def test_independent_set_disconnected_graph():
+    """Test independent set on a disconnected graph."""
+    graph = nx.Graph([(1, 2), (3, 4)])
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    validation = KarpGraphs.check_independent_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected a valid solution for a disconnected graph"
+
+
+def test_independent_set_large_sparse_graph():
+    """Test independent set on a large sparse graph."""
+    graph = nx.Graph([(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)])
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    validation = KarpGraphs.check_independent_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected a valid solution for a sparse graph"
+
+
+def test_independent_set_single_node():
+    """Test independent set on a single-node graph."""
+    graph = nx.Graph()
+    graph.add_node(1)
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    assert solution == [1], "Expected the single node to be part of the independent set"
+
+
+def test_independent_set_complete_graph():
+    """Test independent set on a complete graph, where only one node can be in the set."""
+    n = 4
+    graph = nx.complete_graph(n)
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    assert len(solution) == 1, "Expected only one node in the independent set for a complete graph"
+
+
+def test_independent_set_path_graph():
+    """Test independent set on a path graph, where alternate nodes form the maximum independent set."""
+    n = 5
+    graph = nx.path_graph(n)
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    validation = KarpGraphs.check_independent_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected a valid solution for the path graph"
+    assert len(solution) == (n + 1) // 2, "Expected maximum independent set to have (n+1)//2 nodes for path graph"
+
+
+def test_independent_set_cycle_graph():
+    """Test independent set on a cycle graph, where alternate nodes form the maximum independent set."""
+    n = 6
+    graph = nx.cycle_graph(n)
+    solution = KarpGraphs.independent_set(graph, solve=True)
+
+    validation = KarpGraphs.check_independent_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected a valid solution for the cycle graph"
+    assert len(solution) == n // 2, "Expected maximum independent set to have n//2 nodes for cycle graph"
+
+
+def test_directed_feedback_vertex_set_initialization():
+    """Test the initialization of the directed feedback vertex set problem."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1), (3, 4)])
+    problem = KarpGraphs.directed_feedback_vertex_set(graph, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for feedback vertex set initialization"
+
+
+def test_directed_feedback_vertex_set_basic_solution():
+    """Test the basic solution of the directed feedback vertex set problem."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1), (3, 4)])
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(isinstance(node, int) for node in solution), "Each element in the solution should be an integer node"
+
+
+def test_directed_feedback_vertex_set_validity():
+    """Test that the feedback vertex set solution is valid for a simple graph."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    validation = KarpGraphs.check_directed_feedback_vertex_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be a valid feedback vertex set"
+
+
+def test_directed_feedback_vertex_set_minimal_size():
+    """Test that the solution provides a minimal feedback vertex set."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1), (2, 4)])
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    assert len(solution) == 1, "Expected the minimal feedback vertex set to have size 1"
+
+
+def test_directed_feedback_vertex_set_solution_correct():
+    """Test validation for a correct feedback vertex set solution."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
+    solution = [2]
+    validation = KarpGraphs.check_directed_feedback_vertex_set_solution(graph, solution)
+
+    assert validation["Valid Solution"], "Expected the solution to be valid"
+
+
+def test_directed_feedback_vertex_set_solution_incorrect():
+    """Test validation for an incorrect feedback vertex set solution (cycles remain)."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
+    solution = [4]
+    validation = KarpGraphs.check_directed_feedback_vertex_set_solution(graph, solution)
+
+    assert not validation["Valid Solution"], "Expected the solution to be invalid due to remaining cycles"
+
+
+def test_directed_feedback_vertex_set_no_cycles():
+    """Test the feedback vertex set on an acyclic graph."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 4)])
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    assert solution == [], "Expected an empty feedback vertex set for an acyclic graph"
+
+
+def test_directed_feedback_vertex_set_multiple_cycles():
+    """Test the feedback vertex set on a graph with multiple cycles."""
+    graph = nx.DiGraph([(1, 2), (2, 1), (2, 3), (3, 2), (3, 4), (4, 3)])
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    validation = KarpGraphs.check_directed_feedback_vertex_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be valid for multiple cycles"
+
+    assert len(solution) >= 1, "Expected the feedback vertex set to include at least one node"
+
+
+def test_directed_feedback_vertex_set_disconnected_graph():
+    """Test the feedback vertex set on a disconnected graph."""
+    graph = nx.DiGraph([(1, 2), (2, 1), (3, 4)])
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    validation = KarpGraphs.check_directed_feedback_vertex_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be valid for disconnected graph"
+
+    assert len(solution) >= 1, "Expected the feedback vertex set to include nodes from the cyclic component"
+
+
+def test_directed_feedback_vertex_set_single_node():
+    """Test the feedback vertex set on a graph with a single node."""
+    graph = nx.DiGraph()
+    graph.add_node(1)
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    assert solution == [], "Expected an empty feedback vertex set for a single-node graph"
+
+
+def test_directed_feedback_vertex_set_large_acyclic_graph():
+    """Test the feedback vertex set on a large acyclic graph."""
+    graph = nx.gn_graph(10, seed=42, create_using=nx.DiGraph)
+    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
+
+    assert solution == [], "Expected an empty feedback vertex set for a large acyclic graph"
+
+
+def test_directed_feedback_edge_set_initialization():
+    """Test the initialization of the directed feedback edge set problem."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1), (3, 4)])
+    problem = KarpGraphs.directed_feedback_edge_set(graph, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for feedback edge set initialization"
+
+
+def test_directed_feedback_edge_set_basic_solution():
+    """Test the basic solution of the directed feedback edge set problem."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1), (3, 4)])
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert all(
+        isinstance(edge, tuple) and len(edge) == 2 for edge in solution
+    ), "Each element in the solution should be a tuple representing an edge"
+
+
+def test_directed_feedback_edge_set_validity():
+    """Test that the feedback edge set solution is valid for a simple graph."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be a valid feedback edge set"
+
+
+def test_directed_feedback_edge_set_minimal_size():
+    """Test that the solution provides a minimal feedback edge set."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1), (2, 4)])
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    assert len(solution) == 1, "Expected the minimal feedback edge set to have size 1"
+
+
+def test_directed_feedback_edge_set_solution_correct():
+    """Test validation for a correct feedback edge set solution."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
+    solution = [(3, 1)]
+    validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
+
+    assert validation["Valid Solution"], "Expected the solution to be valid"
+
+
+def test_directed_feedback_edge_set_solution_incorrect():
+    """Test validation for an incorrect feedback edge set solution (cycles remain)."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
+    solution = [(1, 3)]
+    validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
+
+    assert not validation["Valid Solution"], "Expected the solution to be invalid due to remaining cycles"
+
+
+def test_directed_feedback_edge_set_no_cycles():
+    """Test the feedback edge set on an acyclic graph."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 4)])
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    assert solution == [], "Expected an empty feedback edge set for an acyclic graph"
+
+
+def test_directed_feedback_edge_set_multiple_cycles():
+    """Test the feedback edge set on a graph with multiple cycles."""
+    graph = nx.DiGraph([(1, 2), (2, 1), (2, 3), (3, 2)])
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be valid for multiple cycles"
+    assert len(solution) >= 1, "Expected the feedback edge set to include at least one edge"
+
+
+def test_directed_feedback_edge_set_disconnected_graph():
+    """Test the feedback edge set on a disconnected graph."""
+    graph = nx.DiGraph([(1, 2), (2, 1), (3, 4)])
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
+    assert validation["Valid Solution"], "Expected the solution to be valid for disconnected graph"
+    assert len(solution) >= 1, "Expected the feedback edge set to include edges from the cyclic component"
+
+
+def test_directed_feedback_edge_set_single_node():
+    """Test the feedback edge set on a graph with a single node."""
+    graph = nx.DiGraph()
+    graph.add_node(1)
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    assert solution == [], "Expected an empty feedback edge set for a single-node graph"
+
+
+def test_directed_feedback_edge_set_large_acyclic_graph():
+    """Test the feedback edge set on a large acyclic graph."""
+    graph = nx.gn_graph(8, seed=42, create_using=nx.DiGraph)
+    solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
+
+    assert solution == [], "Expected an empty feedback edge set for a large acyclic graph"
+
+
+def test_hamiltonian_path_initialization():
+    """Test the initialization of the Hamiltonian Path problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 4)])
+    problem = KarpGraphs.hamiltonian_path(graph, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for Hamiltonian Path initialization"
+
+
+def test_hamiltonian_path_exists():
+    """Test if a Hamiltonian Path exists in a simple path graph."""
+    graph = nx.path_graph(4)
+    solution = KarpGraphs.hamiltonian_path(graph, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert len(solution) == 4, "Expected Hamiltonian Path to include all nodes in the graph"
+
+
+def test_hamiltonian_path_complete_graph():
+    """Test the Hamiltonian Path in a complete graph, which always has a Hamiltonian Path."""
+    graph = nx.complete_graph(4)
+    solution = KarpGraphs.hamiltonian_path(graph, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert len(solution) == 4, "Expected Hamiltonian Path to include all nodes in a complete graph"
+
+
+def test_max_cut_initialization():
+    """Test the initialization of the Max-Cut problem."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    problem = KarpGraphs.max_cut(graph, solve=False)
+
+    assert isinstance(problem, Problem), "Expected a Problem instance for Max-Cut initialization"
+
+
+def test_max_cut_simple_graph():
+    """Test a simple triangle graph for Max-Cut."""
+    graph = nx.Graph([(1, 2), (2, 3), (3, 1)])
+    solution = KarpGraphs.max_cut(graph, solve=True)
+
+    assert isinstance(solution, list), "Expected a list as the solution"
+    assert len(solution) <= len(graph.nodes), "Solution set should not exceed the number of nodes in the graph"
+
+
+def test_max_cut_single_node():
+    """Test Max-Cut on a single-node graph."""
+    graph = nx.Graph()
+    graph.add_node(1)
+    solution = KarpGraphs.max_cut(graph, solve=True)
+
+    assert solution == [], "Expected an empty solution for a single-node graph with no edges"
+
 
 
 def test_spin_only() -> None:
