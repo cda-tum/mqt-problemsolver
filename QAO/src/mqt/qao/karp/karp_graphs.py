@@ -6,6 +6,7 @@ hamiltonian path, travelling salesman path, utilizing graph representations and 
 
 from __future__ import annotations
 
+import operator
 import random
 from functools import partial
 from itertools import combinations
@@ -125,7 +126,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -145,7 +146,7 @@ class KarpGraphs:
         unique_vertices = sorted(unique_vertices)
         {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
 
-        degree = {v: 0 for v in unique_vertices}
+        degree = dict.fromkeys(unique_vertices, 0)
         for u, v in edges:
             degree[u] += 1
             degree[v] += 1
@@ -167,14 +168,14 @@ class KarpGraphs:
         ha_terms = []
 
         for v in unique_vertices:
-            sum_x_v = Add(*[x_vars[(v, i)] for i in range(1, num_colors + 1)])
+            sum_x_v = Add(*[x_vars[v, i] for i in range(1, num_colors + 1)])
             ha_terms.append(a * (1 - sum_x_v) ** 2)
 
         hb_terms = []
         for i in range(1, num_colors + 1):
-            sum_edges_1 = 0.5 * (-1 + Add(*[x_vars[(v, i)] for v in unique_vertices]))
-            sum_edges_2 = Add(*[x_vars[(v, i)] for v in unique_vertices])
-            sum_edges_exist = Add(*[x_vars[(u, i)] * x_vars[(v, i)] for u, v in edges])
+            sum_edges_1 = 0.5 * (-1 + Add(*[x_vars[v, i] for v in unique_vertices]))
+            sum_edges_2 = Add(*[x_vars[v, i] for v in unique_vertices])
+            sum_edges_exist = Add(*[x_vars[u, i] * x_vars[v, i] for u, v in edges])
             hb_terms.append(b * (sum_edges_1 * sum_edges_2 - sum_edges_exist))
 
         ha = simplify(Add(*ha_terms))
@@ -216,25 +217,23 @@ class KarpGraphs:
 
             random_colors = {}
             for color_index in range(1, max_color_index + 1):
-                random_colors[color_index] = random.choice(
-                    [
-                        "red",
-                        "blue",
-                        "green",
-                        "yellow",
-                        "purple",
-                        "cyan",
-                        "magenta",
-                        "orange",
-                        "brown",
-                        "pink",
-                        "lime",
-                        "teal",
-                        "lavender",
-                        "maroon",
-                        "navy",
-                    ]
-                )
+                random_colors[color_index] = random.choice([
+                    "red",
+                    "blue",
+                    "green",
+                    "yellow",
+                    "purple",
+                    "cyan",
+                    "magenta",
+                    "orange",
+                    "brown",
+                    "pink",
+                    "lime",
+                    "teal",
+                    "lavender",
+                    "maroon",
+                    "navy",
+                ])
 
             node_colors = []
             for vertex_index in unique_vertices:
@@ -359,7 +358,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -393,13 +392,13 @@ class KarpGraphs:
         ha_terms = []
 
         for v in unique_vertices:
-            sum_x_v_i = Add(*[x_vars[(v, i)] for i in range(1, num_colors + 1)])
+            sum_x_v_i = Add(*[x_vars[v, i] for i in range(1, num_colors + 1)])
             term1 = a * (1 - sum_x_v_i) ** 2
             ha_terms.append(term1)
 
         for u, v in edges:
             for i in range(1, num_colors + 1):
-                term2 = a * x_vars[(u, i)] * x_vars[(v, i)]
+                term2 = a * x_vars[u, i] * x_vars[v, i]
                 ha_terms.append(term2)
 
         ha = simplify(Add(*ha_terms))
@@ -575,7 +574,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -743,7 +742,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -771,7 +770,7 @@ class KarpGraphs:
         x_vars = {v: variables.add_binary_variable(f"x_{v}") for v in unique_vertices}
 
         if k == 0:
-            degree = {v: 0 for v in unique_vertices}
+            degree = dict.fromkeys(unique_vertices, 0)
             for u, v in edges:
                 degree[u] += 1
                 degree[v] += 1
@@ -781,17 +780,12 @@ class KarpGraphs:
             y_vars = {i: variables.add_binary_variable(f"y_{i}") for i in range(2, max_degree + 1)}
 
             ha_terms = []
-            ha_terms.extend(
-                (
-                    a * (1 - Add(*[y_vars[i] for i in range(2, max_degree + 1)])) ** 2,
-                    a
-                    * (
-                        Add(*[i * y_vars[i] for i in range(2, max_degree + 1)])
-                        - Add(*[x_vars[p] for p in unique_vertices])
-                    )
-                    ** 2,
-                )
-            )
+            ha_terms.extend((
+                a * (1 - Add(*[y_vars[i] for i in range(2, max_degree + 1)])) ** 2,
+                a
+                * (Add(*[i * y_vars[i] for i in range(2, max_degree + 1)]) - Add(*[x_vars[p] for p in unique_vertices]))
+                ** 2,
+            ))
 
             ha = simplify(Add(*ha_terms))
 
@@ -975,11 +969,11 @@ class KarpGraphs:
         h_terms = []
 
         for v in unique_vertices:
-            sum_x_v_j = Add(*[x_vars[(v, j)] for j in range(1, num_vertices + 1)])
+            sum_x_v_j = Add(*[x_vars[v, j] for j in range(1, num_vertices + 1)])
             h_terms.append(a * (1 - sum_x_v_j) ** 2)
 
         for j in range(1, num_vertices + 1):
-            sum_x_v_j = Add(*[x_vars[(v, j)] for v in unique_vertices])
+            sum_x_v_j = Add(*[x_vars[v, j] for v in unique_vertices])
             h_terms.append(a * (1 - sum_x_v_j) ** 2)
 
         range_j = num_vertices + 1 if cycle else num_vertices
@@ -989,9 +983,9 @@ class KarpGraphs:
                 for v in unique_vertices:
                     if u != v and (u, v) not in edges:
                         if j == num_vertices:
-                            h_terms.append(a * x_vars[(u, j)])
+                            h_terms.append(a * x_vars[u, j])
                             continue
-                        h_terms.append(a * x_vars[(u, j)] * x_vars[(v, j + 1)])
+                        h_terms.append(a * x_vars[u, j] * x_vars[v, j + 1])
 
         h = simplify(Add(*h_terms))
 
@@ -1012,7 +1006,7 @@ class KarpGraphs:
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_") and v == 1.0}
 
         parsed_pairs = [(int(key.split("_")[1]), int(key.split("_")[2])) for key in set_variables]
-        sorted_pairs = sorted(parsed_pairs, key=lambda x: x[1])
+        sorted_pairs = sorted(parsed_pairs, key=operator.itemgetter(1))
         sorted_vertices = [vertex for vertex, time_step in sorted_pairs]
         output_path = "Path = " + ",".join(map(str, sorted_vertices))
         if cycle:
@@ -1143,11 +1137,11 @@ class KarpGraphs:
         h_terms = []
 
         for v in unique_vertices:
-            sum_x_v_j = Add(*[x_vars[(v, j)] for j in range(1, num_vertices + 1)])
+            sum_x_v_j = Add(*[x_vars[v, j] for j in range(1, num_vertices + 1)])
             h_terms.append(a * (1 - sum_x_v_j) ** 2)
 
         for j in range(1, num_vertices + 1):
-            sum_x_v_j = Add(*[x_vars[(v, j)] for v in unique_vertices])
+            sum_x_v_j = Add(*[x_vars[v, j] for v in unique_vertices])
             h_terms.append(a * (1 - sum_x_v_j) ** 2)
 
         range_j = num_vertices + 1 if cycle else num_vertices
@@ -1157,9 +1151,9 @@ class KarpGraphs:
                 for v in unique_vertices:
                     if u != v and (u, v) not in edges:
                         if j == num_vertices:
-                            h_terms.append(a * x_vars[(u, j)])
+                            h_terms.append(a * x_vars[u, j])
                             continue
-                        h_terms.append(a * x_vars[(u, j)] * x_vars[(v, j + 1)])
+                        h_terms.append(a * x_vars[u, j] * x_vars[v, j + 1])
 
         ha = simplify(Add(*h_terms))
 
@@ -1250,11 +1244,11 @@ class KarpGraphs:
         h_terms = []
 
         for v in unique_vertices:
-            sum_x_v_j = Add(*[x_vars[(v, j)] for j in range(1, num_vertices + 1)])
+            sum_x_v_j = Add(*[x_vars[v, j] for j in range(1, num_vertices + 1)])
             h_terms.append(a * (1 - sum_x_v_j) ** 2)
 
         for j in range(1, num_vertices + 1):
-            sum_x_v_j = Add(*[x_vars[(v, j)] for v in unique_vertices])
+            sum_x_v_j = Add(*[x_vars[v, j] for v in unique_vertices])
             h_terms.append(a * (1 - sum_x_v_j) ** 2)
 
         range_j = num_vertices + 1 if cycle else num_vertices
@@ -1264,9 +1258,9 @@ class KarpGraphs:
                 for v in unique_vertices:
                     if u != v and (u, v) not in edges:
                         if j == num_vertices:
-                            h_terms.append(a * x_vars[(u, j)])
+                            h_terms.append(a * x_vars[u, j])
                             continue
-                        h_terms.append(a * x_vars[(u, j)] * x_vars[(v, j + 1)])
+                        h_terms.append(a * x_vars[u, j] * x_vars[v, j + 1])
 
         ha = simplify(Add(*h_terms))
 
@@ -1276,7 +1270,7 @@ class KarpGraphs:
         hb_terms = []
 
         hb_terms = [
-            b * weight * x_vars[(u, j)] * x_vars[(v, j + 1)] for u, v, weight in edges_w for j in range(1, num_vertices)
+            b * weight * x_vars[u, j] * x_vars[v, j + 1] for u, v, weight in edges_w for j in range(1, num_vertices)
         ]
 
         hb = simplify(Add(*hb_terms))
@@ -1305,7 +1299,7 @@ class KarpGraphs:
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_") and v == 1.0}
         edges_dict = {(u, v): weight for u, v, weight in edges_w}
         parsed_pairs = [(int(key.split("_")[1]), int(key.split("_")[2])) for key in set_variables]
-        sorted_pairs = sorted(parsed_pairs, key=lambda x: x[1])
+        sorted_pairs = sorted(parsed_pairs, key=operator.itemgetter(1))
         sorted_vertices = [vertex for vertex, time_step in sorted_pairs]
         print(sorted_vertices)
         total_cost = 0
@@ -1314,7 +1308,7 @@ class KarpGraphs:
             u, v = sorted_vertices[i], sorted_vertices[i + 1]
             cost = edges_dict.get((u, v)) if (u, v) in edges_dict else edges_dict.get((v, u))
             total_cost += cost
-            formatted_result.append(f"Step {i+1}. from {u} to {v} with cost of {cost}")
+            formatted_result.append(f"Step {i + 1}. from {u} to {v} with cost of {cost}")
         if cycle:
             u, v = sorted_vertices[-1], sorted_vertices[0]
             cost = edges_dict.get((u, v)) if (u, v) in edges_dict else edges_dict.get((v, u))
@@ -1420,7 +1414,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -1629,7 +1623,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -1753,7 +1747,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            num_vertices, _num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -1787,12 +1781,12 @@ class KarpGraphs:
         ha_terms = []
 
         for v in unique_vertices:
-            term1 = a * (y_vars[v] - Add(*[x_vars[(v, i)] for i in range(1, num_vertices + 1)])) ** 2
+            term1 = a * (y_vars[v] - Add(*[x_vars[v, i] for i in range(1, num_vertices + 1)])) ** 2
             ha_terms.append(term1)
 
         for u, v in edges:
             for j in range(1, num_vertices + 1):
-                term2 = a * Add(*[x_vars[(u, i)] * x_vars[(v, j)] for i in range(j, num_vertices + 1)])
+                term2 = a * Add(*[x_vars[u, i] * x_vars[v, j] for i in range(j, num_vertices + 1)])
                 ha_terms.append(term2)
 
         ha = simplify(Add(*ha_terms))
@@ -1938,7 +1932,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            num_vertices, _num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -1975,24 +1969,24 @@ class KarpGraphs:
         ha_terms = []
 
         for v in unique_vertices:
-            term1 = a * (1 - Add(*[x_vars[(v, i)] for i in range(1, num_vertices + 1)])) ** 2
+            term1 = a * (1 - Add(*[x_vars[v, i] for i in range(1, num_vertices + 1)])) ** 2
             ha_terms.append(term1)
 
         for u, v in edges:
-            term2 = a * (y_vars[(u, v)] - Add(*[xwu_vars[(u, v, i)] for i in range(1, num_vertices + 1)])) ** 2
+            term2 = a * (y_vars[u, v] - Add(*[xwu_vars[u, v, i] for i in range(1, num_vertices + 1)])) ** 2
             ha_terms.append(term2)
 
         for u, v in edges:
             for i in range(1, num_vertices + 1):
                 term3 = a * (
-                    xwu_vars[(u, v, i)]
-                    * (2 - x_vars[(u, i)] - Add(*[x_vars[(v, j)] for j in range(i + 1, num_vertices + 1)]))
+                    xwu_vars[u, v, i]
+                    * (2 - x_vars[u, i] - Add(*[x_vars[v, j] for j in range(i + 1, num_vertices + 1)]))
                 )
                 ha_terms.append(term3)
 
         ha = simplify(Add(*ha_terms))
 
-        hb = b * Add(*[(1 - y_vars[(u, v)]) for u, v in edges])
+        hb = b * Add(*[(1 - y_vars[u, v]) for u, v in edges])
 
         h = ha + hb
 

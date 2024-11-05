@@ -73,7 +73,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_elements, num_sets = map(int, lines[0].strip().split())
+            _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
             costs = []
             unique_elements = set()
@@ -112,17 +112,17 @@ class KarpSets:
         x_alpha_m_vars = {}
         for alpha in unique_elements:
             for m in range(1, num_sets + 1):
-                x_alpha_m_vars[(alpha, m)] = variables.add_binary_variable(f"x_{alpha}_{m}")
+                x_alpha_m_vars[alpha, m] = variables.add_binary_variable(f"x_{alpha}_{m}")
 
         ha_terms = []
 
         for alpha in unique_elements:
-            sum_x_alpha_m = Add(*[x_alpha_m_vars[(alpha, m)] for m in range(1, num_sets + 1)])
+            sum_x_alpha_m = Add(*[x_alpha_m_vars[alpha, m] for m in range(1, num_sets + 1)])
             term1 = a * (1 - sum_x_alpha_m) ** 2
             ha_terms.append(term1)
 
         for alpha in unique_elements:
-            sum_m_x_alpha_m = Add(*[m * x_alpha_m_vars[(alpha, m)] for m in range(1, num_sets + 1)])
+            sum_m_x_alpha_m = Add(*[m * x_alpha_m_vars[alpha, m] for m in range(1, num_sets + 1)])
             sum_x_i_alpha = Add(*[set_vars[i] for i in range(num_sets) if alpha in sets[i][1]])
             term2 = a * (sum_m_x_alpha_m - sum_x_i_alpha) ** 2
             ha_terms.append(term2)
@@ -254,7 +254,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_elements, num_sets = map(int, lines[0].strip().split())
+            _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
 
             for line in lines[1:]:
@@ -405,7 +405,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_elements, num_sets = map(int, lines[0].strip().split())
+            _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
             costs = []
             sets_elements = []
@@ -596,7 +596,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_elements, num_edges = map(int, lines[0].strip().split())
+            _num_elements, _num_edges = map(int, lines[0].strip().split())
 
             edges = []
             for line in lines[1:]:
@@ -794,7 +794,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_elements, num_sets = map(int, lines[0].strip().split())
+            _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
             unique_elements = set()
 
@@ -1002,7 +1002,7 @@ class KarpSets:
             txt_outputname (str | None): The name of the output file.
         """
         start_str = problem_name + file_name
-        with Path(txt_outputname).open("w") as f:
+        with Path(txt_outputname).open("w", encoding="utf-8") as f:
             f.write(start_str + "\n")
             f.write("=" * (len(start_str)) + "\n")
             f.write(solution + "\n")
