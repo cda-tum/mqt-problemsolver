@@ -85,7 +85,6 @@ log_cli_level = "info"
 xfail_strict = true
 filterwarnings = [
 #    "error",  # Temporarily disabled because of https://github.com/cda-tum/mqt-qao/issues/3. Uncomment when fixed.
-    "ignore:.*Qiskit with Python 3.8.*:DeprecationWarning:",
 ]
 
 
