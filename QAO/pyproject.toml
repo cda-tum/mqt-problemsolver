@@ -21,7 +21,7 @@ dynamic = ["version"]
 dependencies = [
     "qiskit>=1.0",
     "qiskit_optimization>=0.6",
-    "qiskit_aer>=0.14",
+    "qiskit_aer>=0.15",
     "pandas>=2.1.2",
     "numpy>=1.26",
     "qubovert>=1.2.5",
@@ -54,17 +54,14 @@ classifiers = [
 test = ["pytest>=7.2"]
 coverage = ["mqt.qao[test]", "pytest-cov>=4"]
 docs = [
-    "furo>=2023.08.17",
-    "sphinx>=7.0",
-    "setuptools-scm>=7",
+    "furo>=2023.9.10",
+    "setuptools-scm>=8.1",
     "sphinxcontrib-bibtex>=2.4.2",
-    "sphinx-copybutton",
-    "sphinx-hoverxref",
-    "pybtex>=0.24",
+    "sphinx-copybutton>=0.5",
     "ipython",
     "ipykernel",
     "nbsphinx",
-    "sphinxext-opengraph",
+    "sphinxext-opengraph>=0.9",
     "sphinx-autodoc-typehints",
     "qiskit[visualization]",
 ]
@@ -87,8 +84,19 @@ addopts = ["-ra", "--strict-markers", "--strict-config", "--showlocals"]
 log_cli_level = "info"
 xfail_strict = true
 filterwarnings = [
-#    "error",  # Temporarily disabled because of https://github.com/cda-tum/mqt-qao/issues/3. Uncomment when fixed.
-    "ignore:.*Qiskit with Python 3.8.*:DeprecationWarning:",
+  "error",
+  "ignore:.*invalid escape sequence.*::.*docplex.*", # See https://github.com/cda-tum/mqt-qao/issues/3
+  "ignore:.*invalid escape sequence.*::.*dwave.*", # See https://github.com/cda-tum/mqt-qao/issues/3
+  "ignore:.*invalid escape sequence.*::.*homebase.*", # See https://github.com/cda-tum/mqt-qao/issues/3
+  "ignore:.*invalid escape sequence.*::.*plucky.*", # See https://github.com/cda-tum/mqt-qao/issues/3
+  "ignore:.*numpy.core.shape_base.*::", # See https://github.com/cda-tum/mqt-qao/issues/3
+  # The warning filters below are only temporary and should be removed once the usage of the Sampler and Estimator is updated
+  "ignore:.*BaseSamplerV1.*:DeprecationWarning:",
+  "ignore:.*BaseEstimatorV1.*:DeprecationWarning:",
+  'ignore:.*qiskit\.primitives\.utils.*:DeprecationWarning:',
+  # The RandomForest classifier has been trained with sklearn 1.4.1.post1, which might not be compatible with newer versions
+  'ignore:.*Trying to unpickle.*:sklearn.exceptions.InconsistentVersionWarning:',
+  'ignore:.*X does not have valid feature names.*:UserWarning:',
 ]
 
 
