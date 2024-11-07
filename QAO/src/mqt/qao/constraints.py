@@ -55,6 +55,7 @@ class Constraints:
         bool -- for identifying eventual errors or issue in the conversion
         auxiliary_variables -- variable added for writing constraints
         """
+        self.constraints_penalty_functions = []
         auxiliary_variables = Variables()
         i = 0
         j = 0
