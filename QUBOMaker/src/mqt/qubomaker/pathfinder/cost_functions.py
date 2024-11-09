@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import functools
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 
 import numpy as np
 import sympy as sp

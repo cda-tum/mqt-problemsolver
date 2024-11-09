@@ -3,16 +3,9 @@
 from __future__ import annotations
 
 import json
-import sys
+import operator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
-
-if TYPE_CHECKING or sys.version_info < (3, 10, 0):
-    import importlib_resources as resources
-else:
-    from importlib import resources
-
-import operator
 
 import numpy as np
 import sympy as sp
@@ -23,6 +16,8 @@ from typing_extensions import override
 
 from mqt.qubomaker import qubo_generator
 from mqt.qubomaker.pathfinder import cost_functions as cf
+
+from .._compat.importlib import resources
 
 if TYPE_CHECKING:
     from mqt.qubomaker.graph import Graph

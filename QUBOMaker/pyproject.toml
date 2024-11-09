@@ -121,6 +121,11 @@ pretty = true
 module = ["types-Pillow", "jsonschema", "tsplib95.*", "ipywidgets.*", "IPython.*", "qiskit.*", "qiskit_algorithms.*", "matplotlib.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "typing_extensions.*", "numpy.*"]
 ignore_missing_imports = true
 
+
+[tool.check-wheel-contents]
+ignore = ["W002"]  # Triggers on __init__.py's
+
+
 [tool.ruff]
 line-length = 120
 preview = true
@@ -160,7 +165,7 @@ extend-select = [
     "SLOT", # flake8-slots
     "SIM", # flake8-simplify
     "TCH", # flake8-type-checking
-    "TID", # flake8-tidy-imports
+    "TID251", # flake8-tidy-imports.banned-api
     "TRY", # tryceratops
     "UP", # pyupgrade
     "YTT", # flake8-2020
@@ -177,6 +182,15 @@ ignore = [
 ]
 isort.required-imports = ["from __future__ import annotations"]
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"typing.Callable".msg = "Use collections.abc.Callable instead."
+"typing.Iterator".msg = "Use collections.abc.Iterator instead."
+"typing.Mapping".msg = "Use collections.abc.Mapping instead."
+"typing.Sequence".msg = "Use collections.abc.Sequence instead."
+"typing.Set".msg = "Use collections.abc.Set instead."
+"importlib.resources".msg = "Use mqt.qubomaker._compat.importlib.resources instead."
+"importlib_resources".msg = "Use mqt.qubomaker._compat.importlib.resources instead."
+
 [tool.ruff.lint.per-file-ignores]
 "src/mqt/qubomaker/pathfinder/cost_functions.py" = ["ANN401"]
 "test/python/**" = ["T20", "ANN"]
@@ -188,6 +202,7 @@ isort.required-imports = ["from __future__ import annotations"]
     "E402", # Allow imports to appear anywhere in Jupyter notebooks
     "I002", # Allow missing `from __future__ import annotations` import
 ]
+"src/mqt/qubomaker/_compat/**.py" = ["TID251"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
