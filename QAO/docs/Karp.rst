@@ -1,4 +1,4 @@
-Karp's NP-Complete Problems
+KarpGraphs Class
 ============================
 
 Overview
