@@ -882,7 +882,7 @@ class KarpSets:
     def check_exact_cover_solution(
         sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]
     ) -> dict[str, bool | dict[str, list]]:
-        """Validates an exact cover solution by ensuring each element is covered exactly once.
+        """Validates an exact cover solution by ensuring each element is covered exactly once
 
         and that there are no overlapping or missing elements.
 
