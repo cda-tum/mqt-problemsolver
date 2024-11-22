@@ -143,9 +143,8 @@ class KarpGraphs:
             unique_vertices = set(graph.nodes())
 
         unique_vertices = sorted(unique_vertices)
-        
 
-        degree = {v: 0 for v in unique_vertices}
+        degree = dict.fromkeys(unique_vertices, 0)
         for u, v in edges:
             degree[u] += 1
             degree[v] += 1
@@ -589,7 +588,6 @@ class KarpGraphs:
             unique_vertices = set(graph.nodes())
 
         unique_vertices = sorted(unique_vertices)
-        
 
         problem = Problem()
         variables = Variables()
@@ -947,8 +945,7 @@ class KarpGraphs:
             edges = set(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)  
-        
+        unique_vertices = sorted(unique_vertices)
 
         problem = Problem()
         variables = Variables()
@@ -1295,7 +1292,7 @@ class KarpGraphs:
         parsed_pairs = [(int(key.split("_")[1]), int(key.split("_")[2])) for key in set_variables]
         sorted_pairs = sorted(parsed_pairs, key=operator.itemgetter(1))
         sorted_vertices = [vertex for vertex, time_step in sorted_pairs]
-        
+
         total_cost = 0
         formatted_result = []
         for i in range(len(sorted_vertices) - 1):
@@ -1633,7 +1630,6 @@ class KarpGraphs:
             unique_vertices = set(graph.nodes())
 
         unique_vertices = sorted(unique_vertices)
-        
 
         problem = Problem()
         variables = Variables()
@@ -1759,7 +1755,6 @@ class KarpGraphs:
         a = b * 3.0
 
         unique_vertices = sorted(unique_vertices)
-        
 
         variables = Variables()
         y_vars = {v: variables.add_binary_variable(f"y_{v}") for v in unique_vertices}
