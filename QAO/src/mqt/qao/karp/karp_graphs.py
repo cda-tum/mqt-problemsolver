@@ -125,7 +125,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -138,12 +138,11 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
         unique_vertices = sorted(unique_vertices)
-        {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
+        
 
         degree = {v: 0 for v in unique_vertices}
         for u, v in edges:
@@ -359,7 +358,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -372,7 +371,6 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
@@ -588,12 +586,11 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
         unique_vertices = sorted(unique_vertices)
-        {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
+        
 
         problem = Problem()
         variables = Variables()
@@ -743,7 +740,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -756,7 +753,6 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
@@ -954,12 +950,11 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             num_vertices = graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges = set(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)  # Sort to maintain a consistent order
-        {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
+        unique_vertices = sorted(unique_vertices)  
+        
 
         problem = Problem()
         variables = Variables()
@@ -1225,7 +1220,6 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             num_vertices = graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges_w = [(u, v, graph[u][v]["weight"]) for u, v in graph.edges()]
             unique_vertices = set(graph.nodes())
             edges = set()
@@ -1307,7 +1301,7 @@ class KarpGraphs:
         parsed_pairs = [(int(key.split("_")[1]), int(key.split("_")[2])) for key in set_variables]
         sorted_pairs = sorted(parsed_pairs, key=lambda x: x[1])
         sorted_vertices = [vertex for vertex, time_step in sorted_pairs]
-        print(sorted_vertices)
+        
         total_cost = 0
         formatted_result = []
         for i in range(len(sorted_vertices) - 1):
@@ -1420,7 +1414,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -1433,7 +1427,6 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
@@ -1629,7 +1622,7 @@ class KarpGraphs:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_vertices, num_edges = map(int, lines[0].strip().split())
+            _, num_edges = map(int, lines[0].strip().split())
             edges = []
             unique_vertices = set()
 
@@ -1642,12 +1635,11 @@ class KarpGraphs:
             filename = ""
             graph = input_data
             graph.number_of_nodes()
-            num_edges = graph.number_of_edges()
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
         unique_vertices = sorted(unique_vertices)
-        {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
+        
 
         problem = Problem()
         variables = Variables()
@@ -1773,7 +1765,7 @@ class KarpGraphs:
         a = b * 3.0
 
         unique_vertices = sorted(unique_vertices)
-        {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
+        
 
         variables = Variables()
         y_vars = {v: variables.add_binary_variable(f"y_{v}") for v in unique_vertices}

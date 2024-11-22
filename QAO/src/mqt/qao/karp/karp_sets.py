@@ -98,7 +98,7 @@ class KarpSets:
             len(unique_elements)
 
         unique_elements = sorted(unique_elements)
-        {elem: idx for idx, elem in enumerate(unique_elements)}
+        
         problem = Problem()
         variables = Variables()
         constraints = Constraints()
@@ -254,7 +254,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_elements, num_sets = map(int, lines[0].strip().split())
+            _, num_sets = map(int, lines[0].strip().split())
             sets = []
 
             for line in lines[1:]:
@@ -794,7 +794,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            num_elements, num_sets = map(int, lines[0].strip().split())
+            _, num_sets = map(int, lines[0].strip().split())
             sets = []
             unique_elements = set()
 
@@ -815,7 +815,7 @@ class KarpSets:
             len(unique_elements)
 
         unique_elements = sorted(unique_elements)
-        {elem: idx for idx, elem in enumerate(unique_elements)}
+        
 
         problem = Problem()
         variables = Variables()
