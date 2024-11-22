@@ -3,13 +3,10 @@ Karp's NP-Complete Problems
 
 Overview
 --------
-This module provides tools to solve and validate various NP-complete problems defined by Karp. The implementation uses quantum-inspired optimization techniques. Among the supported problems, graph coloring is prominently featured.
-
-Graph Coloring
+The `**karp**` module provides tools to solve and validate various the NP-complete problems defined by Karp. The module is subdived into three classes `**KarpGraphs**`, `**KarpSets**`, `**KarpNumber**`.
 --------------
-The graph coloring problem seeks to assign colors to vertices of a graph such that no two adjacent vertices share the same color. The goal is to use a minimal number of colors while satisfying these constraints.
 
-Method: `graph_coloring`
+Class: `KarpGraphs` Method: `graph_coloring`
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 This method sets up and optionally solves the graph coloring problem for a given input graph and number of colors.
 
