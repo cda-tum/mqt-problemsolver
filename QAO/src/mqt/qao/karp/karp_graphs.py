@@ -1872,7 +1872,7 @@ class KarpGraphs:
                 cycle = list(nx.find_cycle(modified_graph, orientation="original"))
                 errors["Cycle Detected"] = cycle
             except nx.exception.NetworkXNoCycle:
-                pass
+                errors["Cycle Detected"] = []
 
         if not is_acyclic:
             return {"Valid Solution": False, "Errors": errors}
@@ -2071,7 +2071,7 @@ class KarpGraphs:
                 cycle = list(nx.find_cycle(modified_graph, orientation="original"))
                 errors["Cycle Detected"] = cycle
             except nx.exception.NetworkXNoCycle:
-                pass
+                errors["Cycle Detected"] = []
 
         if not is_acyclic:
             return {"Valid Solution": False, "Errors": errors}
