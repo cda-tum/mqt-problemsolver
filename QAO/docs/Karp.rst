@@ -39,10 +39,7 @@ This method sets up and optionally solves the graph coloring problem for a given
 
     # Solve graph coloring for 2 colors
     solution = KarpGraphs.graph_coloring(
-        input_data=G,
-        num_colors=2,
-        solve=True,
-        visualize=True
+        input_data=G, num_colors=2, solve=True, visualize=True
     )
 
     print(solution)
