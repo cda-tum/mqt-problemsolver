@@ -1,4 +1,4 @@
-"""Module for solving various NP-complete problems using quantum-inspired optimization techniques.
+"""Module for solving various Karp's NP-complete problems using quantum-inspired optimization techniques.
 
 Contains problem definitions and solution methods for clique, clique cover, vertex cover, graph colouring, feedback vertex set, feedback edge set,
 hamiltonian path, travelling salesman path, utilizing graph representations and solvers.
@@ -114,7 +114,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided."
             raise ValueError(msg)
 
         if isinstance(input_data, str):
@@ -344,7 +344,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         if isinstance(input_data, str):
@@ -557,7 +557,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         a = b + 0.5
@@ -725,7 +725,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         if isinstance(input_data, str):
@@ -915,7 +915,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         # CYCLE = TRUE DOESBT WORK
@@ -1183,7 +1183,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         if isinstance(input_data, str):
@@ -1393,7 +1393,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         if isinstance(input_data, str):
@@ -1601,7 +1601,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         if isinstance(input_data, str):
@@ -1720,7 +1720,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided."
             raise ValueError(msg)
 
         unique_vertices = set()
@@ -1907,7 +1907,7 @@ class KarpGraphs:
             any([solver_method is not None, read_solution is not None, solver_params is not None, visualize])
             and not solve
         ):
-            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided or True."
+            msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided  ."
             raise ValueError(msg)
 
         if isinstance(input_data, str):

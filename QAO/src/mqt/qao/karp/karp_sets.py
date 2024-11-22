@@ -1,4 +1,4 @@
-"""Module for solving various NP-complete problems using quantum-inspired optimization techniques.
+"""Module for solving various Karp's NP-complete problems using quantum-inspired optimization techniques.
 
 Contains problem definitions and solution methods for set cover, set packing, exact cover, hitting set, 3D-matching,
 utilizing graph representations and solvers.
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 class KarpSets:
-    """Provides static methods to define and solve set-based problems such as set cover, set packing,.
+    """Provides static methods to define and solve set-based problems such as set cover, set packing.
 
     hitting set, exact cover, and 3D matching.
 

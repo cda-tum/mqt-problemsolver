@@ -1,4 +1,4 @@
-"""Module for solving various NP-complete problems using quantum-inspired optimization techniques.
+"""Module for solving various Karp's NP-complete problems using quantum-inspired optimization techniques.
 
 Contains problem definitions and solution methods for SAT, 3-SAT, integer programming, knapsack, number partition,
 and job sequencing, utilizing graph representations and solvers.
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class KarpNumber:
-    """Provides static methods to define and solve a variety of NP-complete problems,.
+    """Provides static methods to define and solve a variety of NP-complete problems.
 
     including SAT, 3-SAT, integer programming, knapsack, number partition, and job sequencing.
     Uses graph-based representations and solvers for quantum-inspired optimization.
