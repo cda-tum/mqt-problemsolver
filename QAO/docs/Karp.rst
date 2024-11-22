@@ -3,7 +3,7 @@ KarpGraphs Class
 
 Overview
 --------
-The **karp** module provides tools to solve and validate various NP-complete problems defined by Karp. The module is subdivided into three classes: **KarpGraphs**, **KarpSets**, and **KarpNumber**. 
+The **karp** module provides tools to solve and validate various NP-complete problems defined by Karp. The module is subdivided into three classes: **KarpGraphs**, **KarpSets**, and **KarpNumber**.
 
 This document focuses on the **KarpGraphs** class, which contains methods for solving graph-based problems, such as **graph coloring**, **vertex cover**, and **clique**. Among these, the `graph_coloring` method is detailed below.
 
@@ -43,10 +43,7 @@ This method sets up and optionally solves the graph coloring problem for a given
 
     # Solve graph coloring for 2 colors
     solution = KarpGraphs.graph_coloring(
-        input_data=G,
-        num_colors=2,
-        solve=True,
-        visualize=True
+        input_data=G, num_colors=2, solve=True, visualize=True
     )
 
     print(solution)
@@ -84,4 +81,4 @@ For a graph with vertices ``[1, 2, 3, 4]`` and solution:
     Vertex: 3 Color: 1
     Vertex: 4 Color: 2
 
-The graph visualization highlights the node assignments with distinct colors. 
+The graph visualization highlights the node assignments with distinct colors.
