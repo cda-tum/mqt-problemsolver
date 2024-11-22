@@ -596,7 +596,7 @@ class KarpSets:
                 print(f"Error: File {input_data} not found.")
                 return None
 
-            _num_elements, _num_edges = map(int, lines[0].strip().split())
+            _, _ = map(int, lines[0].strip().split())
 
             edges = []
             for line in lines[1:]:
