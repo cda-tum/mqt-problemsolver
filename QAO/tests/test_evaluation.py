@@ -5,20 +5,21 @@ from __future__ import annotations
 from pathlib import Path
 from typing import cast
 
+import networkx as nx
 import numpy as np
 import pytest
-import networkx as nx
 
 # for managing symbols
 from qubovert import PUBO, boolean_var
 from sympy import Expr
 
 from mqt.qao.constraints import Constraints
+from mqt.qao.karp import KarpGraphs, KarpNumber, KarpSets
 from mqt.qao.objectivefunction import ObjectiveFunction
 from mqt.qao.problem import Problem
 from mqt.qao.solvers import Solution, Solver
 from mqt.qao.variables import Variables
-from mqt.qao.karp import KarpGraphs, KarpSets, KarpNumber
+
 
 def test_binary_only() -> None:
     """Test only the construction of binary variables"""
@@ -30,6 +31,7 @@ def test_binary_only() -> None:
     post_dict = variables.binary_variables_name_weight
     print(post_dict)
     assert post_dict == {"a": (boolean_var("b0"),), "A_0": (boolean_var("b1"),), "A_1": (boolean_var("b2"),)}
+
 
 def test_set_cover_initialization():
     """Verify that initializing a set cover problem returns a Problem instance without solving it."""
@@ -187,9 +189,9 @@ def test_three_d_matching_solving_basic():
     solution = KarpSets.three_d_matching(graph, x, y, z, solve=True)
     print(solution)
     assert isinstance(solution, list), "Expected a list as the solution"
-    assert all(
-        isinstance(item, list) and len(item) == 3 for item in solution
-    ), "Each solution item should be a tuple of length 3"
+    assert all(isinstance(item, list) and len(item) == 3 for item in solution), (
+        "Each solution item should be a tuple of length 3"
+    )
 
 
 def test_three_d_matching_solution_validation_correct():
@@ -216,9 +218,9 @@ def test_three_d_matching_solution_validation_extraneous():
 def test_three_d_matching_solving_with_graph():
     """Solving a 3D matching problem with a graph returns a list of valid triples."""
     solution = KarpSets.three_d_matching(graph, x, y, z, solve=True)
-    assert all(
-        isinstance(item, list) and len(item) == 3 for item in solution
-    ), "Each solution item should be a tuple of length 3"
+    assert all(isinstance(item, list) and len(item) == 3 for item in solution), (
+        "Each solution item should be a tuple of length 3"
+    )
 
 
 def test_hitting_set_initialization():
@@ -279,9 +281,9 @@ def test_sat_solving_basic():
     input_data = [["a", "!b"], ["b", "c"], ["!a", "d"]]
     solution = KarpNumber.sat(input_data, solve=True)
     assert isinstance(solution, dict), "Expected a dictionary as the solution"
-    assert all(
-        isinstance(key, str) and isinstance(value, float) for key, value in solution.items()
-    ), "Expected solution to contain variable names as keys and floats as values"
+    assert all(isinstance(key, str) and isinstance(value, float) for key, value in solution.items()), (
+        "Expected solution to contain variable names as keys and floats as values"
+    )
 
 
 def test_sat_solution_validation_correct():
@@ -312,9 +314,9 @@ def test_three_sat_solving_basic():
     input_data = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
     solution = KarpNumber.three_sat(input_data, solve=True)
     assert isinstance(solution, dict), "Expected a dictionary as the solution"
-    assert all(
-        isinstance(key, str) and isinstance(value, float) for key, value in solution.items()
-    ), "Expected solution to contain variable names as keys and floats as values"
+    assert all(isinstance(key, str) and isinstance(value, float) for key, value in solution.items()), (
+        "Expected solution to contain variable names as keys and floats as values"
+    )
 
 
 def test_three_sat_solution_validation_correct():
@@ -425,9 +427,9 @@ def test_job_sequencing_with_single_machine():
     m = 1
     solution = KarpNumber.job_sequencing(job_lengths, m, solve=True)
     assert len(solution) == 1, "Expected only one machine in the solution"
-    assert sum(job_lengths) == sum(
-        job_lengths[job] for job in solution[0]
-    ), "All jobs should be assigned to the single machine available"
+    assert sum(job_lengths) == sum(job_lengths[job] for job in solution[0]), (
+        "All jobs should be assigned to the single machine available"
+    )
 
 
 def test_knapsack_initialization():
@@ -444,9 +446,9 @@ def test_knapsack_solving_basic():
     max_weight = 5
     solution = KarpNumber.knapsack(items, max_weight, solve=True)
     assert isinstance(solution, list), "Expected a list as the solution"
-    assert all(
-        isinstance(item, tuple) and len(item) == 2 for item in solution
-    ), "Each solution item should be a tuple of (weight, value)"
+    assert all(isinstance(item, tuple) and len(item) == 2 for item in solution), (
+        "Each solution item should be a tuple of (weight, value)"
+    )
 
 
 def test_knapsack_solution_optimization():
@@ -513,9 +515,9 @@ def test_clique_solving_basic():
     solution = KarpGraphs.clique(graph, k=k, solve=True)
 
     assert isinstance(solution, list), "Expected a list as the solution"
-    assert all(
-        isinstance(node, int) for node in solution
-    ), "Each element in the solution should be an integer representing a node"
+    assert all(isinstance(node, int) for node in solution), (
+        "Each element in the solution should be an integer representing a node"
+    )
 
 
 def test_clique_solution_k_value():
@@ -597,9 +599,9 @@ def test_clique_cover_solving_basic():
     solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
 
     assert isinstance(solution, list), "Expected a list as the solution"
-    assert all(
-        isinstance(pair, tuple) and len(pair) == 2 for pair in solution
-    ), "Each element in the solution should be a tuple representing (node, color)"
+    assert all(isinstance(pair, tuple) and len(pair) == 2 for pair in solution), (
+        "Each element in the solution should be a tuple representing (node, color)"
+    )
 
 
 def test_clique_cover_solution_num_colors():
@@ -609,9 +611,9 @@ def test_clique_cover_solution_num_colors():
     solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
 
     used_colors = {color for _, color in solution}
-    assert (
-        len(used_colors) <= num_colors
-    ), f"Expected solution to use up to {num_colors} colors, but used {len(used_colors)}"
+    assert len(used_colors) <= num_colors, (
+        f"Expected solution to use up to {num_colors} colors, but used {len(used_colors)}"
+    )
 
 
 def test_clique_cover_solution_correct_cover():
@@ -648,9 +650,9 @@ def test_clique_cover_large_num_colors():
     num_colors = 5  # more colors than required
     solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
 
-    assert (
-        len({color for _, color in solution}) <= num_colors
-    ), "Expected the number of colors used to be within the specified num_colors"
+    assert len({color for _, color in solution}) <= num_colors, (
+        "Expected the number of colors used to be within the specified num_colors"
+    )
 
 
 def test_clique_cover_disconnected_graph():
@@ -660,9 +662,9 @@ def test_clique_cover_disconnected_graph():
     solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
 
     used_colors = {color for _, color in solution}
-    assert (
-        len(used_colors) <= num_colors
-    ), f"Expected solution to use up to {num_colors} colors, but used {len(used_colors)}"
+    assert len(used_colors) <= num_colors, (
+        f"Expected solution to use up to {num_colors} colors, but used {len(used_colors)}"
+    )
     assert len(solution) == 6, "Expected each node to be assigned a color in the solution"
 
 
@@ -751,9 +753,9 @@ def test_graph_coloring_basic_solution():
     solution = KarpGraphs.graph_coloring(graph, num_colors=3, solve=True)
 
     assert isinstance(solution, list), "Expected a list as the solution"
-    assert all(
-        isinstance(node_color, tuple) and len(node_color) == 2 for node_color in solution
-    ), "Each element in the solution should be a tuple of (node, color)"
+    assert all(isinstance(node_color, tuple) and len(node_color) == 2 for node_color in solution), (
+        "Each element in the solution should be a tuple of (node, color)"
+    )
 
 
 def test_graph_coloring_validity():
@@ -1017,9 +1019,9 @@ def test_directed_feedback_edge_set_basic_solution():
     solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
 
     assert isinstance(solution, list), "Expected a list as the solution"
-    assert all(
-        isinstance(edge, tuple) and len(edge) == 2 for edge in solution
-    ), "Each element in the solution should be a tuple representing an edge"
+    assert all(isinstance(edge, tuple) and len(edge) == 2 for edge in solution), (
+        "Each element in the solution should be a tuple representing an edge"
+    )
 
 
 def test_directed_feedback_edge_set_validity():
@@ -1152,7 +1154,6 @@ def test_max_cut_single_node():
     solution = KarpGraphs.max_cut(graph, solve=True)
 
     assert solution == [], "Expected an empty solution for a single-node graph with no edges"
-
 
 
 def test_spin_only() -> None:

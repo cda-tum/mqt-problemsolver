@@ -382,7 +382,7 @@ class KarpNumber:
         constraints = Constraints()
         objective_function = ObjectiveFunction()
 
-        x_vars = [variables.add_binary_variable(f"x_{i+1}") for i in range(num_variables)]
+        x_vars = [variables.add_binary_variable(f"x_{i + 1}") for i in range(num_variables)]
 
         ha_terms = []
         for j in range(num_constraints):
@@ -410,7 +410,7 @@ class KarpNumber:
         solution = solver_method(problem)
         if solution:
             set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
-            values_array = [set_variables[f"x_{i+1}"] for i in range(len(set_variables))]
+            values_array = [set_variables[f"x_{i + 1}"] for i in range(len(set_variables))]
             formatted_string = f"x = {values_array}"
 
             if read_solution == "print":
@@ -499,7 +499,7 @@ class KarpNumber:
         constraints = Constraints()
         objective_function = ObjectiveFunction()
 
-        x_vars = [variables.add_binary_variable(f"x_{alpha+1}") for alpha in range(num_objects)]
+        x_vars = [variables.add_binary_variable(f"x_{alpha + 1}") for alpha in range(num_objects)]
 
         y_vars = [variables.add_binary_variable(f"y_{i}") for i in range(1, max_weight + 1)]
 
@@ -539,7 +539,7 @@ class KarpNumber:
             if value == 1.0
         ]
 
-        formatted_strings = [f"Item {i+1}: Weight = {w}, Value = {v}" for i, (w, v) in enumerate(selected_items)]
+        formatted_strings = [f"Item {i + 1}: Weight = {w}, Value = {v}" for i, (w, v) in enumerate(selected_items)]
         result_string = "\n".join(formatted_strings)
 
         total_weight = sum(w for w, v in selected_items)
@@ -615,7 +615,7 @@ class KarpNumber:
         constraints = Constraints()
         objective_function = ObjectiveFunction()
 
-        s_vars = [variables.add_spin_variable(f"s_{i+1}") for i in range(num_elements)]
+        s_vars = [variables.add_spin_variable(f"s_{i + 1}") for i in range(num_elements)]
 
         sum_ns = Add(*[elements[i] * s_vars[i] for i in range(num_elements)])
         h_terms = [a * sum_ns**2]
@@ -673,9 +673,10 @@ class KarpNumber:
             plt.show()
 
         formatted_strings = []
-        formatted_strings.extend(
-            (f"Set 1 = {{{','.join(map(str, set_1))}}}", f"Set 2 = {{{','.join(map(str, set_2))}}}")
-        )
+        formatted_strings.extend((
+            f"Set 1 = {{{','.join(map(str, set_1))}}}",
+            f"Set 2 = {{{','.join(map(str, set_2))}}}",
+        ))
         result_string = "\n".join(formatted_strings)
 
         if read_solution == "print":
@@ -791,28 +792,28 @@ class KarpNumber:
         x_vars = {}
         for i in range(1, num_jobs + 1):
             for alpha in range(1, m + 1):
-                x_vars[(i, alpha)] = variables.add_binary_variable(f"x_{i}_{alpha}")
+                x_vars[i, alpha] = variables.add_binary_variable(f"x_{i}_{alpha}")
         m_max = num_jobs * max(job_lengths)
         y_vars = {}
         for alpha in range(1, m + 1):
             for n in range(1, m_max + 1):
-                y_vars[(n, alpha)] = variables.add_binary_variable(f"y_{n}_{alpha}")
+                y_vars[n, alpha] = variables.add_binary_variable(f"y_{n}_{alpha}")
 
         ha_terms = []
         for i in range(1, num_jobs + 1):
-            sum_x_i = Add(*[x_vars[(i, alpha)] for alpha in range(1, m + 1)])
+            sum_x_i = Add(*[x_vars[i, alpha] for alpha in range(1, m + 1)])
             ha_terms.append((1 - Add(sum_x_i)) ** 2)
 
         for alpha in range(1, m + 1):
-            sum_n_y_n_alpha = Add(*[n * y_vars[(n, alpha)] for n in range(1, m_max + 1)])
-            sum_i_n_alpha = Add(
-                *[job_lengths[i - 1] * (x_vars[(i, alpha)] - x_vars[(i, 1)]) for i in range(1, num_jobs + 1)]
-            )
+            sum_n_y_n_alpha = Add(*[n * y_vars[n, alpha] for n in range(1, m_max + 1)])
+            sum_i_n_alpha = Add(*[
+                job_lengths[i - 1] * (x_vars[i, alpha] - x_vars[i, 1]) for i in range(1, num_jobs + 1)
+            ])
             ha_terms.append((sum_n_y_n_alpha + sum_i_n_alpha) ** 2)
 
         ha = simplify(a * Add(*ha_terms))
 
-        hb_terms = [b * job_lengths[i - 1] * x_vars[(i, 1)] for i in range(1, num_jobs + 1)]
+        hb_terms = [b * job_lengths[i - 1] * x_vars[i, 1] for i in range(1, num_jobs + 1)]
 
         hb = simplify(Add(*hb_terms))
 
@@ -845,7 +846,7 @@ class KarpNumber:
         final_result = [result[i] for i in range(max_index + 1)]
 
         formatted_result = [
-            f"Cluster {i+1}: {{{', '.join(map(str, [job_lengths[job] for job in cluster]))}}}"
+            f"Cluster {i + 1}: {{{', '.join(map(str, [job_lengths[job] for job in cluster]))}}}"
             for i, cluster in enumerate(final_result)
         ]
         result_string = "\n".join(formatted_result)
