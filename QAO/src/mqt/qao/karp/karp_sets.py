@@ -98,7 +98,7 @@ class KarpSets:
             len(unique_elements)
 
         unique_elements = sorted(unique_elements)
-        
+
         problem = Problem()
         variables = Variables()
         constraints = Constraints()
@@ -815,7 +815,6 @@ class KarpSets:
             len(unique_elements)
 
         unique_elements = sorted(unique_elements)
-        
 
         problem = Problem()
         variables = Variables()
