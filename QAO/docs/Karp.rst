@@ -3,7 +3,7 @@ Karp's NP-Complete Problems
 
 Overview
 --------
-The `**karp**` module provides tools to solve and validate various the NP-complete problems defined by Karp. The module is subdived into three classes `**KarpGraphs**`, `**KarpSets**`, `**KarpNumber**`.
+The **karp** module provides tools to solve and validate various the NP-complete problems defined by Karp. The module is subdived into three classes **KarpGraphs**, **KarpSets**, **KarpNumber**.
 --------------
 
 Class: `KarpGraphs` Method: `graph_coloring`
