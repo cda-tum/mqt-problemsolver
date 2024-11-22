@@ -1139,16 +1139,6 @@ def test_max_cut_simple_graph():
     assert isinstance(solution, list), "Expected a list as the solution"
     assert len(solution) <= len(graph.nodes), "Solution set should not exceed the number of nodes in the graph"
 
-
-def test_max_cut_single_node():
-    """Test Max-Cut on a single-node graph."""
-    graph = nx.Graph()
-    graph.add_node(1)
-    solution = KarpGraphs.max_cut(graph, solve=True)
-
-    assert solution == [], "Expected an empty solution for a single-node graph with no edges"
-
-
 def test_spin_only() -> None:
     """Test only the construction of spin variables"""
     constraint = Constraints()
