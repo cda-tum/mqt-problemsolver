@@ -696,7 +696,7 @@ class KarpSets:
     def check_three_d_matching(
         x: list[int], y: list[int], z: list[int], solution: list[tuple[int, int, int]]
     ) -> dict[str, bool | dict[str, list]]:
-        """Validates a 3D matching solution by ensuring each element in the solution matches exactly one element.
+        """Validates a 3D matching solution by ensuring each element in the solution matches exactly one element
 
         from each of the sets x, y, and z, and that there are no repeated or mismatched elements.
 
