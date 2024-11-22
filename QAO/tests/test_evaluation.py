@@ -396,13 +396,6 @@ def test_number_partition_empty_input():
     assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
 
 
-# def test_number_partition_visualization():
-#    """Test the visualization option for number partition."""
-#    input_data = [3, 1, 4, 2, 2]
-#    set_1, set_2 = KarpNumber.number_partition(input_data, solve=True, visualize=True)
-#    assert isinstance(set_1, list) and isinstance(set_2, list), "Expected two lists as the solution"
-
-
 def test_job_sequencing_initialization():
     """Test the initialization of the job sequencing problem."""
     job_lengths = [3, 1, 2, 2]
