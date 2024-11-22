@@ -5,12 +5,12 @@ Overview
 --------
 The **karp** module provides tools to solve and validate various NP-complete problems defined by Karp. The module is subdivided into three classes: **KarpGraphs**, **KarpSets**, and **KarpNumber**. 
 
-This document focuses on the **KarpGraphs** class, which contains methods for solving graph-based problems, such as **graph coloring**, **vertex cover**, and **clique**. Among these, the `graph_coloring` method is detailed below.
+This document focuses on the KarpGraph class, which contains methods for solving graph-based problems, such as **graph coloring**, **vertex cover**, and **clique**. Among these, the ``graph_coloring`` method is detailed below.
 
 Class: ``KarpGraphs``
 ---------------------
 
-### Method: ``graph_coloring``
+Method: ``graph_coloring``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This method sets up and optionally solves the graph coloring problem for a given input graph and number of colors.
 
