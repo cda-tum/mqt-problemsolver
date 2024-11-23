@@ -45,7 +45,7 @@ repos:
 
   # Check for spelling
   - repo: https://github.com/crate-ci/typos
-    rev: typos-dict-v0.11.35
+    rev: v1.27.3
     hooks:
       - id: typos
 
