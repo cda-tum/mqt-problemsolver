@@ -39,7 +39,7 @@ class KarpSets:
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         weighted: bool = False,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[tuple[int, list[int]]]:
         """Initializes and optionally solves a set cover problem.
 
@@ -218,9 +218,9 @@ class KarpSets:
         input_data: str | list[tuple[int, list[int]]],
         t: int = 0,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[tuple[int, list[int]]]:
         """Initializes and optionally solves a set packing problem.
 
@@ -373,9 +373,9 @@ class KarpSets:
     def hitting_set(
         input_data: str | list[tuple[int, list[int]]],
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[int]:
         """Initializes and optionally solves a hitting set problem.
 
@@ -557,9 +557,9 @@ class KarpSets:
         y: list[int],
         z: list[int],
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | list[tuple[int, int, int]]:
         """Initializes and optionally solves a 3D matching problem involving sets x, y, and z.
@@ -759,9 +759,9 @@ class KarpSets:
         input_data: str | list[tuple[int, list[int]]],
         b: float = 0,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[tuple[int, list[int]]]:
         """Initializes and optionally solves an exact cover problem.
 

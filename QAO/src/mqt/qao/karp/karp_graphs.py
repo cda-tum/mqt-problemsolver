@@ -11,7 +11,7 @@ import random
 from functools import partial
 from itertools import combinations
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Any
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -90,9 +90,9 @@ class KarpGraphs:
         a: float = 1,
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         txt_outputname: str | None = None,
         visualize: bool = False,
     ) -> Problem | list[tuple[int, int]]:
@@ -321,9 +321,9 @@ class KarpGraphs:
         num_colors: int,
         a: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         txt_outputname: str | None = None,
         visualize: bool = False,
     ) -> Problem | list[tuple[int, int]]:
@@ -534,9 +534,9 @@ class KarpGraphs:
         a: float = 1,
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         txt_outputname: str | None = None,
         visualize: bool = False,
     ) -> Problem | list[int]:
@@ -700,9 +700,9 @@ class KarpGraphs:
         b: float = 2,
         c: float = 2,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         txt_outputname: str | None = None,
         visualize: bool = False,
     ) -> Problem | list[int]:
@@ -894,9 +894,9 @@ class KarpGraphs:
         cycle: bool = False,
         a: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | list[int]:
         """Solves the Hamiltonian path problem for a given graph.
@@ -1158,9 +1158,9 @@ class KarpGraphs:
         b: float = 1,
         cycle: bool = False,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | list[int]:
         """Solves the Travelling Salesman Problem (TSP) or Hamiltonian path problem for a graph.
@@ -1372,9 +1372,9 @@ class KarpGraphs:
         a: float = 1,
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | list[int]:
         """Solves the independent set problem for a given graph.
@@ -1579,9 +1579,9 @@ class KarpGraphs:
     def max_cut(
         input_data: str | nx.Graph,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: str | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | list[int]:
         """Solves the Max-Cut problem for a given graph, partitioning vertices to maximize the number of edges between partitions.
@@ -1695,9 +1695,9 @@ class KarpGraphs:
         input_data: str | nx.DiGraph,
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | list[int]:
         """Solves the directed feedback vertex set problem, identifying a minimal set of vertices.
@@ -1884,9 +1884,9 @@ class KarpGraphs:
         input_data: str | nx.DiGraph,
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | list[tuple[int, int]]:
         """Validates the solution for the directed feedback edge set problem.

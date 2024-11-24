@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Any
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -95,9 +95,9 @@ class KarpNumber:
     def sat(
         input_data: str | list[tuple[int, int]],
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | dict[str, float]:
         """Initializes and optionally solves the SAT (Satisfiability) problem.
 
@@ -194,9 +194,9 @@ class KarpNumber:
     def three_sat(
         input_data: str | list[tuple[int, int]],
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | dict[str, float]:
         """Initializes and optionally solves the 3-SAT (Satisfiability) problem.
 
@@ -340,9 +340,9 @@ class KarpNumber:
         input_data: str | list[list[int]],
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[float] | None:
         """Initializes and optionally solves an integer programming problem."""
         if any([solver_method is not None, read_solution is not None, solver_params is not None]) and not solve:
@@ -459,9 +459,9 @@ class KarpNumber:
         max_weight: int,
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[tuple[int, int]]:
         """Initializes and optionally solves a knapsack problem given item weights and values."""
         if any([solver_method is not None, read_solution is not None, solver_params is not None]) and not solve:
@@ -583,9 +583,9 @@ class KarpNumber:
         input_data: str | list[int],
         a: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
     ) -> Problem | tuple[list[int], list[int]]:
         """Initializes and optionally solves a number partition problem to split elements into balanced subsets."""
@@ -752,9 +752,9 @@ class KarpNumber:
         m: int,
         b: float = 1,
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
-        solver_params: dict | None = None,
+        solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[list[int]]:
         """Initializes and optionally solves a job sequencing problem to minimize scheduling conflicts. Pattern check for files is not included."""
         if any([solver_method is not None, read_solution is not None, solver_params is not None]) and not solve:
