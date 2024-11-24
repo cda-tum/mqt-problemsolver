@@ -37,10 +37,10 @@ class KarpNumber:
 
     @staticmethod
     def print_solution(
-        problem_name: str | None = None,
-        file_name: str | None = None,
-        solution: str | None = None,
-        summary: str | None = None,
+        problem_name: str = "",
+        file_name: str = "",
+        solution: str = "",
+        summary: str = "",
     ) -> None:
         """Prints the formatted solution for a problem to the console."""
         start_str = problem_name + file_name
@@ -52,15 +52,15 @@ class KarpNumber:
 
     @staticmethod
     def save_solution(
-        problem_name: str | None = None,
-        file_name: str | None = None,
-        solution: str | None = None,
-        summary: str | None = None,
-        txt_outputname: str | None = None,
+        problem_name: str = "",
+        file_name: str  = "",
+        solution: str = "",
+        summary: str = "",
+        txt_outputname: str = "",
     ) -> None:
         """Saves the formatted solution to a specified file."""
         start_str = problem_name + file_name
-        with Path.open(txt_outputname, "w") as f:
+        with Path(txt_outputname).open("w") as f:
             f.write(start_str + "\n")
             f.write("=" * (len(start_str)) + "\n")
             f.write(solution + "\n")
