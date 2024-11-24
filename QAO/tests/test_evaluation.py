@@ -1139,6 +1139,7 @@ def test_max_cut_simple_graph():
     assert isinstance(solution, list), "Expected a list as the solution"
     assert len(solution) <= len(graph.nodes), "Solution set should not exceed the number of nodes in the graph"
 
+
 def test_spin_only() -> None:
     """Test only the construction of spin variables"""
     constraint = Constraints()
