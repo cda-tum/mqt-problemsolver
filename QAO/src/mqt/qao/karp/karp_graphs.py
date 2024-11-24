@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class KarpGraphs:
+class KarpGraphs :
     """A utility class for solving and validating NP-complete problems using quantum-inspired optimization.
 
     Supports problems like Clique, Vertex Cover, Graph Coloring, Hamiltonian Path, TSP, Independent Set,
