@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -131,11 +131,12 @@ class KarpNumber:
                 if line:
                     literals = newline.split()
                     clauses.append(literals)
-
-        else:
-            clauses = input_data
+        elif all(isinstance(item, tuple) for item in input_data):
+            # Convert list[tuple[int, int]] to list[list[str]]
+            clauses = [[str(item[0]), str(item[1])] for item in input_data]
             filename = ""
-        print(clauses)
+        else:
+            raise ValueError("Invalid input_data type. Expected str or list[tuple[int, int]].")
 
         graph = KarpNumber._create_graph(clauses)
 
@@ -303,7 +304,7 @@ class KarpNumber:
     @staticmethod
     def check_three_sat_solution(
         clauses: list[list[str]], solution: dict[str, float]
-    ) -> dict[str, bool | list[list[str]] | dict[str, str]]:
+    ) -> dict[str, Union[bool, list[list[str]], dict[str, str]]]:
         """Validates a solution for the 3-SAT problem by checking clause satisfaction."""
         not_satisfied_clauses = []
 
@@ -334,7 +335,7 @@ class KarpNumber:
         return {"Valid Solution": True}
 
     @staticmethod
-    def convert_dict_to_string(dictionary: dict) -> str:
+    def convert_dict_to_string(dictionary: dict[str, Any]) -> str:
         """Converts a dictionary of solution validation results into a readable string format."""
         result = "Valid Solution" if dictionary.get("Valid Solution", False) else "Invalid Solution"
         for key, value in dictionary.items():
@@ -458,15 +459,15 @@ class KarpNumber:
         return None
 
     @staticmethod
-    def check_integer_programming(s: list[list[int]], b: list[int], x: list[float]) -> dict[str, bool | np.ndarray]:
+    def check_integer_programming(s: list[list[int]], b: list[int], x: list[float]) -> dict[str, Any]:
         """Validates a solution for the integer programming problem by checking if constraints are met."""
-        s = np.array(s)
-        b = np.array(b)
-        x = np.array(x)
+        s_1 = np.array(s)
+        b_1 = np.array(b)
+        x_1 = np.array(x)
 
-        result = np.dot(s, x)
+        result = np.dot(s_1, x_1)
 
-        if np.array_equal(result, b):
+        if np.array_equal(result, b_1):
             return {"Valid Solution": True}
 
         return {"Valid Solution": False, "Result": result}
@@ -702,7 +703,7 @@ class KarpNumber:
             plt.title("Number Partition Visualization")
             plt.show()
 
-        formatted_strings = []
+        formatted_strings: list[str] = []
         formatted_strings.extend((
             f"Set 1 = {{{','.join(map(str, set_1))}}}",
             f"Set 2 = {{{','.join(map(str, set_2))}}}",
@@ -739,7 +740,7 @@ class KarpNumber:
     @staticmethod
     def check_number_partition_solution(
         elements: list[int], set_variables: dict[str, float]
-    ) -> dict[str, int | int | bool | list[int]] | dict[str, int]:
+    ) -> dict[str, int | int | bool | list[int]] | dict[Any, Any]:
         """Validates a number partition solution by comparing subset sums."""
         set_1 = []
         set_2 = []
@@ -761,7 +762,7 @@ class KarpNumber:
                 set_2.append(elements[index])
             missing_elements.remove(elements[index])
 
-        result = {
+        result: dict[str, Union[int, bool, list[int]]] = {
             "Sum 1": sum_1,
             "Sum 2": sum_2,
         }
