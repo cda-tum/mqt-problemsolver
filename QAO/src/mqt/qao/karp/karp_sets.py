@@ -754,7 +754,7 @@ class KarpSets:
         return {"Valid Solution": True}
 
     @staticmethod
-    # if A=1 and B=0 then it is an exact cover, if B=1 it is smallest exact cover, if B=-1 largest exact cover in number of subsets
+    # if A=1 and B= 0 then it is an exact cover, if B=1 it is smallest exact cover, if B=-1 largest exact cover in number of subsets
     def exact_cover(
         input_data: str | list[tuple[int, list[int]]],
         b: float = 0,
