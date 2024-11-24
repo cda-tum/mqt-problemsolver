@@ -98,7 +98,7 @@ class KarpNumber:
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
-    ) -> Problem | dict[str, float]:
+    ) -> Problem | list[int] | dict[str, float]:
         """Initializes and optionally solves the SAT (Satisfiability) problem.
 
         Args:
@@ -739,7 +739,7 @@ class KarpNumber:
     @staticmethod
     def check_number_partition_solution(
         elements: list[int], set_variables: dict[str, float]
-    ) -> dict[str, int | bool | list[int]]:
+    ) -> dict[str, int | int | bool | list[int]] | dict[str, int]:
         """Validates a number partition solution by comparing subset sums."""
         set_1 = []
         set_2 = []
