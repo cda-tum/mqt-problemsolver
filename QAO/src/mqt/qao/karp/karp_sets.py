@@ -71,7 +71,7 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                return None
+                raise FileNotFoundError(f"Error: File {input_data} not found.")
 
             _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -252,7 +252,7 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                return None
+                raise FileNotFoundError(f"Error: File {input_data} not found.")
 
             _, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -403,7 +403,7 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                return None
+                raise FileNotFoundError(f"Error: File {input_data} not found.")
 
             _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -594,7 +594,7 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                return None
+                raise FileNotFoundError(f"Error: File {input_data} not found.")
 
             _, _ = map(int, lines[0].strip().split())
 
@@ -792,7 +792,7 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                return None
+                raise FileNotFoundError(f"Error: File {input_data} not found.")
 
             _, num_sets = map(int, lines[0].strip().split())
             sets = []
