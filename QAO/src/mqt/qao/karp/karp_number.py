@@ -155,7 +155,8 @@ class KarpNumber:
         solution = solver_method(problem)
 
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
 
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         output_dict = {
@@ -256,9 +257,10 @@ class KarpNumber:
         txt_outputname = "3-SAT: "
 
         solution = solver_method(problem)
-        
+
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
 
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         output_dict = {
@@ -421,7 +423,8 @@ class KarpNumber:
         solution = solver_method(problem)
 
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
 
         if solution:
             set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
@@ -549,7 +552,8 @@ class KarpNumber:
         solution = solver_method(problem)
 
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
 
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
 
@@ -658,7 +662,8 @@ class KarpNumber:
         solution = solver_method(problem)
 
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
 
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("s_")}
         set_1 = []
@@ -862,8 +867,8 @@ class KarpNumber:
         solution = solver_method(problem)
 
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
-
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
 
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         result = defaultdict(list)
