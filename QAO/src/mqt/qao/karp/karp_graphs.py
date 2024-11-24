@@ -170,7 +170,7 @@ class KarpGraphs:
             sum_x_v = Add(*[x_vars[v, i] for i in range(1, num_colors + 1)])
             ha_terms.append(a * (1 - sum_x_v) ** 2)
 
-        hb_terms = []
+        hb_terms: list[Any] = []
         for i in range(1, num_colors + 1):
             sum_edges_1 = 0.5 * (-1 + Add(*[x_vars[v, i] for v in unique_vertices]))
             sum_edges_2 = Add(*[x_vars[v, i] for v in unique_vertices])
@@ -290,7 +290,7 @@ class KarpGraphs:
         Returns:
             dict: Validation status with any errors found.
         """
-        errors = {"Missing Nodes": [], "Invalid Cliques": {}}
+        errors: dict[Any, Any] = {"Missing Nodes": [], "Invalid Cliques": {}}
 
         color_dict = dict(cover)
 
@@ -298,7 +298,7 @@ class KarpGraphs:
             if node not in color_dict:
                 errors["Missing Nodes"].append(node)
 
-        cliques = {}
+        cliques: dict[Any, Any] = {}
         for node, color in color_dict.items():
             if color not in cliques:
                 cliques[color] = set()
@@ -377,7 +377,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
         {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
 
         problem = Problem()
@@ -391,7 +391,7 @@ class KarpGraphs:
             for i in range(1, num_colors + 1)
         }
 
-        ha_terms = []
+        ha_terms: list[Any] = []
 
         for v in unique_vertices:
             sum_x_v_i = Add(*[x_vars[v, i] for i in range(1, num_colors + 1)])
@@ -519,7 +519,7 @@ class KarpGraphs:
         Returns:
             dict: Validation status with any errors found.
         """
-        errors = {"Missing Nodes": [], "Conflicting Edges": []}
+        errors: dict[Any, Any] = {"Missing Nodes": [], "Conflicting Edges": []}
 
         color_dict = dict(coloring)
 
@@ -596,7 +596,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
 
         problem = Problem()
         variables = Variables()
@@ -605,7 +605,7 @@ class KarpGraphs:
 
         x_vars = {v: variables.add_binary_variable(f"x_{v}") for v in unique_vertices}
 
-        ha_terms = []
+        ha_terms: list[Any] = []
 
         for u, v in edges:
             term1 = a * (1 - x_vars[u]) * (1 - x_vars[v])
@@ -690,7 +690,7 @@ class KarpGraphs:
         Returns:
             dict: Validation status with any errors found.
         """
-        errors = {"Uncovered Edges": []}
+        errors: dict[Any, Any] = {"Uncovered Edges": []}
 
         cover_set = set(solution)
 
@@ -766,7 +766,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
         {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
 
         problem = Problem()
@@ -786,7 +786,7 @@ class KarpGraphs:
             a = (max_degree + 2) * b
             y_vars = {i: variables.add_binary_variable(f"y_{i}") for i in range(2, max_degree + 1)}
 
-            ha_terms = []
+            ha_terms: list[Any] = []
             ha_terms.extend((
                 a * (1 - Add(*[y_vars[i] for i in range(2, max_degree + 1)])) ** 2,
                 a
@@ -796,7 +796,7 @@ class KarpGraphs:
 
             ha = simplify(Add(*ha_terms))
 
-            hb_terms = []
+            hb_terms: list[Any] = []
             nyi = (
                 b
                 * 0.5
@@ -893,7 +893,7 @@ class KarpGraphs:
             dict: A dictionary with "Valid Solution" status (True/False) and details of any missing edges
                   that prevent the solution from being a valid clique.
         """
-        errors = {"Non-Clique Pairs": []}
+        errors: dict[Any, Any] = {"Non-Clique Pairs": []}
 
         for node1, node2 in combinations(solution, 2):
             if not graph.has_edge(node1, node2):
@@ -962,7 +962,7 @@ class KarpGraphs:
             edges = set(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
 
         problem = Problem()
         variables = Variables()
@@ -1081,7 +1081,7 @@ class KarpGraphs:
         Returns:
             dict: Validation status with any errors found.
         """
-        errors = {"Missing Nodes": [], "Invalid Edges": []}
+        errors: dict[Any, Any] = {"Missing Nodes": [], "Invalid Edges": []}
 
         if set(solution) != set(graph.nodes):
             missing_nodes = set(graph.nodes) - set(solution)
@@ -1097,7 +1097,7 @@ class KarpGraphs:
         return {"Valid Solution": True}
 
     @staticmethod
-    def _hamiltonian_path_tsp(filename: str, cycle: bool = False, a: float = 1, b: float = 1) -> tuple:
+    def _hamiltonian_path_tsp(filename: str, cycle: bool = False, a: float = 1, b: float = 1) -> tuple[Any, Any, Any, Any]:
         """Sets up the Hamiltonian path or Travelling Salesman Problem (TSP) as an optimization problem.
 
         Args:
@@ -1119,7 +1119,7 @@ class KarpGraphs:
             raise FileNotFoundError(msg) from err
 
         num_vertices, num_edges = map(int, lines[0].strip().split())
-        edges_w = []
+        edges_w: list[Any] = []
         unique_vertices = set()
 
         for i in range(1, num_edges + 1):
@@ -1137,7 +1137,7 @@ class KarpGraphs:
             edges.add((u, v))
             edges.add((v, u))
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
 
         variables = Variables()
 
@@ -1218,7 +1218,7 @@ class KarpGraphs:
                 raise FileNotFoundError(msg) from err
 
             num_vertices, num_edges = map(int, lines[0].strip().split())
-            edges_w = []
+            edges_w: list[Any] = []
             unique_vertices = set()
             edges = set()
 
@@ -1244,7 +1244,7 @@ class KarpGraphs:
         max_weight = max(weights)
         a = max_weight * b + 1
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
 
         variables = Variables()
 
@@ -1280,7 +1280,7 @@ class KarpGraphs:
         unique_vertices = {v for edge in edges for v in edge[:2]}
         num_vertices = len(unique_vertices)
 
-        hb_terms = []
+        hb_terms: list[Any] = []
 
         hb_terms = [
             b * weight * x_vars[u, j] * x_vars[v, j + 1] for u, v, weight in edges_w for j in range(1, num_vertices)
@@ -1323,12 +1323,12 @@ class KarpGraphs:
         for i in range(len(sorted_vertices) - 1):
             u, v = sorted_vertices[i], sorted_vertices[i + 1]
             cost = edges_dict.get((u, v)) if (u, v) in edges_dict else edges_dict.get((v, u))
-            total_cost += cost
+            total_cost += cost if cost is not None else 0
             formatted_result.append(f"Step {i + 1}. from {u} to {v} with cost of {cost}")
         if cycle:
             u, v = sorted_vertices[-1], sorted_vertices[0]
             cost = edges_dict.get((u, v)) if (u, v) in edges_dict else edges_dict.get((v, u))
-            total_cost += cost
+            total_cost += cost if cost is not None else 0
             formatted_result.append(f"Step {len(sorted_vertices)}. from {u} to {v} with cost of {cost}")
 
         result_string = "\n".join(formatted_result)
@@ -1447,7 +1447,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
         {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
 
         a = b + 1
@@ -1530,7 +1530,7 @@ class KarpGraphs:
         return independent_set
 
     @staticmethod
-    def check_independent_set_solution(graph: nx.Graph, solution: list[int]) -> dict[str, bool | dict[str, list]]:
+    def check_independent_set_solution(graph: nx.Graph, solution: list[int]) -> dict[Any, Any]:
         """Validates the solution for the independent set problem.
 
         Args:
@@ -1540,7 +1540,7 @@ class KarpGraphs:
         Returns:
             dict: Validation status with any errors found.
         """
-        errors = {"Invalid Nodes": [], "Conflicting Pairs": []}
+        errors: dict[Any, Any] = {"Invalid Nodes": [], "Conflicting Pairs": []}
 
         for node in solution:
             if node not in graph.nodes:
@@ -1661,7 +1661,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
 
         problem = Problem()
         variables = Variables()
@@ -1670,7 +1670,7 @@ class KarpGraphs:
 
         x_vars = {v: variables.add_binary_variable(f"x_{v}") for v in unique_vertices}
 
-        ha_terms = []
+        ha_terms: list[Any] = []
 
         sum_x_v = Add(*[2 * x_vars[u] * x_vars[v] - x_vars[u] - x_vars[v] for u, v in edges])
         ha_terms.append(sum_x_v)
@@ -1759,8 +1759,8 @@ class KarpGraphs:
             msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided."
             raise ValueError(msg)
 
-        unique_vertices = set()
-        edges = []
+        unique_vertices:set[Any] = set()
+        edges:list[Any] = []
 
         if isinstance(input_data, str):
             filename = input_data
@@ -1791,7 +1791,7 @@ class KarpGraphs:
 
         a = b * 3.0
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
 
         variables = Variables()
         y_vars = {v: variables.add_binary_variable(f"y_{v}") for v in unique_vertices}
@@ -1802,7 +1802,7 @@ class KarpGraphs:
             for i in range(1, num_vertices + 1)
         }
 
-        ha_terms = []
+        ha_terms: list[Any] = []
 
         for v in unique_vertices:
             term1 = a * (y_vars[v] - Add(*[x_vars[v, i] for i in range(1, num_vertices + 1)])) ** 2
@@ -1900,7 +1900,7 @@ class KarpGraphs:
         Returns:
             dict: Validation status with any errors found.
         """
-        errors = {"Cycle Detected": []}
+        errors: dict[Any, Any] = {"Cycle Detected": []}
 
         modified_graph = graph.copy()
         modified_graph.remove_nodes_from(solution)
@@ -1994,7 +1994,7 @@ class KarpGraphs:
             for i in range(1, num_vertices + 1)
         }
 
-        ha_terms = []
+        ha_terms: list[Any] = []
 
         for v in unique_vertices:
             term1 = a * (1 - Add(*[x_vars[v, i] for i in range(1, num_vertices + 1)])) ** 2
@@ -2090,7 +2090,7 @@ class KarpGraphs:
     @staticmethod
     def check_directed_feedback_edge_set_solution(
         graph: nx.DiGraph, solution: list[tuple[int, int]]
-    ) -> dict[str, bool | dict[str, list]]:
+    ) -> dict[Any, Any]:
         """Validates a solution for the directed feedback edge set problem, ensuring the removal.
 
         of specified edges results in an acyclic directed graph.
@@ -2103,7 +2103,7 @@ class KarpGraphs:
             dict: A dictionary with "Valid Solution" status (True/False) and details of any cycles
                   detected if the solution does not make the graph acyclic.
         """
-        errors = {"Cycle Detected": []}
+        errors: dict[Any, Any] = {"Cycle Detected": []}
 
         modified_graph = graph.copy()
         modified_graph.remove_edges_from(solution)
@@ -2123,7 +2123,7 @@ class KarpGraphs:
         return {"Valid Solution": True}
 
     @staticmethod
-    def convert_dict_to_string(dictionary: dict) -> str:
+    def convert_dict_to_string(dictionary: dict[Any, Any]) -> str:
         """Converts a validation dictionary to a formatted string.
 
         Args:

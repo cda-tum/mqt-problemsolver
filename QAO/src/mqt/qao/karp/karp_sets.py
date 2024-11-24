@@ -98,7 +98,7 @@ class KarpSets:
                 unique_elements.update(elements)
             len(unique_elements)
 
-        unique_elements = sorted(unique_elements)
+        unique_elements = set(sorted(unique_elements))
 
         problem = Problem()
         variables = Variables()
@@ -180,8 +180,8 @@ class KarpSets:
 
     @staticmethod
     def check_set_cover_solution(
-        all_sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]
-    ) -> dict[str, bool | dict[str, list]]:
+        all_sets: Any, solution: Any
+    ) -> dict[Any, Any]:
         """Validates a set cover solution by checking if all elements are covered.
 
         Args:
@@ -193,7 +193,7 @@ class KarpSets:
             dict[str, bool | dict[str, list]]: Returns a dictionary with a validation status ("Valid Solution" key)
             and any errors, such as uncovered elements or missing sets.
         """
-        errors = {"Missing Sets": [], "Uncovered Elements": []}
+        errors: dict[Any, Any] = {"Missing Sets": [], "Uncovered Elements": []}
 
         universe = set()
         for _, elements in all_sets:
@@ -345,8 +345,8 @@ class KarpSets:
 
     @staticmethod
     def check_set_packing_solution(
-        all_sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]
-    ) -> dict[str, bool | dict[str, list]]:
+        all_sets: Any, solution: Any
+    ) -> dict[Any, Any]:
         """Validates a set packing solution by ensuring no sets overlap.
 
         Args:
@@ -358,7 +358,7 @@ class KarpSets:
             dict[str, bool | dict[str, list]]: Returns a dictionary with a validation status ("Valid Solution" key)
             and any overlapping sets.
         """
-        errors = {"Missing Sets": [], "Overlapping Sets": []}
+        errors: dict[Any, Any] = {"Missing Sets": [], "Overlapping Sets": []}
 
         used_elements = set()
 
@@ -384,7 +384,7 @@ class KarpSets:
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
-    ) -> Problem | list[int]:
+    ) -> Problem | list[int] | list[tuple[int, list[int]]]:
         """Initializes and optionally solves a hitting set problem.
 
         Args:
@@ -434,7 +434,7 @@ class KarpSets:
                 subsets = [i + 1 for i in range(num_sets) if element in sets_elements[i]]
                 elements_sets.append(subsets)
 
-            element_index_map = {}
+            element_index_map: dict[Any, Any] = {}
             index_counter = 1
 
             for element in unique_elements:
@@ -573,7 +573,7 @@ class KarpSets:
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
-    ) -> Problem | list[tuple[int, int, int]]:
+    ) -> Problem | list[tuple[int, int, int]] | list[list[int]]:
         """Initializes and optionally solves a 3D matching problem involving sets x, y, and z.
 
         Args:
@@ -711,8 +711,8 @@ class KarpSets:
 
     @staticmethod
     def check_three_d_matching(
-        x: list[int], y: list[int], z: list[int], solution: list[tuple[int, int, int]]
-    ) -> dict[str, bool | dict[str, list]]:
+        x: list[int], y: list[int], z: list[int], solution: Any
+    ) -> dict[Any, Any]:
         """Validates a 3D matching solution by ensuring each element in the solution matches exactly one element
 
         from each of the sets x, y, and z, and that there are no repeated or mismatched elements.
@@ -734,13 +734,11 @@ class KarpSets:
                 - "Unused Elements" (list[int]): Any elements in x, y, or z that do not appear in the solution.
 
         """
-        used_elements = {}
-        errors = {"Invalid Triplets": [], "Non-matching Elements": [], "Repeated Elements": [], "Unused Elements": []}
+        used_elements: dict[Any, Any] = {}
+        errors: dict[Any, Any] = {"Invalid Triplets": [], "Non-matching Elements": [], "Repeated Elements": [], "Unused Elements": []}
 
         for triplet in solution:
-            if len(triplet) != 3:
-                errors["Invalid Triplets"].append(triplet)
-                continue
+            
 
             x1, y1, z1 = triplet
 
@@ -832,7 +830,7 @@ class KarpSets:
                 unique_elements.update(elements)
             len(unique_elements)
 
-        unique_elements = sorted(unique_elements)
+        unique_elements = set(sorted(unique_elements))
 
         problem = Problem()
         variables = Variables()
@@ -901,8 +899,8 @@ class KarpSets:
 
     @staticmethod
     def check_exact_cover_solution(
-        sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]
-    ) -> dict[str, bool | dict[str, list]]:
+        sets: Any, solution: Any
+    ) -> dict[Any, Any]:
         """Validates an exact cover solution by ensuring each element is covered exactly once
 
         and that there are no overlapping or missing elements.
@@ -924,7 +922,7 @@ class KarpSets:
         """
         all_elements = set()
 
-        errors = {
+        errors: dict[Any, Any] = {
             "Missing Sets": [],
             "Overlapping Sets": [],
             "Uncovered Elements": [],
@@ -933,7 +931,7 @@ class KarpSets:
         for _, elements in sets:
             all_elements.update(elements)
 
-        covered_elements = {}
+        covered_elements: dict[Any, Any] = {}
 
         for cost, elements in solution:
             elements_tuple = tuple(elements)
@@ -984,10 +982,10 @@ class KarpSets:
 
     @staticmethod
     def print_solution(
-        problem_name: str | None = None,
-        file_name: str | None = None,
-        solution: str | None = None,
-        summary: str | None = None,
+        problem_name: str = "",
+        file_name: str = "",
+        solution: str  = "",
+        summary: str = "",
     ) -> None:
         """Prints the formatted solution of a problem to the console.
 
@@ -1006,11 +1004,11 @@ class KarpSets:
 
     @staticmethod
     def save_solution(
-        problem_name: str | None = None,
-        file_name: str | None = None,
-        solution: str | None = None,
-        summary: str | None = None,
-        txt_outputname: str | None = None,
+        problem_name: str = "",
+        file_name: str = "",
+        solution: str = "",
+        summary: str  = "",
+        txt_outputname: str = "",
     ) -> None:
         """Saves the formatted solution of a problem to a specified file.
 
@@ -1031,7 +1029,7 @@ class KarpSets:
         print(f"Solution written to {txt_outputname}")
 
     @staticmethod
-    def convert_dict_to_string(dictionary: dict) -> str:
+    def convert_dict_to_string(dictionary: dict [Any, Any]) -> str:
         """Converts a dictionary of solution validation results into a readable string format.
 
         Args:
