@@ -143,7 +143,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = sorted(unique_vertices)
+        unique_vertices = set(sorted(unique_vertices))
 
         degree = dict.fromkeys(unique_vertices, 0)
         for u, v in edges:
@@ -280,7 +280,7 @@ class KarpGraphs:
     @staticmethod
     def check_clique_cover_solution(
         graph: nx.Graph, cover: list[tuple[int, int]]
-    ) -> dict[str, bool | dict[str, list | dict[int, list[tuple[int, int]]]]]:
+    ) -> dict[Any, Any]:
         """Validates the solution for the clique cover problem.
 
         Args:
@@ -509,7 +509,7 @@ class KarpGraphs:
     @staticmethod
     def check_graph_coloring_solution(
         graph: nx.Graph, coloring: list[tuple[int, int]]
-    ) -> dict[str, bool | dict[str, list]]:
+    ) -> dict[Any, Any]:
         """Validates the solution for the graph coloring problem.
 
         Args:
@@ -680,7 +680,7 @@ class KarpGraphs:
     @staticmethod
     def check_vertex_cover_solution(
         graph: nx.Graph, solution: list[int]
-    ) -> dict[str, bool | dict[str, list[tuple[int, int]]]]:
+    ) -> dict[Any, Any]:
         """Validates the solution for the vertex cover problem.
 
         Args:
@@ -882,7 +882,7 @@ class KarpGraphs:
     @staticmethod
     def check_clique_solution(
         graph: nx.Graph, solution: list[int]
-    ) -> dict[str, bool | dict[str, list[tuple[int, int]]]]:
+    )  -> dict[Any, Any]:
         """Validates a solution for the clique problem, ensuring all nodes in the solution form a complete subgraph.
 
         Args:
@@ -1071,7 +1071,7 @@ class KarpGraphs:
         return sorted_vertices
 
     @staticmethod
-    def check_hamiltonian_path_solution(graph: nx.Graph, solution: list[int]) -> dict[str, bool | dict[str, list]]:
+    def check_hamiltonian_path_solution(graph: nx.Graph, solution: list[int]) -> dict[Any, Any]:
         """Validates the solution for the Hamiltonian path problem.
 
         Args:
@@ -1890,7 +1890,7 @@ class KarpGraphs:
     @staticmethod
     def check_directed_feedback_vertex_set_solution(
         graph: nx.DiGraph, solution: list[int]
-    ) -> dict[str, bool | dict[str, list]]:
+    )  -> dict[Any, Any]:
         """Validates the solution for the directed feedback edge vertex problem.
 
         Args:
