@@ -154,11 +154,11 @@ class KarpNumber:
 
         txt_outputname = "SAT: "
 
-
         if isinstance(problem, Problem):
             solution = solver_method(problem)
         else:
-            raise TypeError("Expected `problem` to be of type `Problem`.")
+            msg = "Expected `problem` to be of type `Problem`."
+            raise TypeError(msg)
 
         if solution is None or not hasattr(solution, "best_solution"):
             msg = "Solver did not return a valid solution."
@@ -248,8 +248,9 @@ class KarpNumber:
             clauses = [[str(item[0]), str(item[1])] for item in input_data]
             filename = ""
         else:
-            raise ValueError("Invalid input_data type. Expected str or list[tuple[int, int]].")
-        
+            msg = "Invalid input_data type. Expected str or list[tuple[int, int]]."
+            raise ValueError(msg)
+
         graph = KarpNumber._create_graph(clauses)
 
         problem = KarpGraphs.independent_set(graph, solve=False)
@@ -268,7 +269,8 @@ class KarpNumber:
         if isinstance(problem, Problem):
             solution = solver_method(problem)
         else:
-            raise TypeError("Expected `problem` to be of type `Problem`.")
+            msg = "Expected `problem` to be of type `Problem`."
+            raise TypeError(msg)
 
         if solution is None or not hasattr(solution, "best_solution"):
             msg = "Solver did not return a valid solution."
@@ -313,9 +315,7 @@ class KarpNumber:
         return output_dict
 
     @staticmethod
-    def check_three_sat_solution(
-        clauses: Any, solution: dict[str, float]
-    ) -> dict[Any, Any]:
+    def check_three_sat_solution(clauses: Any, solution: dict[str, float]) -> dict[Any, Any]:
         """Validates a solution for the 3-SAT problem by checking clause satisfaction."""
         not_satisfied_clauses = []
 
