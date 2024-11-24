@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -136,8 +136,7 @@ class KarpNumber:
             clauses = [[str(item[0]), str(item[1])] for item in input_data]
             filename = ""
         else:
-            msg = "Invalid input_data type. Expected str or list[tuple[int, int]]."
-            raise ValueError(msg)
+            raise ValueError("Invalid input_data type. Expected str or list[tuple[int, int]].")
 
         graph = KarpNumber._create_graph(clauses)
 
@@ -305,7 +304,7 @@ class KarpNumber:
     @staticmethod
     def check_three_sat_solution(
         clauses: list[list[str]], solution: dict[str, float]
-    ) -> dict[str, bool | list[list[str]] | dict[str, str]]:
+    ) -> dict[str, Union[bool, list[list[str]], dict[str, str]]]:
         """Validates a solution for the 3-SAT problem by checking clause satisfaction."""
         not_satisfied_clauses = []
 
@@ -741,7 +740,7 @@ class KarpNumber:
     @staticmethod
     def check_number_partition_solution(
         elements: list[int], set_variables: dict[str, float]
-    ) -> dict[str, int | bool | list[int]] | dict[Any, Any]:
+    ) -> dict[str, int | int | bool | list[int]] | dict[Any, Any]:
         """Validates a number partition solution by comparing subset sums."""
         set_1 = []
         set_2 = []
@@ -763,7 +762,7 @@ class KarpNumber:
                 set_2.append(elements[index])
             missing_elements.remove(elements[index])
 
-        result: dict[str, int | bool | list[int]] = {
+        result: dict[str, Union[int, bool, list[int]]] = {
             "Sum 1": sum_1,
             "Sum 2": sum_2,
         }
@@ -785,7 +784,7 @@ class KarpNumber:
         b: float = 1,
         solve: bool = False,
         solver_method: Callable[..., Any] | None = None,
-        read_solution: Literal["print", "file"] | None = None,
+        read_solution : Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[list[int]]:
         """Initializes and optionally solves a job sequencing problem to minimize scheduling conflicts. Pattern check for files is not included."""
@@ -793,7 +792,7 @@ class KarpNumber:
             msg = "'solve' must be True if 'solver_method', 'read_solution', or 'solver_params' are provided."
             raise ValueError(msg)
 
-        if isinstance(input_data, str):
+        if isinstance(input_data , str):
             filename = input_data
             try:
                 with Path(filename).open(encoding="utf-8") as file:
