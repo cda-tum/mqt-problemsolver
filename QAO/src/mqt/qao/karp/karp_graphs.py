@@ -38,7 +38,7 @@ class KarpGraphs:
     @staticmethod
     def print_solution(
         problem_name: str = "",
-        file_name: str  = "",
+        file_name: str = "",
         solution: str = "",
         summary: str = "",
     ) -> None:
