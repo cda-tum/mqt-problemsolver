@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -380,7 +380,7 @@ class KarpSets:
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
-    ) -> Problem | list[int] | list[tuple[int, list[int]]]:
+    ) -> Problem | list[int] | list[tuple[int, list[int]]] | list[Union[str, Any]]:
         """Initializes and optionally solves a hitting set problem.
 
         Args:
@@ -481,7 +481,10 @@ class KarpSets:
             if solver_params is not None:
                 solver_method = partial(solver_method, **solver_params)
 
-            solution = solver_method(problem)
+            if isinstance(problem, Problem):
+                solution = solver.solve_simulated_annealing(problem)
+            else:
+                raise TypeError("Expected a Problem instance, got a different type.")
             if solution is None or not hasattr(solution, "best_solution"):
                 msg = "Solver did not return a valid solution."
                 raise ValueError(msg)
@@ -520,8 +523,8 @@ class KarpSets:
 
     @staticmethod
     def check_hitting_set_solution(
-        sets: list[tuple[int, list[int]]], solution: list[int]
-    ) -> dict[str, bool | dict[str, list]]:
+        sets: Any, solution: Any
+    ) -> dict[Any, Any]:
         """Validates a hitting set solution by ensuring that each set is "hit" by at least one element in the solution.
 
         Args:
@@ -540,7 +543,7 @@ class KarpSets:
         solution_set = set(solution)
 
         all_elements = set()
-        errors = {"Invalid Solution Elements": [], "Unhit Sets": []}
+        errors: dict[Any, Any] = {"Invalid Solution Elements": [], "Unhit Sets": []}
 
         for _, elements in sets:
             all_elements.update(elements)
@@ -569,7 +572,7 @@ class KarpSets:
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
         visualize: bool = False,
-    ) -> Problem | list[tuple[int, int, int]] | list[list[int]]:
+    ) -> Problem | list[tuple[int, int, int]] | list[list[int]] | list[tuple[int, list[int]]]:
         """Initializes and optionally solves a 3D matching problem involving sets x, y, and z.
 
         Args:
@@ -643,7 +646,11 @@ class KarpSets:
             if solver_params is not None:
                 solver_method = partial(solver_method, **solver_params)
 
-            solution = solver_method(problem)
+            if isinstance(problem, Problem):
+                solution = solver.solve_simulated_annealing(problem)
+            else:
+                raise TypeError("Expected a Problem instance, got a different type.")
+            
             if solution is None or not hasattr(solution, "best_solution"):
                 msg = "Solver did not return a valid solution."
                 raise ValueError(msg)
@@ -652,7 +659,7 @@ class KarpSets:
 
             solution_set = [key for key, value in solution_vars.items() if key.startswith("set_") and value == 1.0]
             solution_set = [int(item.split("_")[1]) for item in solution_set]
-            final_solution = [set_packing_input[i][1] for i in solution_set]
+            final_solution = [set_packing_input[i][1] for i in solution_set if isinstance(i, int)]
 
             formatted_strings = []
 
