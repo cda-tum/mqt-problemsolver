@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Union
+from typing import TYPE_CHECKING, Any, Literal
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -136,7 +136,8 @@ class KarpNumber:
             clauses = [[str(item[0]), str(item[1])] for item in input_data]
             filename = ""
         else:
-            raise ValueError("Invalid input_data type. Expected str or list[tuple[int, int]].")
+            msg = "Invalid input_data type. Expected str or list[tuple[int, int]]."
+            raise ValueError(msg)
 
         graph = KarpNumber._create_graph(clauses)
 
@@ -304,7 +305,7 @@ class KarpNumber:
     @staticmethod
     def check_three_sat_solution(
         clauses: list[list[str]], solution: dict[str, float]
-    ) -> dict[str, Union[bool, list[list[str]], dict[str, str]]]:
+    ) -> dict[str, bool | list[list[str]] | dict[str, str]]:
         """Validates a solution for the 3-SAT problem by checking clause satisfaction."""
         not_satisfied_clauses = []
 
@@ -740,7 +741,7 @@ class KarpNumber:
     @staticmethod
     def check_number_partition_solution(
         elements: list[int], set_variables: dict[str, float]
-    ) -> dict[str, int | int | bool | list[int]] | dict[Any, Any]:
+    ) -> dict[str, int | bool | list[int]] | dict[Any, Any]:
         """Validates a number partition solution by comparing subset sums."""
         set_1 = []
         set_2 = []
@@ -762,7 +763,7 @@ class KarpNumber:
                 set_2.append(elements[index])
             missing_elements.remove(elements[index])
 
-        result: dict[str, Union[int, bool, list[int]]] = {
+        result: dict[str, int | bool | list[int]] = {
             "Sum 1": sum_1,
             "Sum 2": sum_2,
         }
