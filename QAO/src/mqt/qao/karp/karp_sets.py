@@ -149,7 +149,8 @@ class KarpSets:
 
         solution = solver_method(problem)
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("set_")}
         solution_sets = [
             (sets[int(var.split("_")[1])][0], sets[int(var.split("_")[1])][1])
@@ -313,7 +314,8 @@ class KarpSets:
 
         solution = solver_method(problem)
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("set_")}
         solution_sets = [
             (sets[int(var.split("_")[1])][0], sets[int(var.split("_")[1])][1])
@@ -485,7 +487,8 @@ class KarpSets:
 
             solution = solver_method(problem)
             if solution is None or not hasattr(solution, "best_solution"):
-                raise ValueError("Solver did not return a valid solution.")
+                msg = "Solver did not return a valid solution."
+                raise ValueError(msg)
             solution_vars = solution.best_solution
 
             solution_set = [key for key, value in solution_vars.items() if key.startswith("set_") and value == 1.0]
@@ -646,7 +649,8 @@ class KarpSets:
 
             solution = solver_method(problem)
             if solution is None or not hasattr(solution, "best_solution"):
-                raise ValueError("Solver did not return a valid solution.")
+                msg = "Solver did not return a valid solution."
+                raise ValueError(msg)
 
             solution_vars = solution.best_solution
 
@@ -865,7 +869,8 @@ class KarpSets:
 
         solution = solver_method(problem)
         if solution is None or not hasattr(solution, "best_solution"):
-            raise ValueError("Solver did not return a valid solution.")
+            msg = "Solver did not return a valid solution."
+            raise ValueError(msg)
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("set_")}
 
         solution_sets = [
