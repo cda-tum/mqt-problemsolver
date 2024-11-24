@@ -11,7 +11,7 @@ import random
 from functools import partial
 from itertools import combinations
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import matplotlib.pyplot as plt
 import networkx as nx
