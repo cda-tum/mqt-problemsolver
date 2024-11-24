@@ -118,7 +118,7 @@ class KarpNumber:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path(filename).open() as file:
+                with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -217,7 +217,7 @@ class KarpNumber:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path(filename).open() as file:
+                with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -352,7 +352,7 @@ class KarpNumber:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path(filename).open() as file:
+                with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -471,7 +471,7 @@ class KarpNumber:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path(filename).open() as file:
+                with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -596,7 +596,7 @@ class KarpNumber:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path(filename).open() as file:
+                with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -764,7 +764,7 @@ class KarpNumber:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path(filename).open() as file:
+                with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")

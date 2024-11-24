@@ -67,7 +67,7 @@ class KarpSets:
         if isinstance(input_data, str):
             file_name = input_data
             try:
-                with Path(input_data).open() as file:
+                with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -248,7 +248,7 @@ class KarpSets:
         if isinstance(input_data, str):
             file_name = input_data
             try:
-                with Path(input_data).open() as file:
+                with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -399,7 +399,7 @@ class KarpSets:
         if isinstance(input_data, str):
             file_name = input_data
             try:
-                with Path(input_data).open() as file:
+                with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -590,7 +590,7 @@ class KarpSets:
         if isinstance(input_data, str):
             try:
                 file_name = input_data
-                with Path(input_data).open() as file:
+                with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -788,7 +788,7 @@ class KarpSets:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path(input_data).open() as file:
+                with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
