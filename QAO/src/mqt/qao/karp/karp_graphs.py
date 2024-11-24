@@ -120,7 +120,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -350,7 +350,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -565,7 +565,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -731,7 +731,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -922,7 +922,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -1091,7 +1091,7 @@ class KarpGraphs:
                    for each vertex and position in the path.
         """
         try:
-            with Path.open(filename) as file:
+            with Path(filename).open() as file:
                 lines = file.readlines()
         except FileNotFoundError:
             print(f"Error: File {filename} not found.")
@@ -1189,7 +1189,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {filename} not found.")
@@ -1399,7 +1399,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -1607,7 +1607,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -1729,7 +1729,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
@@ -1913,7 +1913,7 @@ class KarpGraphs:
         if isinstance(input_data, str):
             filename = input_data
             try:
-                with Path.open(filename) as file:
+                with Path(filename).open() as file:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
