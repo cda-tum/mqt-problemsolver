@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Union
+from typing import TYPE_CHECKING, Any, Literal
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -380,7 +380,7 @@ class KarpSets:
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
-    ) -> Problem | list[int] | list[tuple[int, list[int]]] | list[Union[str, Any]]:
+    ) -> Problem | list[int] | list[tuple[int, list[int]]] | list[str | Any]:
         """Initializes and optionally solves a hitting set problem.
 
         Args:
@@ -484,7 +484,8 @@ class KarpSets:
             if isinstance(problem, Problem):
                 solution = solver.solve_simulated_annealing(problem)
             else:
-                raise TypeError("Expected a Problem instance, got a different type.")
+                msg = "Expected a Problem instance, got a different type."
+                raise TypeError(msg)
             if solution is None or not hasattr(solution, "best_solution"):
                 msg = "Solver did not return a valid solution."
                 raise ValueError(msg)
@@ -522,9 +523,7 @@ class KarpSets:
             pass
 
     @staticmethod
-    def check_hitting_set_solution(
-        sets: Any, solution: Any
-    ) -> dict[Any, Any]:
+    def check_hitting_set_solution(sets: Any, solution: Any) -> dict[Any, Any]:
         """Validates a hitting set solution by ensuring that each set is "hit" by at least one element in the solution.
 
         Args:
@@ -649,8 +648,9 @@ class KarpSets:
             if isinstance(problem, Problem):
                 solution = solver.solve_simulated_annealing(problem)
             else:
-                raise TypeError("Expected a Problem instance, got a different type.")
-            
+                msg = "Expected a Problem instance, got a different type."
+                raise TypeError(msg)
+
             if solution is None or not hasattr(solution, "best_solution"):
                 msg = "Solver did not return a valid solution."
                 raise ValueError(msg)
