@@ -75,7 +75,7 @@ class KarpGraphs:
             txt_outputname (str | None): Output file name to save solution.
         """
         start_str = problem_name + file_name
-        with Path(txt_outputname).open("w") as f:
+        with Path(txt_outputname).open("w", encoding="utf-8") as f:
             f.write(start_str + "\n")
             f.write("=" * (len(start_str)) + "\n")
             f.write(solution + "\n")
@@ -122,9 +122,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = "Error: File not found."
+                raise FileNotFoundError(msg) from err
 
             _, num_edges = map(int, lines[0].strip().split())
             edges = []
@@ -352,9 +353,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _, num_edges = map(int, lines[0].strip().split())
             edges = []
@@ -567,9 +569,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = []
@@ -733,9 +736,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _, num_edges = map(int, lines[0].strip().split())
             edges = []
@@ -924,9 +928,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             num_vertices, num_edges = map(int, lines[0].strip().split())
             edges = set()
@@ -1093,9 +1098,10 @@ class KarpGraphs:
         try:
             with Path(filename).open(encoding="utf-8") as file:
                 lines = file.readlines()
-        except FileNotFoundError:
+        except FileNotFoundError as err:
             print(f"Error: File {filename} not found.")
-            raise FileNotFoundError(f"Error: File {filename} not found.")
+            msg = f"Error: File {filename} not found."
+            raise FileNotFoundError(msg) from err
 
         num_vertices, num_edges = map(int, lines[0].strip().split())
         edges_w = []
@@ -1191,9 +1197,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {filename} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             num_vertices, num_edges = map(int, lines[0].strip().split())
             edges_w = []
@@ -1401,9 +1408,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _, num_edges = map(int, lines[0].strip().split())
             edges = []
@@ -1609,9 +1617,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _, num_edges = map(int, lines[0].strip().split())
             edges = []
@@ -1731,9 +1740,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             num_vertices, _num_edges = map(int, lines[0].strip().split())
             edges = []
@@ -1915,9 +1925,10 @@ class KarpGraphs:
             try:
                 with Path(filename).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             num_vertices, _num_edges = map(int, lines[0].strip().split())
             edges = []

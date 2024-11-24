@@ -69,9 +69,10 @@ class KarpSets:
             try:
                 with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -250,9 +251,10 @@ class KarpSets:
             try:
                 with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError  as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -401,9 +403,10 @@ class KarpSets:
             try:
                 with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError  as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -592,9 +595,10 @@ class KarpSets:
                 file_name = input_data
                 with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _, _ = map(int, lines[0].strip().split())
 
@@ -790,9 +794,10 @@ class KarpSets:
             try:
                 with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg) from err
 
             _, num_sets = map(int, lines[0].strip().split())
             sets = []
