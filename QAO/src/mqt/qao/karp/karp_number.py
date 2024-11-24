@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
