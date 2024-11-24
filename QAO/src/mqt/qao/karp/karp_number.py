@@ -53,14 +53,14 @@ class KarpNumber:
     @staticmethod
     def save_solution(
         problem_name: str = "",
-        file_name: str  = "",
+        file_name: str = "",
         solution: str = "",
         summary: str = "",
         txt_outputname: str = "",
     ) -> None:
         """Saves the formatted solution to a specified file."""
         start_str = problem_name + file_name
-        with Path(txt_outputname).open("w") as f:
+        with Path(txt_outputname).open("w", encoding="utf-8") as f:
             f.write(start_str + "\n")
             f.write("=" * (len(start_str)) + "\n")
             f.write(solution + "\n")
