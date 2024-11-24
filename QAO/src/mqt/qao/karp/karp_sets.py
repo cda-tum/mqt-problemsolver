@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Any
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -36,7 +36,7 @@ class KarpSets:
     def set_cover(
         input_data: str | list[tuple[int, list[int]]],
         solve: bool = False,
-        solver_method: Callable | None = None,
+        solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         weighted: bool = False,
         solver_params: dict | None = None,
