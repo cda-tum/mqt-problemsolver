@@ -153,7 +153,11 @@ class KarpNumber:
 
         txt_outputname = "SAT: "
 
-        solution = solver_method(problem)
+
+        if isinstance(problem, Problem):
+            solution = solver_method(problem)
+        else:
+            raise TypeError("Expected `problem` to be of type `Problem`.")
 
         if solution is None or not hasattr(solution, "best_solution"):
             msg = "Solver did not return a valid solution."
@@ -164,7 +168,7 @@ class KarpNumber:
             k.split("_")[-1].replace("!", ""): (1.0 - v if "!" in k else v) for k, v in set_variables.items()
         }
 
-        value_dict = {}
+        value_dict: dict[Any, Any] = {}
         for k, v in output_dict.items():
             value_dict.setdefault(v, []).append(k)
 
@@ -204,7 +208,7 @@ class KarpNumber:
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
-    ) -> Problem | dict[str, float]:
+    ) -> Problem | dict[str, float] | Union[Problem, list[int]]:
         """Initializes and optionally solves the 3-SAT (Satisfiability) problem.
 
         Args:
@@ -238,10 +242,13 @@ class KarpNumber:
                     literals = processed_line.split()
                     clauses.append(literals)
 
-        else:
-            clauses = input_data
+        elif all(isinstance(item, tuple) for item in input_data):
+            # Convert list[tuple[int, int]] to list[list[str]]
+            clauses = [[str(item[0]), str(item[1])] for item in input_data]
             filename = ""
-
+        else:
+            raise ValueError("Invalid input_data type. Expected str or list[tuple[int, int]].")
+        
         graph = KarpNumber._create_graph(clauses)
 
         problem = KarpGraphs.independent_set(graph, solve=False)
@@ -257,7 +264,10 @@ class KarpNumber:
 
         txt_outputname = "3-SAT: "
 
-        solution = solver_method(problem)
+        if isinstance(problem, Problem):
+            solution = solver_method(problem)
+        else:
+            raise TypeError("Expected `problem` to be of type `Problem`.")
 
         if solution is None or not hasattr(solution, "best_solution"):
             msg = "Solver did not return a valid solution."
@@ -268,7 +278,7 @@ class KarpNumber:
             k.split("_")[-1].replace("!", ""): (1.0 - v if "!" in k else v) for k, v in set_variables.items()
         }
 
-        value_dict = {}
+        value_dict: dict[Any, Any] = {}
         for k, v in output_dict.items():
             value_dict.setdefault(v, []).append(k)
 
@@ -303,8 +313,8 @@ class KarpNumber:
 
     @staticmethod
     def check_three_sat_solution(
-        clauses: list[list[str]], solution: dict[str, float]
-    ) -> dict[str, Union[bool, list[list[str]], dict[str, str]]]:
+        clauses: Any, solution: dict[str, float]
+    ) -> dict[Any, Any]:
         """Validates a solution for the 3-SAT problem by checking clause satisfaction."""
         not_satisfied_clauses = []
 
