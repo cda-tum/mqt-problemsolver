@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Union
+from typing import TYPE_CHECKING, Any, Literal
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -209,7 +209,7 @@ class KarpNumber:
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
-    ) -> Problem | dict[str, float] | Union[Problem, list[int]]:
+    ) -> Problem | dict[str, float] | list[int]:
         """Initializes and optionally solves the 3-SAT (Satisfiability) problem.
 
         Args:
