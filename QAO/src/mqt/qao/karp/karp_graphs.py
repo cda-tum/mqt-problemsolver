@@ -375,7 +375,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
         {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
 
         problem = Problem()
@@ -592,7 +592,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
 
         problem = Problem()
         variables = Variables()
@@ -760,7 +760,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
         {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
 
         problem = Problem()
@@ -954,7 +954,7 @@ class KarpGraphs:
             edges = set(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
 
         problem = Problem()
         variables = Variables()
@@ -1089,7 +1089,9 @@ class KarpGraphs:
         return {"Valid Solution": True}
 
     @staticmethod
-    def _hamiltonian_path_tsp(filename: str, cycle: bool = False, a: float = 1, b: float = 1) -> tuple[Any, Any, Any, Any]:
+    def _hamiltonian_path_tsp(
+        filename: str, cycle: bool = False, a: float = 1, b: float = 1
+    ) -> tuple[Any, Any, Any, Any]:
         """Sets up the Hamiltonian path or Travelling Salesman Problem (TSP) as an optimization problem.
 
         Args:
@@ -1129,7 +1131,7 @@ class KarpGraphs:
             edges.add((u, v))
             edges.add((v, u))
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
 
         variables = Variables()
 
@@ -1236,7 +1238,7 @@ class KarpGraphs:
         max_weight = max(weights)
         a = max_weight * b + 1
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
 
         variables = Variables()
 
@@ -1439,7 +1441,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
         {vertex: idx for idx, vertex in enumerate(unique_vertices, 1)}
 
         a = b + 1
@@ -1653,7 +1655,7 @@ class KarpGraphs:
             edges = list(graph.edges())
             unique_vertices = set(graph.nodes())
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
 
         problem = Problem()
         variables = Variables()
@@ -1751,8 +1753,8 @@ class KarpGraphs:
             msg = "'solve' must be True if 'solver_method', 'read_solution', 'solver_params', or 'visualize' are provided."
             raise ValueError(msg)
 
-        unique_vertices:set[Any] = set()
-        edges:list[Any] = []
+        unique_vertices: set[Any] = set()
+        edges: list[Any] = []
 
         if isinstance(input_data, str):
             filename = input_data
@@ -1783,7 +1785,7 @@ class KarpGraphs:
 
         a = b * 3.0
 
-        unique_vertices = set(sorted(unique_vertices))
+        unique_vertices = set(unique_vertices)
 
         variables = Variables()
         y_vars = {v: variables.add_binary_variable(f"y_{v}") for v in unique_vertices}
@@ -2078,9 +2080,7 @@ class KarpGraphs:
         return feedback_edge_set
 
     @staticmethod
-    def check_directed_feedback_edge_set_solution(
-        graph: nx.DiGraph, solution: list[tuple[int, int]]
-    ) -> dict[Any, Any]:
+    def check_directed_feedback_edge_set_solution(graph: nx.DiGraph, solution: list[tuple[int, int]]) -> dict[Any, Any]:
         """Validates a solution for the directed feedback edge set problem, ensuring the removal.
 
         of specified edges results in an acyclic directed graph.

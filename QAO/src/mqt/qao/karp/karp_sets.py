@@ -98,7 +98,7 @@ class KarpSets:
                 unique_elements.update(elements)
             len(unique_elements)
 
-        unique_elements = set(sorted(unique_elements))
+        unique_elements = set(unique_elements)
 
         problem = Problem()
         variables = Variables()
@@ -179,9 +179,7 @@ class KarpSets:
         return solution_sets
 
     @staticmethod
-    def check_set_cover_solution(
-        all_sets: Any, solution: Any
-    ) -> dict[Any, Any]:
+    def check_set_cover_solution(all_sets: Any, solution: Any) -> dict[Any, Any]:
         """Validates a set cover solution by checking if all elements are covered.
 
         Args:
@@ -344,9 +342,7 @@ class KarpSets:
         return solution_sets
 
     @staticmethod
-    def check_set_packing_solution(
-        all_sets: Any, solution: Any
-    ) -> dict[Any, Any]:
+    def check_set_packing_solution(all_sets: Any, solution: Any) -> dict[Any, Any]:
         """Validates a set packing solution by ensuring no sets overlap.
 
         Args:
@@ -710,9 +706,7 @@ class KarpSets:
             pass
 
     @staticmethod
-    def check_three_d_matching(
-        x: list[int], y: list[int], z: list[int], solution: Any
-    ) -> dict[Any, Any]:
+    def check_three_d_matching(x: list[int], y: list[int], z: list[int], solution: Any) -> dict[Any, Any]:
         """Validates a 3D matching solution by ensuring each element in the solution matches exactly one element
 
         from each of the sets x, y, and z, and that there are no repeated or mismatched elements.
@@ -735,11 +729,14 @@ class KarpSets:
 
         """
         used_elements: dict[Any, Any] = {}
-        errors: dict[Any, Any] = {"Invalid Triplets": [], "Non-matching Elements": [], "Repeated Elements": [], "Unused Elements": []}
+        errors: dict[Any, Any] = {
+            "Invalid Triplets": [],
+            "Non-matching Elements": [],
+            "Repeated Elements": [],
+            "Unused Elements": [],
+        }
 
         for triplet in solution:
-            
-
             x1, y1, z1 = triplet
 
             if x1 not in x or y1 not in y or z1 not in z:
@@ -830,7 +827,7 @@ class KarpSets:
                 unique_elements.update(elements)
             len(unique_elements)
 
-        unique_elements = set(sorted(unique_elements))
+        unique_elements = set(unique_elements)
 
         problem = Problem()
         variables = Variables()
@@ -898,9 +895,7 @@ class KarpSets:
         return solution_sets
 
     @staticmethod
-    def check_exact_cover_solution(
-        sets: Any, solution: Any
-    ) -> dict[Any, Any]:
+    def check_exact_cover_solution(sets: Any, solution: Any) -> dict[Any, Any]:
         """Validates an exact cover solution by ensuring each element is covered exactly once
 
         and that there are no overlapping or missing elements.
@@ -984,7 +979,7 @@ class KarpSets:
     def print_solution(
         problem_name: str = "",
         file_name: str = "",
-        solution: str  = "",
+        solution: str = "",
         summary: str = "",
     ) -> None:
         """Prints the formatted solution of a problem to the console.
@@ -1007,7 +1002,7 @@ class KarpSets:
         problem_name: str = "",
         file_name: str = "",
         solution: str = "",
-        summary: str  = "",
+        summary: str = "",
         txt_outputname: str = "",
     ) -> None:
         """Saves the formatted solution of a problem to a specified file.
@@ -1029,7 +1024,7 @@ class KarpSets:
         print(f"Solution written to {txt_outputname}")
 
     @staticmethod
-    def convert_dict_to_string(dictionary: dict [Any, Any]) -> str:
+    def convert_dict_to_string(dictionary: dict[Any, Any]) -> str:
         """Converts a dictionary of solution validation results into a readable string format.
 
         Args:
