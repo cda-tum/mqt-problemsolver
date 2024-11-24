@@ -71,7 +71,8 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -252,7 +253,8 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             _, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -403,7 +405,8 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             _num_elements, num_sets = map(int, lines[0].strip().split())
             sets = []
@@ -594,7 +597,8 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             _, _ = map(int, lines[0].strip().split())
 
@@ -792,7 +796,8 @@ class KarpSets:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             _, num_sets = map(int, lines[0].strip().split())
             sets = []

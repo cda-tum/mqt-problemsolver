@@ -122,7 +122,8 @@ class KarpNumber:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             clauses = []
             for line in lines:
@@ -221,7 +222,8 @@ class KarpNumber:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             clauses = []
             for line in lines:
@@ -356,7 +358,8 @@ class KarpNumber:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             num_variables, num_constraints = map(int, lines[0].strip().split())
             a = num_variables * b + 2 * b
@@ -475,7 +478,8 @@ class KarpNumber:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             num_objects = len(lines)
             weights = []
@@ -600,7 +604,8 @@ class KarpNumber:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             num_elements = int(lines[0].strip())
             elements = [int(lines[i].strip()) for i in range(1, num_elements + 1)]
@@ -768,7 +773,8 @@ class KarpNumber:
                     lines = file.readlines()
             except FileNotFoundError:
                 print(f"Error: File {input_data} not found.")
-                raise FileNotFoundError(f"Error: File {input_data} not found.")
+                msg = f"Error: File {input_data} not found."
+                raise FileNotFoundError(msg)
 
             num_jobs = int(lines[0].strip())
 
