@@ -251,7 +251,7 @@ class KarpSets:
             try:
                 with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError  as err:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
                 msg = f"Error: File {input_data} not found."
                 raise FileNotFoundError(msg) from err
@@ -403,7 +403,7 @@ class KarpSets:
             try:
                 with Path(input_data).open(encoding="utf-8") as file:
                     lines = file.readlines()
-            except FileNotFoundError  as err:
+            except FileNotFoundError as err:
                 print(f"Error: File {input_data} not found.")
                 msg = f"Error: File {input_data} not found."
                 raise FileNotFoundError(msg) from err
