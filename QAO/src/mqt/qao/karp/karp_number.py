@@ -134,7 +134,7 @@ class KarpNumber:
 
         else:
             clauses = input_data
-            filename = ""
+            filename =  ""
         print(clauses)
 
         graph = KarpNumber._create_graph(clauses)
