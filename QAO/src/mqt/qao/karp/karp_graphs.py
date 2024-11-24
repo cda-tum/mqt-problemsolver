@@ -196,6 +196,8 @@ class KarpGraphs:
         txt_outputname = f"Clique-cover with {num_colors} colors: "
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
 
         solution_output = []
@@ -416,6 +418,8 @@ class KarpGraphs:
         txt_outputname = f"{num_colors}-colored Graph: "
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
 
         solution_output = []
@@ -625,6 +629,8 @@ class KarpGraphs:
         txt_outputname = "Vertex Cover: "
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         output_l = "C = {"
         solution_output = [int(var[len("x_") :]) for var, value in set_variables.items() if value == 1.0]
@@ -824,6 +830,8 @@ class KarpGraphs:
         txt_outputname = "Largest Clique: " if k == 0 else str(k) + "-sized Clique: "
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         output_l = "Clique = {"
         solution_output = [int(var[len("x_") :]) for var, value in set_variables.items() if value == 1.0]
@@ -1000,6 +1008,8 @@ class KarpGraphs:
         txt_outputname = "Hamiltonian Cycle: " if cycle else "Hamiltonian Path:"
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_") and v == 1.0}
 
         parsed_pairs = [(int(key.split("_")[1]), int(key.split("_")[2])) for key in set_variables]
@@ -1294,6 +1304,8 @@ class KarpGraphs:
         txt_outputname = "Travelling-Salesman Cycle: " if cycle else "Travelling-Salesman Path:"
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_") and v == 1.0}
         edges_dict = {(u, v): weight for u, v, weight in edges_w}
         parsed_pairs = [(int(key.split("_")[1]), int(key.split("_")[2])) for key in set_variables]
@@ -1461,6 +1473,10 @@ class KarpGraphs:
         txt_outputname = "Maximal Independent Set: "
 
         solution = solver_method(problem, num_reads=500)
+
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+        
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         independent_set = [int(var[len("x_") :]) for var, value in set_variables.items() if value == 1.0]
 
@@ -1669,6 +1685,9 @@ class KarpGraphs:
         txt_outputname = "Max-Cut: "
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+        
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         cut_set = [int(var[len("x_") :]) for var, value in set_variables.items() if value == 1.0]
 
@@ -1812,6 +1831,8 @@ class KarpGraphs:
         txt_outputname = "Feedback Vertex Set: "
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("y_")}
         feedback_vertex_set = [int(var[len("y_") :]) for var, value in set_variables.items() if value == 0.0]
 
@@ -2007,6 +2028,8 @@ class KarpGraphs:
         txt_outputname = "Feedback Edge Set: "
 
         solution = solver_method(problem)
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("y_")}
         feedback_edge_set = [
             (int(var.split("_")[1]), int(var.split("_")[2])) for var, value in set_variables.items() if value == 0.0
