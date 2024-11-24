@@ -739,7 +739,7 @@ class KarpNumber:
     @staticmethod
     def check_number_partition_solution(
         elements: list[int], set_variables: dict[str, float]
-    ) -> dict[str, int | int | bool | list[int]] | dict[str, int]:
+    ) -> dict[str, int | bool | list[int]] | dict[str, int]:
         """Validates a number partition solution by comparing subset sums."""
         set_1 = []
         set_2 = []
