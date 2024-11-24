@@ -153,6 +153,10 @@ class KarpNumber:
         txt_outputname = "SAT: "
 
         solution = solver_method(problem)
+
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         output_dict = {
             k.split("_")[-1].replace("!", ""): (1.0 - v if "!" in k else v) for k, v in set_variables.items()
@@ -252,6 +256,10 @@ class KarpNumber:
         txt_outputname = "3-SAT: "
 
         solution = solver_method(problem)
+        
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         output_dict = {
             k.split("_")[-1].replace("!", ""): (1.0 - v if "!" in k else v) for k, v in set_variables.items()
@@ -411,6 +419,10 @@ class KarpNumber:
             solver_method = partial(solver_method, **solver_params)
         txt_outputname = "Integer Programming: "
         solution = solver_method(problem)
+
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+
         if solution:
             set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
             values_array = [set_variables[f"x_{i + 1}"] for i in range(len(set_variables))]
@@ -535,6 +547,10 @@ class KarpNumber:
 
         txt_outputname = "Knapsack: "
         solution = solver_method(problem)
+
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
 
         selected_items = [
@@ -640,6 +656,10 @@ class KarpNumber:
 
         txt_outputname = "Number Partition: "
         solution = solver_method(problem)
+
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("s_")}
         set_1 = []
         set_2 = []
@@ -840,6 +860,11 @@ class KarpNumber:
 
         txt_outputname = "Job Sequence " + str(m) + " clusters: "
         solution = solver_method(problem)
+
+        if solution is None or not hasattr(solution, "best_solution"):
+            raise ValueError("Solver did not return a valid solution.")
+
+
         set_variables = {k: v for k, v in solution.best_solution.items() if k.startswith("x_")}
         result = defaultdict(list)
 
