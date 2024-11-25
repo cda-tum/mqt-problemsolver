@@ -382,7 +382,6 @@ class KarpSets:
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[int] | list[tuple[int, list[int]]] | list[str | Any]:
-    ) -> Problem | list[int] | list[tuple[int, list[int]]] | list[str | Any]:
         """Initializes and optionally solves a hitting set problem.
 
         Args:
