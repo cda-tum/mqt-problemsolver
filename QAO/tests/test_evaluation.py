@@ -89,7 +89,7 @@ def test_set_cover_empty_input():
 
 def test_set_packing_initialization():
     """Verify that initializing a set packing problem returns a Problem instance without solving it."""
-    input_data = [(1, [1, 2]), (2, [2, 3])]
+    input_data: list[Any] = [(1, [1, 2]), (2, [2, 3])]
     problem = KarpSets.set_packing(input_data, solve=False)
     assert isinstance(problem, Problem), "Expected a Problem instance"
 
