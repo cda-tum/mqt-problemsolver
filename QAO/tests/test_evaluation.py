@@ -223,7 +223,6 @@ def test_three_d_matching_solving_with_graph():
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
 
-
     assert all(isinstance(item, list) and len(item) == 3 for item in solution), (
         "Each solution item should be a tuple of length 3"
     )
@@ -320,7 +319,6 @@ def test_three_sat_solving_basic():
     input_data: list[Any] = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
     solution = KarpNumber.three_sat(input_data, solve=True)
 
-    
     assert isinstance(solution, dict), "Expected a dictionary as the solution"
     assert all(isinstance(value, float) for key, value in solution.items()), (
         "Expected solution to contain variable names as keys and floats as values"
@@ -421,7 +419,7 @@ def test_number_partition_empty_input():
 def test_job_sequencing_initialization():
     """Test the initialization of the job sequencing problem."""
     job_lengths: list[Any] = [3, 1, 2, 2]
-    m:int = 2
+    m: int = 2
     problem = KarpNumber.job_sequencing(job_lengths, m, solve=False)
     assert isinstance(problem, Problem), "Expected a Problem instance for job sequencing initialization"
 
@@ -473,9 +471,7 @@ def test_knapsack_solving_basic():
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
     assert isinstance(solution, list), "Expected a list as the solution"
-    assert all(len(item) == 2 for item in solution), (
-        "Each solution item should be a tuple of (weight, value)"
-    )
+    assert all(len(item) == 2 for item in solution), "Each solution item should be a tuple of (weight, value)"
 
 
 def test_knapsack_solution_optimization():
@@ -519,7 +515,6 @@ def test_knapsack_with_zero_max_weight():
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
 
-
     assert solution == [], "Expected an empty solution when max weight is zero"
 
 
@@ -532,9 +527,9 @@ def test_knapsack_with_large_max_weight():
     if not isinstance(solution, list):
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
-    
-    total_weight:int = sum(item[0] for item in solution)
-    total_value:int = sum(item[1] for item in solution)
+
+    total_weight: int = sum(item[0] for item in solution)
+    total_value: int = sum(item[1] for item in solution)
 
     assert total_weight <= max_weight, "Total weight should not exceed the maximum allowed weight"
     assert total_value <= 20, "Expected total value to be the sum of all item values"
@@ -543,7 +538,7 @@ def test_knapsack_with_large_max_weight():
 def test_clique_initialization():
     """Test the initialization of the clique problem."""
     graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
-    k:int = 3
+    k: int = 3
     problem = KarpGraphs.clique(graph, k=k, solve=False)
 
     assert isinstance(problem, Problem), "Expected a Problem instance for clique initialization"
@@ -552,7 +547,7 @@ def test_clique_initialization():
 def test_clique_solving_basic():
     """Test the basic solving of the clique problem."""
     graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
-    k:int = 3
+    k: int = 3
     solution = KarpGraphs.clique(graph, k=k, solve=True)
 
     if not isinstance(solution, list):
@@ -611,7 +606,7 @@ def test_clique_solution_validation_incorrect():
 def test_clique_empty_graph():
     """Test handling of an empty graph."""
     graph = nx.Graph()
-    k:int = 3
+    k: int = 3
     problem = KarpGraphs.clique(graph, k=k, solve=False)
 
     assert isinstance(problem, Problem), "Expected a Problem instance even with an empty graph"
@@ -621,9 +616,9 @@ def test_clique_single_node_graph():
     """Test a graph with a single node."""
     graph = nx.Graph()
     graph.add_node(1)
-    k:int = 1
+    k: int = 1
     solution = KarpGraphs.clique(graph, k=k, solve=True)
-    
+
     if not isinstance(solution, list):
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
@@ -634,7 +629,7 @@ def test_clique_single_node_graph():
 def test_clique_large_k_value():
     """Test the clique method with a k value larger than the graph's maximum clique size."""
     graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
-    k:int = 2
+    k: int = 2
     solution = KarpGraphs.clique(graph, k=k, solve=True)
 
     if not isinstance(solution, list):
@@ -647,7 +642,7 @@ def test_clique_large_k_value():
 def test_clique_cover_initialization():
     """Test the initialization of the clique cover problem."""
     graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
-    num_colors:int = 2
+    num_colors: int = 2
     problem = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=False)
 
     assert isinstance(problem, Problem), "Expected a Problem instance for clique cover initialization"
@@ -656,7 +651,7 @@ def test_clique_cover_initialization():
 def test_clique_cover_solving_basic():
     """Test the basic solving of the clique cover problem."""
     graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5)])
-    num_colors:int = 2
+    num_colors: int = 2
     solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
 
     if not isinstance(solution, list):
@@ -672,7 +667,7 @@ def test_clique_cover_solving_basic():
 def test_clique_cover_solution_num_colors():
     """Test that the solution uses the correct number of colors."""
     graph = nx.Graph([(1, 2), (2, 3), (3, 1), (4, 5), (5, 6)])
-    num_colors:int = 2
+    num_colors: int = 2
     solution = KarpGraphs.clique_cover(graph, num_colors=num_colors, solve=True)
 
     if not isinstance(solution, list):
@@ -993,7 +988,7 @@ def test_independent_set_disconnected_graph():
     """Test independent set on a disconnected graph."""
     graph = nx.Graph([(1, 2), (3, 4)])
     solution = KarpGraphs.independent_set(graph, solve=True)
-    
+
     if not isinstance(solution, list):
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
@@ -1109,7 +1104,7 @@ def test_directed_feedback_vertex_set_minimal_size():
     """Test that the solution provides a minimal feedback vertex set."""
     graph = nx.DiGraph([(1, 2), (2, 3), (3, 1), (2, 4)])
     solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
-    
+
     if not isinstance(solution, list):
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
@@ -1221,7 +1216,6 @@ def test_directed_feedback_edge_set_validity():
     if not isinstance(solution, list):
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
-    
 
     validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
     assert validation["Valid Solution"], "Expected the solution to be a valid feedback edge set"
@@ -1246,10 +1240,7 @@ def test_directed_feedback_edge_set_solution_correct():
 
     validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
 
-    
     assert validation["Valid Solution"], "Expected a valid solution for the disconnected graph"
-
-    
 
 
 def test_directed_feedback_edge_set_solution_incorrect():
@@ -1257,10 +1248,8 @@ def test_directed_feedback_edge_set_solution_incorrect():
     graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
     solution = [(1, 3)]
     validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
-    
+
     assert validation["Valid Solution"], "Expected a valid solution for the disconnected graph"
-
-
 
 
 def test_directed_feedback_edge_set_no_cycles():
@@ -1279,7 +1268,7 @@ def test_directed_feedback_edge_set_multiple_cycles():
     """Test the feedback edge set on a graph with multiple cycles."""
     graph = nx.DiGraph([(1, 2), (2, 1), (2, 3), (3, 2)])
     solution = KarpGraphs.directed_feedback_edge_set(graph, solve=True)
-    
+
     if not isinstance(solution, list):
         msg = f"Expected solution to be a list, but got {type(solution).__name__}"
         raise TypeError(msg)
@@ -1299,9 +1288,9 @@ def test_directed_feedback_edge_set_disconnected_graph():
     else:
         msg = "Expected list[tuple[int, int]] but got another type"
         raise TypeError(msg)
-    
+
     assert validation["Valid Solution"], "Expected the solution to be valid for disconnected graph"
-   
+
 
 def test_directed_feedback_edge_set_single_node():
     """Test the feedback edge set on a graph with a single node."""

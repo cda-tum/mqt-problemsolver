@@ -652,7 +652,7 @@ class KarpSets:
             else:
                 msg = "Expected a Problem instance, got a different type."
                 raise TypeError(msg)
-            
+
             if solution is None or not hasattr(solution, "best_solution"):
                 msg = "Solver did not return a valid solution."
                 raise ValueError(msg)
