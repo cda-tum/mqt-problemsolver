@@ -798,7 +798,7 @@ class KarpNumber:
         read_solution: Literal["print", "file"] | None = None,
         solver_params: dict[str, Any] | None = None,
     ) -> Problem | list[list[int]]:
-        """Initializes and optionally solves a job sequencing problem to minimize scheduling conflicts. Pattern check for files is not included."""
+        """Initializes and optionally solves a job sequencing problem to minimize scheduling conflicts. Pattern check for files is not included"""
         if any([solver_method is not None, read_solution is not None, solver_params is not None]) and not solve:
             msg = "'solve' must be True if 'solver_method', 'read_solution', or 'solver_params' are provided."
             raise ValueError(msg)
