@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
-import networkx as nx
 import numpy as np
 import pytest
 
@@ -14,7 +13,6 @@ from qubovert import PUBO, boolean_var
 from sympy import Expr
 
 from mqt.qao.constraints import Constraints
-from mqt.qao.karp import KarpGraphs, KarpNumber, KarpSets
 from mqt.qao.objectivefunction import ObjectiveFunction
 from mqt.qao.problem import Problem
 from mqt.qao.solvers import Solution, Solver
@@ -31,6 +29,7 @@ def test_binary_only() -> None:
     post_dict = variables.binary_variables_name_weight
     print(post_dict)
     assert post_dict == {"a": (boolean_var("b0"),), "A_0": (boolean_var("b1"),), "A_1": (boolean_var("b2"),)}
+
 
 def test_spin_only() -> None:
     """Test only the construction of spin variables"""

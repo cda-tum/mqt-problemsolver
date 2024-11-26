@@ -268,5 +268,3 @@ def test_knapsack_with_large_max_weight():
 
     assert total_weight <= max_weight, "Total weight should not exceed the maximum allowed weight"
     assert total_value <= 20, "Expected total value to be the sum of all item values"
-
- 
