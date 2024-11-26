@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class KarpNumber:
     """Provides static methods to define and solve a variety of NP-complete problems.
 
-    including SAT, 3-SAT, integer programming, knapsack, number partition, and job sequencing.
+    Contains problem definitions and solution methods for SAT, 3-SAT, integer programming, knapsack, number partition, and job sequencing.
     Uses graph-based representations and solvers for quantum-inspired optimization.
     """
 
@@ -315,7 +315,9 @@ class KarpNumber:
         return output_dict
 
     @staticmethod
-    def check_three_sat_solution(clauses: Any, solution: dict[str, float]) -> dict[Any, Any]:
+    def check_three_sat_solution(
+        clauses: list[list[str]], solution: dict[str, float]
+    ) -> dict[Any, Any]:
         """Validates a solution for the 3-SAT problem by checking clause satisfaction."""
         not_satisfied_clauses = []
 
