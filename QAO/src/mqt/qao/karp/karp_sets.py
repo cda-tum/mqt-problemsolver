@@ -344,7 +344,9 @@ class KarpSets:
         return solution_sets
 
     @staticmethod
-    def check_set_packing_solution(all_sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]) -> dict[Any, Any]:
+    def check_set_packing_solution(
+        all_sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]
+    ) -> dict[Any, Any]:
         """Validates a set packing solution by ensuring no sets overlap.
 
         Args:
@@ -525,9 +527,7 @@ class KarpSets:
             pass
 
     @staticmethod
-    def check_hitting_set_solution(
-        sets: list[tuple[int, list[int]]], solution: list[int]
-    ) -> dict[Any, Any]:
+    def check_hitting_set_solution(sets: list[tuple[int, list[int]]], solution: list[int]) -> dict[Any, Any]:
         """Validates a hitting set solution by ensuring that each set is "hit" by at least one element in the solution.
 
         Args:
@@ -717,7 +717,9 @@ class KarpSets:
             pass
 
     @staticmethod
-    def check_three_d_matching(x: list[int], y: list[int], z: list[int], solution: list[tuple[int, int, int]]) -> dict[Any, Any]:
+    def check_three_d_matching(
+        x: list[int], y: list[int], z: list[int], solution: list[tuple[int, int, int]]
+    ) -> dict[Any, Any]:
         """Validates a 3D matching solution by ensuring each element in the solution matches exactly one element
 
         from each of the sets x, y, and z, and that there are no repeated or mismatched elements.
@@ -906,7 +908,9 @@ class KarpSets:
         return solution_sets
 
     @staticmethod
-    def check_exact_cover_solution(sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]) -> dict[Any, Any]:
+    def check_exact_cover_solution(
+        sets: list[tuple[int, list[int]]], solution: list[tuple[int, list[int]]]
+    ) -> dict[Any, Any]:
         """Validates an exact cover solution by ensuring each element is covered exactly once
 
         and that there are no overlapping or missing elements.

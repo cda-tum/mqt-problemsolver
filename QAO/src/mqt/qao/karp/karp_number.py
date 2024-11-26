@@ -315,9 +315,7 @@ class KarpNumber:
         return output_dict
 
     @staticmethod
-    def check_three_sat_solution(
-        clauses: list[list[str]], solution: dict[str, float]
-    ) -> dict[Any, Any]:
+    def check_three_sat_solution(clauses: list[list[str]], solution: dict[str, float]) -> dict[Any, Any]:
         """Validates a solution for the 3-SAT problem by checking clause satisfaction."""
         not_satisfied_clauses = []
 
