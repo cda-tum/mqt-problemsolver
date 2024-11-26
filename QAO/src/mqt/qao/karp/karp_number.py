@@ -93,7 +93,7 @@ class KarpNumber:
 
     @staticmethod
     def sat(
-        input_data: str | list[tuple[int, int]],
+        input_data: str | list[list[str]],
         solve: bool = False,
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
@@ -133,7 +133,7 @@ class KarpNumber:
                     clauses.append(literals)
         elif all(isinstance(item, tuple) for item in input_data):
             # Convert list[tuple[int, int]] to list[list[str]]
-            clauses = [[str(item[0]), str(item[1])] for item in input_data]
+            clauses = input_data
             filename = ""
         else:
             msg = "Invalid input_data type. Expected str or list[tuple[int, int]]."
@@ -208,7 +208,7 @@ class KarpNumber:
 
     @staticmethod
     def three_sat(
-        input_data: str | list[tuple[int, int]],
+        input_data: str | list[list[str]],
         solve: bool = False,
         solver_method: Callable[..., Any] | None = None,
         read_solution: Literal["print", "file"] | None = None,
@@ -249,7 +249,7 @@ class KarpNumber:
 
         elif all(isinstance(item, tuple) for item in input_data):
             # Convert list[tuple[int, int]] to list[list[str]]
-            clauses = [[str(item[0]), str(item[1])] for item in input_data]
+            clauses = input_data
             filename = ""
         else:
             msg = "Invalid input_data type. Expected str or list[tuple[int, int]]."
