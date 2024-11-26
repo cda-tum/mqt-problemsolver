@@ -178,7 +178,7 @@ class KarpSets:
                 KarpSets.set_to_string(solution_sets, weighted),
                 KarpSets.convert_dict_to_string(KarpSets.check_set_cover_solution(input_data, solution_sets)),
                 file_name.replace(".txt", "") + "_set_cover_solution" + ".txt"
-                if file_name 
+                if file_name
                 else "set_cover_solution.txt",
             )
 
