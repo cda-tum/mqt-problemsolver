@@ -197,7 +197,7 @@ class KarpSets:
 
         Returns:
             dict[str, bool | dict[str, list]]: Returns a dictionary with a validation status ("Valid Solution" key)
-            and any errors, such as uncovered elements or missing sets.
+            and any errors, such as uncovered elements or missing  sets.
         """
         errors: dict[Any, Any] = {"Missing Sets": [], "Uncovered Elements": []}
 
