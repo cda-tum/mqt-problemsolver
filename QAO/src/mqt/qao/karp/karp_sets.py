@@ -348,7 +348,7 @@ class KarpSets:
                 file_name,
                 KarpSets.set_to_string(solution_sets, False),
                 KarpSets.convert_dict_to_string(KarpSets.check_set_packing_solution(input_data, solution_sets)),
-                txt_outputname = "set_packing_solution.txt",
+                txt_outputname="set_packing_solution.txt",
             )
 
         return solution_sets
@@ -513,8 +513,7 @@ class KarpSets:
                 if not isinstance(input_data, list) or not isinstance(solution_set, list):
                     msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
                     raise TypeError(msg)
-                
-            
+
                 KarpSets.print_solution(
                     "Hitting Set Solution: ",
                     file_name,
@@ -534,7 +533,7 @@ class KarpSets:
                     summary="Valid Solution"
                     if KarpSets.check_hitting_set_solution(input_data, solution_set)
                     else "Invalid Solution",
-                    txt_outputname = "hitting_set_solution.txt",
+                    txt_outputname="hitting_set_solution.txt",
                 )
 
             return solution_set
@@ -710,7 +709,6 @@ class KarpSets:
                 plt.show()
 
             if read_solution == "print":
-                
                 KarpSets.print_solution(
                     "3D Matching Solution: ",
                     file_name,
@@ -906,8 +904,8 @@ class KarpSets:
 
         if read_solution == "print":
             if not isinstance(input_data, list):
-                    msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
-                    raise TypeError(msg)
+                msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                raise TypeError(msg)
             KarpSets.print_solution(
                 "Exact Cover Solution: ",
                 filename,
@@ -915,7 +913,6 @@ class KarpSets:
                 KarpSets.convert_dict_to_string(KarpSets.check_exact_cover_solution(input_data, solution_sets)),
             )
         elif read_solution == "file":
-           
             KarpSets.save_solution(
                 "Exact Cover Solution: ",
                 filename,
