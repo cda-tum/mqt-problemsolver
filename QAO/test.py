@@ -9,6 +9,7 @@ import os
 # from src import Constraints, ObjectiveFunction, Problem, Solver, Variables
 import networkx as nx
 import numpy as np
+
 from src.mqt.karp.karp_graphs import Karp_Graphs
 from src.mqt.karp.karp_number import Karp_Number
 
@@ -59,7 +60,7 @@ def create_qubo():
     return problem
 
 
-def test_qubo():
+def test_qubo() -> None:
     qubo_problem = create_qubo()
 
     solver = Solver()
@@ -75,7 +76,7 @@ def test_qubo():
         print("No valid solution found")
 
 
-def test_graph_coloring():
+def test_graph_coloring() -> None:
     input_content = """4 4
 10 2
 10 3
@@ -84,7 +85,7 @@ def test_graph_coloring():
 """
     input_filename = "mock_graph_coloring_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -108,7 +109,7 @@ def test_graph_coloring():
         os.remove(input_filename)
 
 
-def test_vertex_cover():
+def test_vertex_cover() -> None:
     input_content = """5 6
 1 2
 1 3
@@ -119,7 +120,7 @@ def test_vertex_cover():
 """
     input_filename = "mock_vertex_cover_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -140,7 +141,7 @@ def test_vertex_cover():
         os.remove(input_filename)
 
 
-def test_clique():
+def test_clique() -> None:
     input_content = """5 7
 100 2
 100 3
@@ -152,7 +153,7 @@ def test_clique():
 """
     input_filename = "mock_clique_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -174,7 +175,7 @@ def test_clique():
         os.remove(input_filename)
 
 
-def test_hamiltonian_path():
+def test_hamiltonian_path() -> None:
     input_content = """6 6
 1 2
 2 3
@@ -185,7 +186,7 @@ def test_hamiltonian_path():
 """
     input_filename = "mock_hamiltonian_cycle_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -216,7 +217,7 @@ def test_hamiltonian_path():
         os.remove(input_filename)
 
 
-def test_independent_set():
+def test_independent_set() -> None:
     input_content = """4 4
 10 2
 10 3
@@ -225,7 +226,7 @@ def test_independent_set():
 """
     input_filename = "mock_independent_set_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -247,7 +248,7 @@ def test_independent_set():
         os.remove(input_filename)
 
 
-def test_minimal_spanning_tree():
+def test_minimal_spanning_tree() -> None:
     input_content = """4 5
 1 2 1
 1 3 10
@@ -257,7 +258,7 @@ def test_minimal_spanning_tree():
 """
     input_filename = "mock_minimal_spanning_tree_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -283,7 +284,7 @@ def test_minimal_spanning_tree():
         os.remove(input_filename)
 
 
-def test_integer_programming():
+def test_integer_programming() -> None:
     input_content = """3 2
 1 0 1
 0 1 1
@@ -292,7 +293,7 @@ def test_integer_programming():
 """
     input_filename = "mock_integer_programming_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -314,7 +315,7 @@ def test_integer_programming():
         os.remove(input_filename)
 
 
-def test_knapsack():
+def test_knapsack() -> None:
     input_content = """5 10
 4 40
 6 30
@@ -323,7 +324,7 @@ def test_knapsack():
 """
     input_filename = "mock_knapsack_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -348,7 +349,7 @@ def test_knapsack():
         os.remove(input_filename)
 
 
-def test_set_problems():
+def test_set_problems() -> None:
     input_content = """5 3
 20 2 1 2
 200 2 2 3
@@ -366,10 +367,10 @@ def test_set_problems():
 """
     inputfile = "mock_inpuhgdghdft.txt"
 
-    with open(inputfile, "w") as file:
+    with open(inputfile, "w", encoding="utf-8") as file:
         file.write(input_file_content)
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     input_file_content = """6 6
@@ -381,7 +382,7 @@ def test_set_problems():
 1 5
 """
     inputfile_3d = "mock_input_3d_matching.txt"
-    with open(inputfile_3d, "w") as file:
+    with open(inputfile_3d, "w", encoding="utf-8") as file:
         file.write(input_file_content)
 
     try:
@@ -401,46 +402,44 @@ def test_set_problems():
 
         # Adding edges to the graph (example graph)
         G = nx.Graph()
-        G.add_edges_from(
-            [
-                (5, 8),
-                (1, 8),
-                (2, 9),
-                (2, 10),
-                (3, 11),
-                (3, 12),
-                (4, 7),
-                (4, 11),
-                (5, 11),
-                (5, 16),
-                (6, 17),
-                (6, 18),
-                (7, 19),
-                (8, 20),
-                (9, 21),
-                (10, 22),
-                (11, 23),
-                (12, 24),
-                (13, 25),
-                (9, 19),
-                (8, 24),
-                (16, 28),
-                (17, 29),
-                (18, 30),
-                (19, 31),
-                (20, 32),
-                (21, 33),
-                (22, 34),
-                (23, 35),
-                (24, 36),
-                (25, 37),
-                (26, 38),
-                (27, 39),
-                (28, 40),
-                (29, 41),
-                (30, 42),
-            ]
-        )
+        G.add_edges_from([
+            (5, 8),
+            (1, 8),
+            (2, 9),
+            (2, 10),
+            (3, 11),
+            (3, 12),
+            (4, 7),
+            (4, 11),
+            (5, 11),
+            (5, 16),
+            (6, 17),
+            (6, 18),
+            (7, 19),
+            (8, 20),
+            (9, 21),
+            (10, 22),
+            (11, 23),
+            (12, 24),
+            (13, 25),
+            (9, 19),
+            (8, 24),
+            (16, 28),
+            (17, 29),
+            (18, 30),
+            (19, 31),
+            (20, 32),
+            (21, 33),
+            (22, 34),
+            (23, 35),
+            (24, 36),
+            (25, 37),
+            (26, 38),
+            (27, 39),
+            (28, 40),
+            (29, 41),
+            (30, 42),
+        ])
 
         # Define the sets X, Y, Z
 
@@ -503,7 +502,7 @@ def feedback_arc_set_to_feedback_node_set(G):
         G_prime.add_edge(u_expanded, v_expanded)
 
         # Map original edge to the corresponding edge in G'
-        edge_to_expanded_edge_map[(u, v)] = (u_expanded, v_expanded)
+        edge_to_expanded_edge_map[u, v] = (u_expanded, v_expanded)
 
     # Create the line graph of G_prime
     line_G_prime = nx.line_graph(G_prime)
@@ -533,7 +532,7 @@ def interpret_feedback_vertex_set(feedback_edge_set, line_node_to_edge_map, expa
     return original_vertices
 
 
-def test_graphs():
+def test_graphs() -> None:
     input_content = """6 7
 1 2
 1 3
@@ -545,7 +544,7 @@ def test_graphs():
 """
     input_filename = "mock_clique_cover_inkut.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -645,9 +644,9 @@ def test_graphs():
 5 6 1
 1 3 1
 """
-        input_filename = "mock_travelling_salesman_inpu4t.txt"
+        input_filename = "mock_travelling_salesman_input4t.txt"
 
-        with open(input_filename, "w") as file:
+        with open(input_filename, "w", encoding="utf-8") as file:
             file.write(input_content)
         # 14
         # print(Karp_Graphs.travelling_salesman(G, solve=True, cycle=False, read_solution="print", visualize=True))
@@ -780,7 +779,7 @@ def test_graphs():
                 EnSimulated = solution_sa.energies
 
                 # Plot the cumulative distribution of Simulated Annealing energies
-                n, bins, patches = plt.hist(
+                _n, _bins, _patches = plt.hist(
                     EnSimulated, cumulative=True, histtype="step", linewidth=2, bins=100, label=params["label"]
                 )
 
@@ -826,7 +825,7 @@ def create_fully_connected_graph(n):
     # Optionally, you can plot the graph to visualize it
 
 
-def test_number_partition():
+def test_number_partition() -> None:
     input_content = """10
 5
 3
@@ -841,7 +840,7 @@ def test_number_partition():
 """
     input_filename = "mock_number_partition_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -868,7 +867,7 @@ def test_number_partition():
         os.remove(input_filename)
 
 
-def test_travelling_salesman():
+def test_travelling_salesman() -> None:
     input_content = """4 6
 1 2 1
 1 3 20
@@ -879,7 +878,7 @@ def test_travelling_salesman():
 """
     input_filename = "mock_travelling_salesman_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -942,7 +941,7 @@ def test_travelling_salesman():
         os.remove(input_filename)
 
 
-def test_job_sequencing():
+def test_job_sequencing() -> None:
     input_content = """4
 1
 2
@@ -951,7 +950,7 @@ def test_job_sequencing():
 """
     input_filename = "mock_job_sequencing_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -976,7 +975,7 @@ def test_job_sequencing():
         os.remove(input_filename)
 
 
-def test_max_cut():
+def test_max_cut() -> None:
     input_content = """5 6
 10 20
 10 30
@@ -987,7 +986,7 @@ def test_max_cut():
 """
     input_filename = "mock_clique_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -1009,7 +1008,7 @@ def test_max_cut():
         os.remove(input_filename)
 
 
-def test_hitting_set():
+def test_hitting_set() -> None:
     input_content = """3 3
 20 2 1000
 20 1 40
@@ -1017,7 +1016,7 @@ def test_hitting_set():
 """
     input_filename = "mock_hitting_set_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -1043,7 +1042,7 @@ def test_hitting_set():
         os.remove(input_filename)
 
 
-def test_directed_feedback_vertex_and_edge_set():
+def test_directed_feedback_vertex_and_edge_set() -> None:
     input_content = """4 5
 10 20 1
 20 10 1
@@ -1053,7 +1052,7 @@ def test_directed_feedback_vertex_and_edge_set():
 """
     input_filename = "mock_directed_feedback_set_input.txt"
 
-    with open(input_filename, "w") as file:
+    with open(input_filename, "w", encoding="utf-8") as file:
         file.write(input_content)
 
     try:
@@ -1078,7 +1077,7 @@ def test_directed_feedback_vertex_and_edge_set():
         os.remove(input_filename)
 
 
-def test_3d_matching():
+def test_3d_matching() -> None:
     input_file_content = """6 6
 1 3
 3 5
@@ -1091,7 +1090,7 @@ def test_3d_matching():
     Y = [3, 4]
     Z = [5, 6]
     inputfile = "mock_input_3d_matching.txt"
-    with open(inputfile, "w") as file:
+    with open(inputfile, "w", encoding="utf-8") as file:
         file.write(input_file_content)
 
     try:
@@ -1105,9 +1104,6 @@ def test_3d_matching():
 
     finally:
         os.remove(inputfile)
-
-
-import networkx as nx
 
 
 def create_graph(clauses):
@@ -1175,7 +1171,7 @@ def graph_to_text(G):
     return result, node_to_num
 
 
-def test_set_problems():
+def test_set_problems() -> None:
     print("1. Testing Set Cover Problem")
     set_cover_input = [(1, [1, 2, 3]), (1, [3, 4]), (1, [3, 4, 5]), (1, [3, 5])]
     set_cover_result = Karp_Sets.set_cover(set_cover_input, solve=True, read_solution="print", weighted=False)
@@ -1211,7 +1207,6 @@ def test_set_problems():
 
 
 import matplotlib.pyplot as plt
-import networkx as nx
 
 
 # Function to create a fully connected graph with n vertices
@@ -1229,7 +1224,7 @@ def create_fully_connected_graph(n):
 
 
 # Simulated Annealing experiment
-def run_simulated_annealing_experiment(num_graphs):
+def run_simulated_annealing_experiment(num_graphs) -> None:
     """
     Runs Simulated Annealing on num_graphs fully connected graphs and tests different parameter variations.
 
@@ -1363,7 +1358,7 @@ def run_simulated_annealing_experiment(num_graphs):
                 # EnSimulated = [e + np.random.uniform(-0.01, 0.01) for e in EnSimulated]
 
                 # Plot the cumulative distribution of Simulated Annealing energies
-                n, bins, patches = plt.hist(
+                _n, _bins, _patches = plt.hist(
                     EnSimulated,
                     cumulative=True,
                     histtype="step",
@@ -1409,7 +1404,7 @@ def generate_random_problem(n):
 
 
 # Simulated Annealing experiment
-def run_simulated_annealing_experiment_integer(num_graphs):
+def run_simulated_annealing_experiment_integer(num_graphs) -> None:
     """
     Runs Simulated Annealing on num_graphs fully connected graphs and tests different parameter variations.
 
@@ -1490,7 +1485,7 @@ def run_simulated_annealing_experiment_integer(num_graphs):
                 # EnSimulated = [e + np.random.uniform(-0.01, 0.01) for e in EnSimulated]
 
                 # Plot the cumulative distribution of Simulated Annealing energies
-                n, bins, patches = plt.hist(
+                _n, _bins, _patches = plt.hist(
                     EnSimulated,
                     cumulative=True,
                     histtype="step",
@@ -1540,7 +1535,7 @@ result = create_sets(n)
 print(result)
 
 
-def run_simulated_annealing_experiment_sets(num_graphs):
+def run_simulated_annealing_experiment_sets(num_graphs) -> None:
     """
     Runs Simulated Annealing on num_graphs fully connected graphs and tests different parameter variations.
 
@@ -1621,7 +1616,7 @@ def run_simulated_annealing_experiment_sets(num_graphs):
                 # EnSimulated = [e + np.random.uniform(-0.01, 0.01) for e in EnSimulated]
 
                 # Plot the cumulative distribution of Simulated Annealing energies
-                n, bins, patches = plt.hist(
+                _n, _bins, _patches = plt.hist(
                     EnSimulated,
                     cumulative=True,
                     histtype="step",
