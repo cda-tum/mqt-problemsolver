@@ -183,7 +183,7 @@ class KarpNumber:
             if not isinstance(input_data, list):
                 msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
                 raise TypeError(msg)
-            
+
             KarpNumber.print_solution(
                 txt_outputname,
                 filename,
@@ -191,7 +191,6 @@ class KarpNumber:
                 summary=KarpNumber.convert_dict_to_string(KarpNumber.check_three_sat_solution(clauses, output_dict)),
             )
         elif read_solution == "file":
-  
             output_filename = (
                 filename.replace(".txt", "") + "_3sat_solution.txt"
                 if isinstance(input_data, str)
