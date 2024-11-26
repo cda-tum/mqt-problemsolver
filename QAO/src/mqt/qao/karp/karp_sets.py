@@ -159,6 +159,9 @@ class KarpSets:
         ]
 
         if read_solution == "print":
+            if not isinstance(input_data, list):
+                msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                raise TypeError(msg)
             KarpSets.print_solution(
                 "Set Cover Solution: ",
                 file_name,
@@ -166,13 +169,16 @@ class KarpSets:
                 KarpSets.convert_dict_to_string(KarpSets.check_set_cover_solution(input_data, solution_sets)),
             )
         elif read_solution == "file":
+            if not isinstance(input_data, list):
+                msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                raise TypeError(msg)
             KarpSets.save_solution(
                 "Set Cover Solution: ",
                 file_name,
                 KarpSets.set_to_string(solution_sets, weighted),
                 KarpSets.convert_dict_to_string(KarpSets.check_set_cover_solution(input_data, solution_sets)),
-                input_data.replace(".txt", "") + "_set_cover_solution" + ".txt"
-                if isinstance(input_data, str)
+                file_name.replace(".txt", "") + "_set_cover_solution" + ".txt"
+                if file_name != ""
                 else "set_cover_solution.txt",
             )
 
@@ -324,6 +330,9 @@ class KarpSets:
         ]
 
         if read_solution == "print":
+            if not isinstance(input_data, list):
+                msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                raise TypeError(msg)
             KarpSets.print_solution(
                 "Set Packing Solution: ",
                 file_name,
@@ -331,14 +340,15 @@ class KarpSets:
                 KarpSets.convert_dict_to_string(KarpSets.check_set_packing_solution(input_data, solution_sets)),
             )
         elif read_solution == "file":
+            if not isinstance(input_data, list):
+                msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                raise TypeError(msg)
             KarpSets.save_solution(
                 "Set Packing Solution: ",
                 file_name,
                 KarpSets.set_to_string(solution_sets, False),
                 KarpSets.convert_dict_to_string(KarpSets.check_set_packing_solution(input_data, solution_sets)),
-                txt_outputname=input_data.replace(".txt", "") + "_set_packing_solution" + ".txt"
-                if isinstance(input_data, str)
-                else "set_packing_solution.txt",
+                txt_outputname = "set_packing_solution.txt",
             )
 
         return solution_sets
@@ -500,6 +510,11 @@ class KarpSets:
             mapped_array = [element_index_map.get(item) for item in solution_set]
 
             if read_solution == "print":
+                if not isinstance(input_data, list) or not isinstance(solution_set, list):
+                    msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                    raise TypeError(msg)
+                
+            
                 KarpSets.print_solution(
                     "Hitting Set Solution: ",
                     file_name,
@@ -509,6 +524,9 @@ class KarpSets:
                     else "Invalid Solution",
                 )
             elif read_solution == "file":
+                if not isinstance(input_data, list) or not isinstance(solution_set, list):
+                    msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                    raise TypeError(msg)
                 KarpSets.save_solution(
                     "Hitting Set Solution: ",
                     file_name,
@@ -516,9 +534,7 @@ class KarpSets:
                     summary="Valid Solution"
                     if KarpSets.check_hitting_set_solution(input_data, solution_set)
                     else "Invalid Solution",
-                    txt_outputname=input_data.replace(".txt", "") + "_hitting_set_solution" + ".txt"
-                    if isinstance(input_data, str)
-                    else "hitting_set_solution.txt",
+                    txt_outputname = "hitting_set_solution.txt",
                 )
 
             return solution_set
@@ -694,6 +710,7 @@ class KarpSets:
                 plt.show()
 
             if read_solution == "print":
+                
                 KarpSets.print_solution(
                     "3D Matching Solution: ",
                     file_name,
@@ -718,7 +735,7 @@ class KarpSets:
 
     @staticmethod
     def check_three_d_matching(
-        x: list[int], y: list[int], z: list[int], solution: list[tuple[int, int, int]]
+        x: list[int], y: list[int], z: list[int], solution: list[list[int]] | list[tuple[int, int, int]]
     ) -> dict[Any, Any]:
         """Validates a 3D matching solution by ensuring each element in the solution matches exactly one element
 
@@ -888,6 +905,9 @@ class KarpSets:
         ]
 
         if read_solution == "print":
+            if not isinstance(input_data, list):
+                    msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                    raise TypeError(msg)
             KarpSets.print_solution(
                 "Exact Cover Solution: ",
                 filename,
@@ -895,14 +915,13 @@ class KarpSets:
                 KarpSets.convert_dict_to_string(KarpSets.check_exact_cover_solution(input_data, solution_sets)),
             )
         elif read_solution == "file":
+           
             KarpSets.save_solution(
                 "Exact Cover Solution: ",
                 filename,
                 KarpSets.set_to_string(solution_sets, False),
-                KarpSets.convert_dict_to_string(KarpSets.check_exact_cover_solution(input_data, solution_sets)),
-                input_data.replace(".txt", "") + "_exact_cover_solution" + ".txt"
-                if isinstance(input_data, str)
-                else "exact_cover_solution.txt",
+                KarpSets.convert_dict_to_string(KarpSets.check_exact_cover_solution(sets, solution_sets)),
+                "exact_cover_solution.txt",
             )
 
         return solution_sets

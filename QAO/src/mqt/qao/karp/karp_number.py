@@ -180,13 +180,18 @@ class KarpNumber:
         result_string = "\n".join(result_list)
 
         if read_solution == "print":
+            if not isinstance(input_data, list):
+                msg = f"Expected input_data to be a list, but got {type(input_data).__name__}"
+                raise TypeError(msg)
+            
             KarpNumber.print_solution(
                 txt_outputname,
                 filename,
                 result_string,
-                summary=KarpNumber.convert_dict_to_string(KarpNumber.check_three_sat_solution(input_data, output_dict)),
+                summary=KarpNumber.convert_dict_to_string(KarpNumber.check_three_sat_solution(clauses, output_dict)),
             )
         elif read_solution == "file":
+  
             output_filename = (
                 filename.replace(".txt", "") + "_3sat_solution.txt"
                 if isinstance(input_data, str)
@@ -196,7 +201,7 @@ class KarpNumber:
                 txt_outputname,
                 filename,
                 result_string,
-                summary=KarpNumber.convert_dict_to_string(KarpNumber.check_three_sat_solution(input_data, output_dict)),
+                summary=KarpNumber.convert_dict_to_string(KarpNumber.check_three_sat_solution(clauses, output_dict)),
                 txt_outputname=output_filename,
             )
 
