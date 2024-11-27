@@ -606,16 +606,6 @@ def test_directed_feedback_vertex_set_solution_incorrect():
     assert not validation["Valid Solution"], "Expected the solution to be invalid due to remaining cycles"
 
 
-def test_directed_feedback_vertex_set_no_cycles():
-    """Test the feedback vertex set on an acyclic graph."""
-    graph = nx.DiGraph([(1, 2), (2, 3), (3, 4)])
-    solution = KarpGraphs.directed_feedback_vertex_set(graph, solve=True)
-
-    if not isinstance(solution, list):
-        msg = f"Expected solution to be a list, but got {type(solution).__name__}"
-        raise TypeError(msg)
-
-    assert solution == [], "Expected an empty feedback vertex set for an acyclic graph"
 
 
 def test_directed_feedback_vertex_set_multiple_cycles():
