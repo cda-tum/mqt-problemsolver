@@ -244,10 +244,9 @@ class KarpNumber:
                     literals = processed_line.split()
                     clauses.append(literals)
 
-        elif isinstance(input_data, list):            # Convert list[tuple[int, int]] to list[list[str]]
+        elif isinstance(input_data, list):  # Convert list[tuple[int, int]] to list[list[str]]
             clauses = input_data
             filename = ""
-
 
         graph = KarpNumber._create_graph(clauses)
 
