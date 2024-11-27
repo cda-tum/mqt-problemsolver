@@ -248,3 +248,5 @@ def test_hitting_set_empty_input():
     input_data: list[Any] = []
     problem = KarpSets.hitting_set(input_data, solve=False)
     assert isinstance(problem, Problem), "Expected a Problem instance even with empty input"
+
+

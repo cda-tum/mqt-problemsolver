@@ -131,13 +131,10 @@ class KarpNumber:
                 if line:
                     literals = newline.split()
                     clauses.append(literals)
-        elif all(isinstance(item, tuple) for item in input_data):
+        elif isinstance(input_data, list):
             # Convert list[tuple[int, int]] to list[list[str]]
             clauses = input_data
             filename = ""
-        else:
-            msg = "Invalid input_data type. Expected str or list[tuple[int, int]]."
-            raise ValueError(msg)
 
         graph = KarpNumber._create_graph(clauses)
 
@@ -247,13 +244,10 @@ class KarpNumber:
                     literals = processed_line.split()
                     clauses.append(literals)
 
-        elif all(isinstance(item, tuple) for item in input_data):
-            # Convert list[tuple[int, int]] to list[list[str]]
+        elif isinstance(input_data, list):            # Convert list[tuple[int, int]] to list[list[str]]
             clauses = input_data
             filename = ""
-        else:
-            msg = "Invalid input_data type. Expected str or list[tuple[int, int]]."
-            raise ValueError(msg)
+
 
         graph = KarpNumber._create_graph(clauses)
 

@@ -10,20 +10,34 @@ from mqt.qao.problem import Problem
 
 
 def test_sat_initialization():
-    """Test the initialization of the SAT problem."""
-    input_data: list[Any] = [["a", "!b"], ["b", "c"], ["!a", "d"]]
-    problem = KarpNumber.sat(input_data, solve=False)
-    assert isinstance(problem, Problem), "Expected a Problem instance for SAT initialization"
-
-
+        """Test the initialization of the SAT problem."""
+        input_data: list[Any] = [["a", "!b"], ["b", "c"], ["!a", "d"]]
+        problem = KarpNumber.sat(input_data, solve=False)
+        assert isinstance(problem, Problem), "Expected a Problem instance for SAT initialization"
+    
 def test_sat_solving_basic():
-    """Test the basic solving of the SAT problem without specifying solver parameters."""
-    input_data: list[Any] = [["a", "!b"], ["b", "c"], ["!a", "d"]]
-    solution = KarpNumber.sat(input_data, solve=True)
-    assert isinstance(solution, dict), "Expected a dictionary as the solution"
-    assert all(isinstance(value, float) for key, value in solution.items()), (
-        "Expected solution to contain variable names as keys and floats as values"
-    )
+        """Test the basic solving of the SAT problem without specifying solver parameters."""
+        input_data: list[Any] = [["a", "!b"], ["b", "c"], ["!a", "d"]]
+        solution = KarpNumber.sat(input_data, solve=True)
+        assert isinstance(solution, dict), "Expected a dictionary as the solution"
+        assert all(isinstance(value, float) for key, value in solution.items()), (
+            "Expected solution to contain variable names as keys and floats as values"
+        )
+def test_three_sat_initialization():
+        """Test the initialization of the 3-SAT problem."""
+        input_data: list[Any] = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
+        problem = KarpNumber.three_sat(input_data, solve=False)
+        assert isinstance(problem, Problem), "Expected a Problem instance for 3-SAT initialization"
+
+def test_three_sat_solving_basic():
+        """Test the basic solving of the 3-SAT problem without specifying solver parameters."""
+        input_data: list[Any] = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
+        solution = KarpNumber.three_sat(input_data, solve=True)
+
+        assert isinstance(solution, dict), "Expected a dictionary as the solution"
+        assert all(isinstance(value, float) for key, value in solution.items()), (
+            "Expected solution to contain variable names as keys and floats as values"
+        )
 
 
 def test_sat_solution_validation_correct():
@@ -42,22 +56,7 @@ def test_sat_solution_validation_incorrect():
     assert not validation["Valid Solution"], "Expected solution to be invalid due to unsatisfied clauses"
 
 
-def test_three_sat_initialization():
-    """Test the initialization of the 3-SAT problem."""
-    input_data: list[Any] = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
-    problem = KarpNumber.three_sat(input_data, solve=False)
-    assert isinstance(problem, Problem), "Expected a Problem instance for 3-SAT initialization"
 
-
-def test_three_sat_solving_basic():
-    """Test the basic solving of the 3-SAT problem without specifying solver parameters."""
-    input_data: list[Any] = [["a", "!b", "c"], ["b", "c", "d"], ["!a", "!d", "e"]]
-    solution = KarpNumber.three_sat(input_data, solve=True)
-
-    assert isinstance(solution, dict), "Expected a dictionary as the solution"
-    assert all(isinstance(value, float) for key, value in solution.items()), (
-        "Expected solution to contain variable names as keys and floats as values"
-    )
 
 
 def test_three_sat_solution_validation_correct():
