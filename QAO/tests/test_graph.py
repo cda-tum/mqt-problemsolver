@@ -597,6 +597,15 @@ def test_directed_feedback_vertex_set_solution_correct():
     assert validation["Valid Solution"], "Expected the solution to be valid"
 
 
+def test_directed_feedback_vertex_set_solution_incorrect():
+    """Test validation for an incorrect feedback vertex set solution (cycles remain)."""
+    graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
+    solution = [4]
+    validation = KarpGraphs.check_directed_feedback_vertex_set_solution(graph, solution)
+
+    assert not validation["Valid Solution"], "Expected the solution to be invalid due to remaining cycles"
+
+
 def test_directed_feedback_vertex_set_no_cycles():
     """Test the feedback vertex set on an acyclic graph."""
     graph = nx.DiGraph([(1, 2), (2, 3), (3, 4)])
@@ -716,7 +725,7 @@ def test_directed_feedback_edge_set_solution_incorrect():
     solution = [(1, 3)]
     validation = KarpGraphs.check_directed_feedback_edge_set_solution(graph, solution)
 
-    assert validation["Valid Solution"], "Expected a valid solution for the disconnected graph"
+    assert not validation["Valid Solution"], "Expected a valid solution for the disconnected graph"
 
 
 def test_directed_feedback_edge_set_no_cycles():
