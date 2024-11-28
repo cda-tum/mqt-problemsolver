@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import sys
 from io import StringIO
 from pathlib import Path
@@ -95,7 +94,8 @@ def test_save_solution():
         assert content == expected_content, "File content does not match the expected result."
 
     # Clean up by removing the created file
-    Path(txt_outputname).unlink() 
+    Path(txt_outputname).unlink()
+
 
 def test_clique_solving_basic():
     """Test the basic solving of the clique problem."""
@@ -130,9 +130,6 @@ def test_check_hamiltonian_path_solution():
     result_missing = KarpGraphs.check_hamiltonian_path_solution(graph, invalid_solution_missing)
     expected_missing_error = {"Valid Solution": False, "Errors": {"Missing Nodes": [3], "Invalid Edges": [(2, 4)]}}
     assert result_missing == expected_missing_error, "Failed missing nodes test"
-
-
-  
 
 
 def test_graph_to_text():

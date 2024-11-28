@@ -1550,7 +1550,6 @@ class KarpGraphs:
 
         return {"Valid Solution": True}
 
-
     @staticmethod
     def graph_to_text(g: nx.Graph) -> tuple[str, dict[str, str]]:
         """Converts a NetworkX graph to a textual representation suitable for file storage.
