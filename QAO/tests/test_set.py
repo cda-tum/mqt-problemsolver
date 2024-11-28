@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 from io import StringIO
 from pathlib import Path
@@ -108,7 +107,7 @@ def test_save_solution():
         assert content == expected_content, "File content does not match the expected result."
 
     # Clean up by removing the created file
-    Path(txt_outputname).unlink() 
+    Path(txt_outputname).unlink()
 
 
 def test_set_cover_solving_basic():

@@ -7,8 +7,6 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 # for managing symbols
 from mqt.qao.karp import KarpNumber
 from mqt.qao.problem import Problem
@@ -45,17 +43,9 @@ def test_print_solution():
 
 def test_convert_dict_to_string():
     """Test for the convert_dict_to_string method."""
-    
-    valid_solution_dict = {
-        "Valid Solution": True,
-        "Details": {
-            "Constraint 1": "Passed",
-            "Constraint 2": "Passed"
-        }
-    }
-    expected_valid_output = (
-        "Valid Solution\nDetails: {'Constraint 1': 'Passed', 'Constraint 2': 'Passed'}"
-    )
+
+    valid_solution_dict = {"Valid Solution": True, "Details": {"Constraint 1": "Passed", "Constraint 2": "Passed"}}
+    expected_valid_output = "Valid Solution\nDetails: {'Constraint 1': 'Passed', 'Constraint 2': 'Passed'}"
     result_valid = KarpNumber.convert_dict_to_string(valid_solution_dict)
 
     differences = []
@@ -65,19 +55,8 @@ def test_convert_dict_to_string():
 
     assert result_valid == expected_valid_output
 
-    invalid_solution_dict = {
-        "Valid Solution": False,
-        "Errors": {
-            "Constraint 1": "Failed",
-            "Constraint 2": ""
-        }
-    }
-    expected_invalid_output = (
-        "Invalid Solution\n"
-        "Errors: "
-        "{'Constraint 1': 'Failed', "
-        "'Constraint 2': ''}"
-    )
+    invalid_solution_dict = {"Valid Solution": False, "Errors": {"Constraint 1": "Failed", "Constraint 2": ""}}
+    expected_invalid_output = "Invalid Solution\nErrors: {'Constraint 1': 'Failed', 'Constraint 2': ''}"
     result_invalid = KarpNumber.convert_dict_to_string(invalid_solution_dict)
 
     assert result_invalid == expected_invalid_output, "Output for invalid solution does not match the expected result."
@@ -95,11 +74,7 @@ def test_save_solution():
 
     # Expected content
     expected_content = (
-        "Test Problemtest_file\n"
-        "=====================\n"
-        "This is the solution.\n"
-        "---------------------\n"
-        "Summary details."
+        "Test Problemtest_file\n=====================\nThis is the solution.\n---------------------\nSummary details."
     )
 
     # Call the method
@@ -117,7 +92,7 @@ def test_save_solution():
         assert content == expected_content, "File content does not match the expected result."
 
     # Clean up by removing the created file
-    Path(txt_outputname).unlink() 
+    Path(txt_outputname).unlink()
 
 
 def test_check_integer_programming():
@@ -230,8 +205,6 @@ def test_number_partition_solving_basic():
 
     assert isinstance(set_1, list)
     assert isinstance(set_2, list)
-
-
 
 
 def test_number_partition_balanced_solution():
