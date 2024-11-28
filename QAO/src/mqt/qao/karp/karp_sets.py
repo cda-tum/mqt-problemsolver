@@ -1052,7 +1052,6 @@ class KarpSets:
             f.write(solution + "\n")
             f.write("-" * (len(start_str)) + "\n")
             f.write(summary + "\n")
-        print(f"Solution written to {txt_outputname}")
 
     @staticmethod
     def convert_dict_to_string(dictionary: dict[Any, Any]) -> str:

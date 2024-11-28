@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Any
 from io import StringIO
 import sys
-
+import os
+import numpy as np
 
 
 # for managing symbols
@@ -19,6 +20,126 @@ def test_sat_initialization():
     problem = KarpNumber.sat(input_data, solve=False)
     assert isinstance(problem, Problem), "Expected a Problem instance for SAT initialization"
 
+def test_print_solution():
+    """Unit test for the print_solution method."""
+    
+    captured_output = StringIO()
+    sys.stdout = captured_output
+
+    problem_name = "Test Problem"
+    file_name = "test_file"
+    solution = "This is the solution."
+    summary = "Summary details."
+
+    expected_output = (
+        "Test Problemtest_file\n"
+        "=====================\n"
+        "This is the solution.\n"
+        "---------------------\n"
+        "Summary details.\n"
+    )
+
+    KarpNumber.print_solution(
+        problem_name=problem_name,
+        file_name=file_name,
+        solution=solution,
+        summary=summary
+    )
+
+    sys.stdout = sys.__stdout__
+    output = captured_output.getvalue()
+    assert output == expected_output, "The printed output does not match the expected result."
+
+def test_convert_dict_to_string():
+    """Test for the convert_dict_to_string method."""
+    
+    valid_solution_dict = {
+        "Valid Solution": True,
+        "Details": {
+            "Constraint 1": "Passed",
+            "Constraint 2": "Passed"
+        }
+    }
+    expected_valid_output = (
+        "Valid Solution\n"
+        "Details:\n"
+        "'Constraint 1': Passed\n"
+        "'Constraint 2': Passed"
+    )
+    result_valid = KarpNumber.convert_dict_to_string(valid_solution_dict)
+    assert result_valid == expected_valid_output, "Output for valid solution does not match the expected result."
+
+    invalid_solution_dict = {
+        "Valid Solution": False,
+        "Errors": {
+            "Constraint 1": "Failed",
+            "Constraint 2": ""
+        }
+    }
+    expected_invalid_output = (
+        "Invalid Solution\n"
+        "Errors:\n"
+        "'Constraint 1': Failed"
+    )
+    result_invalid = KarpNumber.convert_dict_to_string(invalid_solution_dict)
+    assert result_invalid == expected_invalid_output, "Output for invalid solution does not match the expected result."
+
+def test_save_solution():
+    """Test for the save_solution method."""
+    
+    # Test data
+    problem_name = "Test Problem"
+    file_name = "test_file"
+    solution = "This is the solution."
+    summary = "Summary details."
+    txt_outputname = "test_output.txt"
+
+    # Expected content
+    expected_content = (
+        "Test Problemtest_file\n"
+        "=====================\n"
+        "This is the solution.\n"
+        "---------------------\n"
+        "Summary details.\n"
+    )
+
+    # Call the method
+    KarpNumber.save_solution(
+        problem_name=problem_name,
+        file_name=file_name,
+        solution=solution,
+        summary=summary,
+        txt_outputname=txt_outputname
+    )
+
+    # Verify file content
+    with open(txt_outputname, "r", encoding="utf-8") as f:
+        content = f.read()
+        assert content == expected_content, "File content does not match the expected result."
+
+    # Clean up by removing the created file
+    os.remove(txt_outputname) 
+
+def test_check_integer_programming():
+    """Test for the check_integer_programming method."""
+
+    # Test case 1: Valid solution
+    s_valid = [[1, 2], [3, 4]]
+    b_valid = [5, 11]
+    x_valid = [1, 2]  # 1*1 + 2*2 = 5 and 3*1 + 4*2 = 11
+    result_valid = KarpNumber.check_integer_programming(s_valid, b_valid, x_valid)
+    assert result_valid == {"Valid Solution": True}, "Failed valid solution test"
+
+    # Test case 2: Invalid solution
+    s_invalid = [[1, 2], [3, 4]]
+    b_invalid = [5, 11]
+    x_invalid = [0, 1]  # 1*0 + 2*1 != 5
+    result_invalid = KarpNumber.check_integer_programming(s_invalid, b_invalid, x_invalid)
+    expected_invalid_result = np.dot(np.array(s_invalid), np.array(x_invalid))
+    assert result_invalid == {
+        "Valid Solution": False,
+        "Result": expected_invalid_result
+    }, "Failed invalid solution test"
 
 def test_sat_solving_basic():
     """Test the basic solving of the SAT problem without specifying solver parameters."""
@@ -63,6 +184,7 @@ def test_print_solution():
     sys.stdout = sys.__stdout__
     output = captured_output.getvalue()
     assert output == expected_output, "The printed output does not match the expected result."
+
 
 
 
@@ -150,6 +272,28 @@ def test_number_partition_solving_basic():
 
     assert isinstance(set_1, list)
     assert isinstance(set_2, list)
+
+def test_check_integer_programming():
+    """Test for the check_integer_programming method."""
+
+    # Test case 1: Valid solution
+    s_valid = [[1, 2], [3, 4]]
+    b_valid = [5, 11]
+    x_valid = [1, 2]  # 1*1 + 2*2 = 5 and 3*1 + 4*2 = 11
+    result_valid = KarpNumber.check_integer_programming(s_valid, b_valid, x_valid)
+    assert result_valid == {"Valid Solution": True}, "Failed valid solution test"
+
+    # Test case 2: Invalid solution
+    s_invalid = [[1, 2], [3, 4]]
+    b_invalid = [5, 11]
+    x_invalid = [0, 1]  # 1*0 + 2*1 != 5
+    result_invalid = KarpNumber.check_integer_programming(s_invalid, b_invalid, x_invalid)
+    expected_invalid_result = np.dot(np.array(s_invalid), np.array(x_invalid))
+    assert result_invalid == {
+        "Valid Solution": False,
+        "Result": expected_invalid_result
+    }, "Failed invalid solution test"
+
 
 
 def test_number_partition_balanced_solution():

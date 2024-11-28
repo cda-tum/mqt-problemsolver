@@ -11,6 +11,7 @@ from mqt.qao.karp import KarpGraphs
 from mqt.qao.problem import Problem
 from io import StringIO
 import sys
+import os
 
 
 def test_clique_initialization():
@@ -56,8 +57,75 @@ def test_print_solution():
     output = captured_output.getvalue()
     assert output == expected_output, "The printed output does not match the expected result."
 
+def test_convert_dict_to_string():
+    """Test for the convert_dict_to_string method."""
+    
+    valid_solution_dict = {
+        "Valid Solution": True,
+        "Details": {
+            "Constraint 1": "Passed",
+            "Constraint 2": "Passed"
+        }
+    }
+    expected_valid_output = (
+        "Valid Solution\n"
+        "Details:\n"
+        "'Constraint 1': Passed\n"
+        "'Constraint 2': Passed"
+    )
+    result_valid = KarpGraphs.convert_dict_to_string(valid_solution_dict)
+    assert result_valid == expected_valid_output, "Output for valid solution does not match the expected result."
 
+    invalid_solution_dict = {
+        "Valid Solution": False,
+        "Errors": {
+            "Constraint 1": "Failed",
+            "Constraint 2": ""
+        }
+    }
+    expected_invalid_output = (
+        "Invalid Solution\n"
+        "Errors:\n"
+        "'Constraint 1': Failed"
+    )
+    result_invalid = KarpGraphs.convert_dict_to_string(invalid_solution_dict)
+    assert result_invalid == expected_invalid_output, "Output for invalid solution does not match the expected result."
 
+def test_save_solution():
+    """Test for the save_solution method."""
+    
+    # Test data
+    problem_name = "Test Problem"
+    file_name = "test_file"
+    solution = "This is the solution."
+    summary = "Summary details."
+    txt_outputname = "test_output.txt"
+
+    # Expected content
+    expected_content = (
+        "Test Problemtest_file\n"
+        "=====================\n"
+        "This is the solution.\n"
+        "---------------------\n"
+        "Summary details.\n"
+    )
+
+    # Call the method
+    KarpGraphs.save_solution(
+        problem_name=problem_name,
+        file_name=file_name,
+        solution=solution,
+        summary=summary,
+        txt_outputname=txt_outputname
+    )
+
+    # Verify file content
+    with open(txt_outputname, "r", encoding="utf-8") as f:
+        content = f.read()
+        assert content == expected_content, "File content does not match the expected result."
+
+    # Clean up by removing the created file
+    os.remove(txt_outputname) 
 
 def test_clique_solving_basic():
     """Test the basic solving of the clique problem."""
@@ -73,6 +141,77 @@ def test_clique_solving_basic():
     assert all(isinstance(node, int) for node in solution), (
         "Each element in the solution should be an integer representing a node"
     )
+
+def test_check_hamiltonian_path_solution():
+    """Test for the check_hamiltonian_path_solution method."""
+
+    # Create a valid graph with a Hamiltonian path
+    graph = nx.Graph()
+    graph.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 5)])
+
+    # Valid Hamiltonian path
+    valid_solution = [1, 2, 3, 4, 5]
+    result_valid = KarpGraphs.check_hamiltonian_path_solution(graph, valid_solution)
+    assert result_valid == {"Valid Solution": True}, "Failed valid solution test"
+
+    # Invalid solution: missing nodes
+    invalid_solution_missing = [1, 2, 4, 5]  # Missing node 3
+    result_missing = KarpGraphs.check_hamiltonian_path_solution(graph, invalid_solution_missing)
+    expected_missing_error = {
+        "Valid Solution": False,
+        "Errors": {"Missing Nodes": [3], "Invalid Edges": [(2, 4)]}
+    }
+    assert result_missing == expected_missing_error, "Failed missing nodes test"
+
+
+def test_create_graph():
+    """Test for the _create_graph method."""
+
+    # Sample input: clauses representing a SAT problem
+    clauses = [["x1", "x2"], ["¬x1", "x3"], ["x2", "¬x3"]]
+
+    # Expected nodes: All literals and their complements
+    expected_nodes = {"x1", "x2", "x3", "¬x1", "¬x3"}
+
+    # Expected edges:
+    # From clauses: (x1-x2), (¬x1-x3), (x2-¬x3)
+    # Complement edges: (x1-¬x1), (x3-¬x3)
+    expected_edges = {
+        ("x1", "x2"), ("¬x1", "x3"), ("x2", "¬x3"),
+        ("x1", "¬x1"), ("x3", "¬x3")
+    }
+
+    # Generate graph
+    graph = KarpGraphs._create_graph(clauses)
+
+    # Check nodes
+    assert set(graph.nodes) == expected_nodes, f"Expected nodes: {expected_nodes}, but got: {set(graph.nodes)}"
+
+    # Check edges (ignoring order of pairs)
+    actual_edges = {tuple(sorted(edge)) for edge in graph.edges}
+    expected_edges = {tuple(sorted(edge)) for edge in expected_edges}
+
+    assert actual_edges == expected_edges, f"Expected edges: {expected_edges}, but got: {actual_edges}"
+
+
+
+
+def test_graph_to_text():
+    """Test for the _graph_to_text method."""
+
+    g = nx.Graph()
+    g.add_edges_from([("x1", "x2"), ("¬x1", "x3"), ("x2", "¬x3")])
+
+    expected_text = "5 3\n1 2\n2 5\n3 4\n"
+    expected_node_map = {'1': 'x1', '2': 'x2', '3': '¬x1', '4': 'x3', '5': '¬x3'}
+
+    result_text, result_node_map = KarpGraphs._graph_to_text(g)
+
+    assert result_text == expected_text, f"Expected: {expected_text}, but got: {result_text}"
+
+    assert result_node_map == expected_node_map, f"Expected: {expected_node_map}, but got: {result_node_map}"
+
+
 
 
 def test_clique_solution_k_value():

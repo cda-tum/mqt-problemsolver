@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from io import StringIO
 import sys
-
+import os
 
 import networkx as nx
 
@@ -53,6 +53,102 @@ def test_print_solution():
     output = captured_output.getvalue()
     assert output == expected_output, "The printed output does not match the expected result."
 
+
+def test_set_to_string():
+        """Test for the set_to_string method."""
+        sets_list = [
+            (10, [1, 2, 3]),
+            (20, [4, 5]),
+            (15, [6, 7, 8, 9])
+        ]
+
+        # Test without weights
+        expected_output_no_weight = (
+            "Set 1 = {1, 2, 3}\n"
+            "Set 2 = {4, 5}\n"
+            "Set 3 = {6, 7, 8, 9}"
+        )
+        result_no_weight = KarpSets.set_to_string(sets_list, weighted=False)
+        assert result_no_weight == expected_output_no_weight, "Output without weights does not match the expected result."
+
+        # Test with weights
+        expected_output_with_weight = (
+            "Set 1 = {1, 2, 3} with a cost of 10\n"
+            "Set 2 = {4, 5} with a cost of 20\n"
+            "Set 3 = {6, 7, 8, 9} with a cost of 15"
+        )
+        result_with_weight = KarpSets.set_to_string(sets_list, weighted=True)
+        assert result_with_weight == expected_output_with_weight, "Output with weights does not match the expected result."
+
+def test_convert_dict_to_string():
+    """Test for the convert_dict_to_string method."""
+    
+    valid_solution_dict = {
+        "Valid Solution": True,
+        "Details": {
+            "Constraint 1": "Passed",
+            "Constraint 2": "Passed"
+        }
+    }
+    expected_valid_output = (
+        "Valid Solution\n"
+        "Details:\n"
+        "'Constraint 1': Passed\n"
+        "'Constraint 2': Passed"
+    )
+    result_valid = KarpSets.convert_dict_to_string(valid_solution_dict)
+    assert result_valid == expected_valid_output, "Output for valid solution does not match the expected result."
+
+    invalid_solution_dict = {
+        "Valid Solution": False,
+        "Errors": {
+            "Constraint 1": "Failed",
+            "Constraint 2": ""
+        }
+    }
+    expected_invalid_output = (
+        "Invalid Solution\n"
+        "Errors:\n"
+        "'Constraint 1': Failed"
+    )
+    result_invalid = KarpSets.convert_dict_to_string(invalid_solution_dict)
+    assert result_invalid == expected_invalid_output, "Output for invalid solution does not match the expected result."
+
+def test_save_solution():
+    """Test for the save_solution method."""
+    
+    # Test data
+    problem_name = "Test Problem"
+    file_name = "test_file"
+    solution = "This is the solution."
+    summary = "Summary details."
+    txt_outputname = "test_output.txt"
+
+    # Expected content
+    expected_content = (
+        "Test Problemtest_file\n"
+        "=====================\n"
+        "This is the solution.\n"
+        "---------------------\n"
+        "Summary details.\n"
+    )
+
+    # Call the method
+    KarpSets.save_solution(
+        problem_name=problem_name,
+        file_name=file_name,
+        solution=solution,
+        summary=summary,
+        txt_outputname=txt_outputname
+    )
+
+    # Verify file content
+    with open(txt_outputname, "r", encoding="utf-8") as f:
+        content = f.read()
+        assert content == expected_content, "File content does not match the expected result."
+
+    # Clean up by removing the created file
+    os.remove(txt_outputname) 
 
 
 def test_set_cover_solving_basic():
