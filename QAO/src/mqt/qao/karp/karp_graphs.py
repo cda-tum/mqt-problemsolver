@@ -1088,7 +1088,6 @@ class KarpGraphs:
 
         return {"Valid Solution": True}
 
-
     @staticmethod
     def travelling_salesman(
         input_data: str | nx.Graph,
