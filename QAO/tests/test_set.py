@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import sys
 from io import StringIO
+from pathlib import Path
 from typing import Any
-import os
 
 import networkx as nx
 
@@ -135,12 +135,12 @@ def test_save_solution():
     )
 
     # Verify file content
-    with open(txt_outputname, "r", encoding="utf-8") as f:
+    with Path(txt_outputname).open(encoding="utf-8") as f:
         content = f.read()
         assert content == expected_content, "File content does not match the expected result."
 
     # Clean up by removing the created file
-    os.remove(txt_outputname) 
+    Path(txt_outputname).unlink() 
 
 
 def test_set_cover_solving_basic():

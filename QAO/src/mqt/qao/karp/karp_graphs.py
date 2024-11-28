@@ -1550,29 +1550,9 @@ class KarpGraphs:
 
         return {"Valid Solution": True}
 
-    @staticmethod
-    def _create_graph(clauses: list[list[str]]) -> nx.Graph:
-        g = nx.Graph()
-
-        for clause in clauses:
-            for literal in clause:
-                g.add_node(literal)
-
-        for clause in clauses:
-            for i in range(len(clause)):
-                for j in range(i + 1, len(clause)):
-                    g.add_edge(clause[i], clause[j])
-
-        literals = {literal for clause in clauses for literal in clause}
-        for literal in literals:
-            complement = literal[1:] if literal.startswith("¬") else "¬" + literal
-            if complement in literals:
-                g.add_edge(literal, complement)
-
-        return g
 
     @staticmethod
-    def _graph_to_text(g: nx.Graph) -> tuple[str, dict[str, str]]:
+    def graph_to_text(g: nx.Graph) -> tuple[str, dict[str, str]]:
         """Converts a NetworkX graph to a textual representation suitable for file storage.
 
         Args:

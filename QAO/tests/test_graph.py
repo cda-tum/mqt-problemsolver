@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from io import StringIO
+from pathlib import Path
 from typing import Any
 
 import networkx as nx
@@ -11,9 +12,6 @@ import networkx as nx
 # for managing symbols
 from mqt.qao.karp import KarpGraphs
 from mqt.qao.problem import Problem
-from io import StringIO
-import sys
-import os
 
 
 def test_clique_initialization():
@@ -114,12 +112,12 @@ def test_save_solution():
     )
 
     # Verify file content
-    with open(txt_outputname, "r", encoding="utf-8") as f:
+    with Path(txt_outputname).open(encoding="utf-8") as f:
         content = f.read()
         assert content == expected_content, "File content does not match the expected result."
 
     # Clean up by removing the created file
-    os.remove(txt_outputname) 
+    Path(txt_outputname).unlink() 
 
 def test_clique_solving_basic():
     """Test the basic solving of the clique problem."""
@@ -158,36 +156,7 @@ def test_check_hamiltonian_path_solution():
     assert result_missing == expected_missing_error, "Failed missing nodes test"
 
 
-def test_create_graph():
-    """Test for the _create_graph method."""
-
-    # Sample input: clauses representing a SAT problem
-    clauses = [["x1", "x2"], ["¬x1", "x3"], ["x2", "¬x3"]]
-
-    # Expected nodes: All literals and their complements
-    expected_nodes = {"x1", "x2", "x3", "¬x1", "¬x3"}
-
-    # Expected edges:
-    # From clauses: (x1-x2), (¬x1-x3), (x2-¬x3)
-    # Complement edges: (x1-¬x1), (x3-¬x3)
-    expected_edges = {
-        ("x1", "x2"), ("¬x1", "x3"), ("x2", "¬x3"),
-        ("x1", "¬x1"), ("x3", "¬x3")
-    }
-
-    # Generate graph
-    graph = KarpGraphs._create_graph(clauses)
-
-    # Check nodes
-    assert set(graph.nodes) == expected_nodes, f"Expected nodes: {expected_nodes}, but got: {set(graph.nodes)}"
-
-    # Check edges (ignoring order of pairs)
-    actual_edges = {tuple(sorted(edge)) for edge in graph.edges}
-    expected_edges = {tuple(sorted(edge)) for edge in expected_edges}
-
-    assert actual_edges == expected_edges, f"Expected edges: {expected_edges}, but got: {actual_edges}"
-
-
+  
 
 
 def test_graph_to_text():
@@ -197,9 +166,9 @@ def test_graph_to_text():
     g.add_edges_from([("x1", "x2"), ("¬x1", "x3"), ("x2", "¬x3")])
 
     expected_text = "5 3\n1 2\n2 5\n3 4\n"
-    expected_node_map = {'1': 'x1', '2': 'x2', '3': '¬x1', '4': 'x3', '5': '¬x3'}
+    expected_node_map = {"1": "x1", "2": "x2", "3": "¬x1", "4": "x3", "5": "¬x3"}
 
-    result_text, result_node_map = KarpGraphs._graph_to_text(g)
+    result_text, result_node_map = KarpGraphs.graph_to_text(g)
 
     assert result_text == expected_text, f"Expected: {expected_text}, but got: {result_text}"
 
