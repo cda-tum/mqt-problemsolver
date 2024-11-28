@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
-from io import StringIO
 import sys
+from io import StringIO
+from typing import Any
 import os
 
 import networkx as nx
@@ -18,9 +18,10 @@ def test_set_cover_initialization():
     problem = KarpSets.set_cover(input_data, solve=False)
     assert isinstance(problem, Problem)
 
+
 def test_print_solution():
     """Unit test for the print_solution method."""
-    
+
     # Capture printed output
     captured_output = StringIO()
     sys.stdout = captured_output
@@ -33,20 +34,11 @@ def test_print_solution():
 
     # Expected output
     expected_output = (
-        "Test Problemtest_file\n"
-        "=====================\n"
-        "This is the solution.\n"
-        "---------------------\n"
-        "Summary details.\n"
+        "Test Problemtest_file\n=====================\nThis is the solution.\n---------------------\nSummary details.\n"
     )
 
     # Call the method
-    KarpSets.print_solution(
-        problem_name=problem_name,
-        file_name=file_name,
-        solution=solution,
-        summary=summary
-    )
+    KarpSets.print_solution(problem_name=problem_name, file_name=file_name, solution=solution, summary=summary)
 
     # Reset stdout and check the output
     sys.stdout = sys.__stdout__
