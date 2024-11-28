@@ -645,8 +645,6 @@ def test_directed_feedback_vertex_set_solution_incorrect():
     assert not validation["Valid Solution"], "Expected the solution to be invalid due to remaining cycles"
 
 
-
-
 def test_directed_feedback_vertex_set_multiple_cycles():
     """Test the feedback vertex set on a graph with multiple cycles."""
     graph = nx.DiGraph([(1, 2), (2, 1), (2, 3), (3, 2), (3, 4), (4, 3)])
