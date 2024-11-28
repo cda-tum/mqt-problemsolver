@@ -7,6 +7,8 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 # for managing symbols
 from mqt.qao.karp import KarpNumber
 from mqt.qao.problem import Problem
@@ -18,9 +20,10 @@ def test_sat_initialization():
     problem = KarpNumber.sat(input_data, solve=False)
     assert isinstance(problem, Problem), "Expected a Problem instance for SAT initialization"
 
+
 def test_print_solution():
     """Unit test for the print_solution method."""
-    
+
     captured_output = StringIO()
     sys.stdout = captured_output
 
@@ -30,23 +33,15 @@ def test_print_solution():
     summary = "Summary details."
 
     expected_output = (
-        "Test Problemtest_file\n"
-        "=====================\n"
-        "This is the solution.\n"
-        "---------------------\n"
-        "Summary details.\n"
+        "Test Problemtest_file\n=====================\nThis is the solution.\n---------------------\nSummary details.\n"
     )
 
-    KarpNumber.print_solution(
-        problem_name=problem_name,
-        file_name=file_name,
-        solution=solution,
-        summary=summary
-    )
+    KarpNumber.print_solution(problem_name=problem_name, file_name=file_name, solution=solution, summary=summary)
 
     sys.stdout = sys.__stdout__
     output = captured_output.getvalue()
     assert output == expected_output, "The printed output does not match the expected result."
+
 
 def test_convert_dict_to_string():
     """Test for the convert_dict_to_string method."""
@@ -90,7 +85,7 @@ def test_convert_dict_to_string():
 
 def test_save_solution():
     """Test for the save_solution method."""
-    
+
     # Test data
     problem_name = "Test Problem"
     file_name = "test_file"
@@ -113,7 +108,7 @@ def test_save_solution():
         file_name=file_name,
         solution=solution,
         summary=summary,
-        txt_outputname=txt_outputname
+        txt_outputname=txt_outputname,
     )
 
     # Verify file content
