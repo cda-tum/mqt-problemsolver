@@ -21,7 +21,7 @@ def test_set_cover_initialization():
 
 
 def test_print_solution():
-    """Unit test for the print_solution method."""
+    """Unit test for the print_solution method. """
 
     # Capture printed output
     captured_output = StringIO()
