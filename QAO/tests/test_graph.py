@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+from io import StringIO
 from typing import Any
 
 import networkx as nx
@@ -9,8 +11,6 @@ import networkx as nx
 # for managing symbols
 from mqt.qao.karp import KarpGraphs
 from mqt.qao.problem import Problem
-from io import StringIO
-import sys
 
 
 def test_clique_initialization():
@@ -21,9 +21,10 @@ def test_clique_initialization():
 
     assert isinstance(problem, Problem), "Expected a Problem instance for clique initialization"
 
+
 def test_print_solution():
     """Unit test for the print_solution method."""
-    
+
     # Capture printed output
     captured_output = StringIO()
     sys.stdout = captured_output
@@ -36,27 +37,16 @@ def test_print_solution():
 
     # Expected output
     expected_output = (
-        "Test Problemtest_file\n"
-        "=====================\n"
-        "This is the solution.\n"
-        "---------------------\n"
-        "Summary details.\n"
+        "Test Problemtest_file\n=====================\nThis is the solution.\n---------------------\nSummary details.\n"
     )
 
     # Call the method
-    KarpGraphs.print_solution(
-        problem_name=problem_name,
-        file_name=file_name,
-        solution=solution,
-        summary=summary
-    )
+    KarpGraphs.print_solution(problem_name=problem_name, file_name=file_name, solution=solution, summary=summary)
 
     # Reset stdout and check the output
     sys.stdout = sys.__stdout__
     output = captured_output.getvalue()
     assert output == expected_output, "The printed output does not match the expected result."
-
-
 
 
 def test_clique_solving_basic():
