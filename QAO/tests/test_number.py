@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from typing import Any
+from io import StringIO
+import sys
+
+
 
 # for managing symbols
 from mqt.qao.karp import KarpNumber
@@ -24,6 +28,42 @@ def test_sat_solving_basic():
     assert all(isinstance(value, float) for key, value in solution.items()), (
         "Expected solution to contain variable names as keys and floats as values"
     )
+
+def test_print_solution():
+    """Unit test for the print_solution method."""
+    
+    # Capture printed output
+    captured_output = StringIO()
+    sys.stdout = captured_output
+
+    # Test data
+    problem_name = "Test Problem"
+    file_name = "test_file"
+    solution = "This is the solution."
+    summary = "Summary details."
+
+    # Expected output
+    expected_output = (
+        "Test Problemtest_file\n"
+        "=====================\n"
+        "This is the solution.\n"
+        "---------------------\n"
+        "Summary details.\n"
+    )
+
+    # Call the method
+    KarpNumber.print_solution(
+        problem_name=problem_name,
+        file_name=file_name,
+        solution=solution,
+        summary=summary
+    )
+
+    # Reset stdout and check the output
+    sys.stdout = sys.__stdout__
+    output = captured_output.getvalue()
+    assert output == expected_output, "The printed output does not match the expected result."
+
 
 
 def test_three_sat_initialization():
