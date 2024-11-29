@@ -1407,6 +1407,8 @@ dependencies = [
     { name = "qiskit-optimization" },
     { name = "qubovert" },
     { name = "scikit-learn" },
+    { name = "networkx" }
+
 ]
 
 [package.optional-dependencies]
