@@ -4,7 +4,12 @@ import numpy as np
 from docplex.mp.model import Model
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit import Parameter
-from qiskit.providers.fake_provider import FakeBackend, FakeMontreal, FakeQuito, FakeWashington
+from qiskit.providers.fake_provider import (
+    FakeBackend,
+    FakeMontreal,
+    FakeQuito,
+    FakeWashington,
+)
 from qiskit_optimization.converters.quadratic_program_to_qubo import (
     QuadraticProgramToQubo,
 )

@@ -13,7 +13,11 @@ from qiskit.algorithms.optimizers import COBYLA
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.primitives import BackendSampler, Sampler
 from qiskit.providers.fake_provider import FakeMontreal
-from qiskit_optimization.algorithms import CobylaOptimizer, MinimumEigenOptimizer, WarmStartQAOAOptimizer
+from qiskit_optimization.algorithms import (
+    CobylaOptimizer,
+    MinimumEigenOptimizer,
+    WarmStartQAOAOptimizer,
+)
 
 
 def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> MinimumEigensolverResult:
