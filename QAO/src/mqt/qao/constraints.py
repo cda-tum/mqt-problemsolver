@@ -205,11 +205,11 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
             a = self._convert_expression_logic(
-                expand(cast(Expr, (el[0]))).evalf(),
+                expand(cast("Expr", (el[0]))).evalf(),
                 var.binary_variables_name_weight,
             )
             b = self._convert_expression_logic(
-                expand(cast(Expr, (el[1]))).evalf(),
+                expand(cast("Expr", (el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = 2 * a * b - a - b + 1
@@ -236,8 +236,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).replace("~", "").split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
@@ -274,8 +274,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).replace("~", "").split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -327,15 +327,15 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
             a = self._convert_expression_logic(
-                expand(cast(Expr, (el2[0]))).evalf(),
+                expand(cast("Expr", (el2[0]))).evalf(),
                 var.binary_variables_name_weight,
             )
             b = self._convert_expression_logic(
-                expand(cast(Expr, (el2[1]))).evalf(),
+                expand(cast("Expr", (el2[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             c = self._convert_expression_logic(
-                expand(cast(Expr, (el[1]))).evalf(),
+                expand(cast("Expr", (el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = a * b - 2 * (a + b) * c + 3 * c
@@ -374,9 +374,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()
-        expr3 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el2[0]))).evalf()
+        expr2 = expand(cast("Expr", (el2[1]))).evalf()
+        expr3 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
@@ -422,9 +422,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()
-        expr3 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el2[0]))).evalf()
+        expr2 = expand(cast("Expr", (el2[1]))).evalf()
+        expr3 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -483,15 +483,15 @@ class Constraints:
                 print("Wrong constraint format\n")
                 return False
             a = self._convert_expression_logic(
-                expand(cast(Expr, (el2[0]))).evalf(),
+                expand(cast("Expr", (el2[0]))).evalf(),
                 var.binary_variables_name_weight,
             )
             b = self._convert_expression_logic(
-                expand(cast(Expr, (el2[1]))).evalf(),
+                expand(cast("Expr", (el2[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             c = self._convert_expression_logic(
-                expand(cast(Expr, (el[1]))).evalf(),
+                expand(cast("Expr", (el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = a * b + (a + b) * (1 - 2 * c) + c
@@ -529,9 +529,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()
-        expr3 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el2[0]))).evalf()
+        expr2 = expand(cast("Expr", (el2[1]))).evalf()
+        expr3 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
@@ -577,9 +577,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()
-        expr3 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el2[0]))).evalf()
+        expr2 = expand(cast("Expr", (el2[1]))).evalf()
+        expr3 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -649,9 +649,9 @@ class Constraints:
             if len(el2) != 2:
                 print("Wrong constraint format\n")
                 return False
-            a = self._convert_expression_logic(expand(cast(Expr, (el2[0]))).evalf(), var.binary_variables_name_weight)
-            b = self._convert_expression_logic(expand(cast(Expr, (el2[1]))).evalf(), var.binary_variables_name_weight)
-            c = self._convert_expression_logic(expand(cast(Expr, (el[1]))).evalf(), var.binary_variables_name_weight)
+            a = self._convert_expression_logic(expand(cast("Expr", (el2[0]))).evalf(), var.binary_variables_name_weight)
+            b = self._convert_expression_logic(expand(cast("Expr", (el2[1]))).evalf(), var.binary_variables_name_weight)
+            c = self._convert_expression_logic(expand(cast("Expr", (el[1]))).evalf(), var.binary_variables_name_weight)
             ret = a + b + c - 2 * a * c - 2 * b * c - 2 * a * b + 4 * a * b * c
         else:
             el = str(elem[0]).replace(" ", "").split("=")
@@ -759,9 +759,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()
-        expr3 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el2[0]))).evalf()
+        expr2 = expand(cast("Expr", (el2[1]))).evalf()
+        expr3 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         expr3_to_sub = bool(not str(expr3).replace(".", "").isnumeric())
@@ -807,9 +807,9 @@ class Constraints:
         if len(el2) != 2:
             print("Wrong constraint format\n")
             return False
-        expr1 = expand(cast(Expr, (el2[0]))).evalf()
-        expr2 = expand(cast(Expr, (el2[1]))).evalf()
-        expr3 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el2[0]))).evalf()
+        expr2 = expand(cast("Expr", (el2[1]))).evalf()
+        expr3 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -931,7 +931,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -940,7 +940,7 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
 
@@ -959,14 +959,14 @@ class Constraints:
                     precision = min(1, var_precision) if elem[3] else 1
                 aux_var = aux.add_continuous_variable("aux" + format(j), 0, max_val + const, precision)
                 self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                exp_auxiliary = self._convert_expression(cast(Expr, (aux_var)), aux.binary_variables_name_weight)
+                exp_auxiliary = self._convert_expression(cast("Expr", (aux_var)), aux.binary_variables_name_weight)
                 j += 1
                 ret = (exp - exp_auxiliary) ** 2, i, j, aux
             else:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split(">=")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            exp = expand(cast("Expr", (el[0] + "-" + el[1]))).evalf()
             _min_val, max_val, const = self._min_max_const_estimation(exp)
             if max_val + const > 0:
                 if len(str(max_val + const).split(".")) == 2:
@@ -978,15 +978,15 @@ class Constraints:
                 aux_var = aux.add_continuous_variable("aux" + format(j), 0, max_val + const, precision)
                 j += 1
                 self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                exp_auxiliary = self._convert_expression(cast(Expr, (aux_var)), aux.binary_variables_name_weight)
+                exp_auxiliary = self._convert_expression(cast("Expr", (aux_var)), aux.binary_variables_name_weight)
                 hamiltonian = self._expression_to_hamiltonian(
-                    cast(Expr, exp - exp_auxiliary),
+                    cast("Expr", exp - exp_auxiliary),
                     list(var.binary_variables_name_weight.values()) + list(aux.binary_variables_name_weight.values()),
                 )
                 ret = hamiltonian**2, i, j, aux
             else:
                 hamiltonian = self._expression_to_hamiltonian(
-                    cast(Expr, exp), list(var.binary_variables_name_weight.values())
+                    cast("Expr", exp), list(var.binary_variables_name_weight.values())
                 )
                 ret = hamiltonian**2, i, j, aux
 
@@ -1004,8 +1004,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split(">=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
@@ -1036,8 +1036,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split(">=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1098,7 +1098,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -1107,7 +1107,7 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
             min_val, _max_val, const = self._min_max_const_estimation(exp)
@@ -1127,13 +1127,13 @@ class Constraints:
                 aux_var = aux.add_continuous_variable("aux" + format(j), 0, const - min_val, precision)
                 j += 1
                 self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                exp_auxiliary = self._convert_expression((cast(Expr, (aux_var))), aux.binary_variables_name_weight)
+                exp_auxiliary = self._convert_expression((cast("Expr", (aux_var))), aux.binary_variables_name_weight)
                 ret = (exp + exp_auxiliary) ** 2, i, j, aux
             else:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split("<=")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            exp = expand(cast("Expr", (el[0] + "-" + el[1]))).evalf()
             min_val, _max_val, const = self._min_max_const_estimation(exp)
             const = -const
             if const - min_val > 0:
@@ -1146,15 +1146,15 @@ class Constraints:
                 aux_var = aux.add_continuous_variable("aux" + format(j), 0, const - min_val, precision)
                 j += 1
                 self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                exp_auxiliary = self._convert_expression((cast(Expr, (aux_var))), aux.binary_variables_name_weight)
+                exp_auxiliary = self._convert_expression((cast("Expr", (aux_var))), aux.binary_variables_name_weight)
                 hamiltonian = self._expression_to_hamiltonian(
-                    cast(Expr, exp + exp_auxiliary),
+                    cast("Expr", exp + exp_auxiliary),
                     list(var.binary_variables_name_weight.values()) + list(aux.binary_variables_name_weight.values()),
                 )
                 ret = hamiltonian**2, i, j, aux
             else:
                 hamiltonian = self._expression_to_hamiltonian(
-                    cast(Expr, exp), list(var.binary_variables_name_weight.values())
+                    cast("Expr", exp), list(var.binary_variables_name_weight.values())
                 )
                 ret = hamiltonian**2, i, j, aux
         return ret
@@ -1171,8 +1171,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split("<=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
@@ -1203,8 +1203,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split("<=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1265,7 +1265,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -1274,7 +1274,7 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
             _min_val, max_val, const = self._min_max_const_estimation(exp)
@@ -1294,7 +1294,9 @@ class Constraints:
                     aux_var = aux.add_continuous_variable("aux" + format(j), precision, max_val + const, precision)
                     j += 1
                     self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                    exp_auxiliary = self._convert_expression((cast(Expr, (aux_var))), aux.binary_variables_name_weight)
+                    exp_auxiliary = self._convert_expression(
+                        (cast("Expr", (aux_var))), aux.binary_variables_name_weight
+                    )
                     ret = (exp - exp_auxiliary) ** 2, i, j, aux
                 else:
                     ret = (exp - precision) ** 2, i, j, aux
@@ -1302,7 +1304,7 @@ class Constraints:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split(">")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            exp = expand(cast("Expr", (el[0] + "-" + el[1]))).evalf()
             _min_val, max_val, const = self._min_max_const_estimation(exp)
             if max_val + const > 0:
                 if len(str(max_val + const).split(".")) == 2:
@@ -1315,23 +1317,25 @@ class Constraints:
                     aux_var = aux.add_continuous_variable("aux" + format(j), precision, max_val + const, precision)
                     j += 1
                     self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                    exp_auxiliary = self._convert_expression((cast(Expr, (aux_var))), aux.binary_variables_name_weight)
+                    exp_auxiliary = self._convert_expression(
+                        (cast("Expr", (aux_var))), aux.binary_variables_name_weight
+                    )
                     hamiltonian = self._expression_to_hamiltonian(
-                        cast(Expr, exp - exp_auxiliary),
+                        cast("Expr", exp - exp_auxiliary),
                         list(var.binary_variables_name_weight.values())
                         + list(aux.binary_variables_name_weight.values()),
                     )
                     ret = hamiltonian**2, i, j, aux
                 else:
                     hamiltonian = self._expression_to_hamiltonian(
-                        cast(Expr, exp - precision),
+                        cast("Expr", exp - precision),
                         list(var.binary_variables_name_weight.values())
                         + list(aux.binary_variables_name_weight.values()),
                     )
                     ret = hamiltonian**2, i, j, aux
             else:
                 hamiltonian = self._expression_to_hamiltonian(
-                    cast(Expr, exp), list(var.binary_variables_name_weight.values())
+                    cast("Expr", exp), list(var.binary_variables_name_weight.values())
                 )
                 ret = hamiltonian**2, i, j, aux
         return ret
@@ -1348,8 +1352,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split(">")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
@@ -1380,8 +1384,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split(">")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1442,7 +1446,7 @@ class Constraints:
             exp = PUBO()
             if elem[3]:
                 ret_func = self._convert_expression_prec(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                     var.variables_dict,
                 )
@@ -1451,7 +1455,7 @@ class Constraints:
                     var_precision = ret_func[1]
             else:
                 exp = self._convert_expression(
-                    expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                    expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                     var.binary_variables_name_weight,
                 )
             min_val, _max_val, const = self._min_max_const_estimation(exp)
@@ -1473,7 +1477,9 @@ class Constraints:
                     aux_var = aux.add_continuous_variable("aux" + format(j), precision, const - min_val, precision)
                     j += 1
                     self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                    exp_auxiliary = self._convert_expression((cast(Expr, (aux_var))), aux.binary_variables_name_weight)
+                    exp_auxiliary = self._convert_expression(
+                        (cast("Expr", (aux_var))), aux.binary_variables_name_weight
+                    )
                     ret = (exp + exp_auxiliary) ** 2, i, j, aux
                 else:
                     ret = (exp + precision) ** 2, i, j, aux
@@ -1481,7 +1487,7 @@ class Constraints:
                 ret = (exp) ** 2, i, j, aux
         else:
             el = str(elem[0]).split("<")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            exp = expand(cast("Expr", (el[0] + "-" + el[1]))).evalf()
             min_val, _max_val, const = self._min_max_const_estimation(exp)
             const = -const
             if const - min_val > 0:
@@ -1495,23 +1501,25 @@ class Constraints:
                     aux_var = aux.add_continuous_variable("aux" + format(j), precision, const - min_val, precision)
                     j += 1
                     self.constraints, i = aux.move_to_binary(self.constraints, i, "__a")
-                    exp_auxiliary = self._convert_expression((cast(Expr, (aux_var))), aux.binary_variables_name_weight)
+                    exp_auxiliary = self._convert_expression(
+                        (cast("Expr", (aux_var))), aux.binary_variables_name_weight
+                    )
                     hamiltonian = self._expression_to_hamiltonian(
-                        cast(Expr, exp + exp_auxiliary),
+                        cast("Expr", exp + exp_auxiliary),
                         list(var.binary_variables_name_weight.values())
                         + list(aux.binary_variables_name_weight.values()),
                     )
                     ret = hamiltonian**2, i, j, aux
                 else:
                     hamiltonian = self._expression_to_hamiltonian(
-                        cast(Expr, exp + precision),
+                        cast("Expr", exp + precision),
                         list(var.binary_variables_name_weight.values())
                         + list(aux.binary_variables_name_weight.values()),
                     )
                     ret = hamiltonian**2, i, j, aux
             else:
                 hamiltonian = self._expression_to_hamiltonian(
-                    cast(Expr, exp), list(var.binary_variables_name_weight.values())
+                    cast("Expr", exp), list(var.binary_variables_name_weight.values())
                 )
                 ret = hamiltonian**2, i, j, aux
         return ret
@@ -1528,8 +1536,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split("<")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
@@ -1560,8 +1568,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split("<")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols
@@ -1606,15 +1614,15 @@ class Constraints:
         if elem[2]:
             el = str(elem[0]).split("=")
             exp = self._convert_expression(
-                expand(cast(Expr, (el[0] + "-" + el[1]))).evalf(),
+                expand(cast("Expr", (el[0] + "-" + el[1]))).evalf(),
                 var.binary_variables_name_weight,
             )
             ret = (exp) ** 2
         else:
             el = str(elem[0]).split("=")
-            exp = expand(cast(Expr, (el[0] + "-" + el[1]))).evalf()
+            exp = expand(cast("Expr", (el[0] + "-" + el[1]))).evalf()
             hamiltonian = self._expression_to_hamiltonian(
-                cast(Expr, exp), list(var.binary_variables_name_weight.values())
+                cast("Expr", exp), list(var.binary_variables_name_weight.values())
             )
             ret = hamiltonian**2
         return ret
@@ -1631,8 +1639,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = constraint.split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = bool(not str(expr1).replace(".", "").isnumeric())
         expr2_to_sub = bool(not str(expr2).replace(".", "").isnumeric())
         if expr2_to_sub or expr1_to_sub:
@@ -1663,8 +1671,8 @@ class Constraints:
         bool -- saying if the constraint is satisfied or not
         """
         el = (constraint).split("=")
-        expr1 = expand(cast(Expr, (el[0]))).evalf()
-        expr2 = expand(cast(Expr, (el[1]))).evalf()
+        expr1 = expand(cast("Expr", (el[0]))).evalf()
+        expr2 = expand(cast("Expr", (el[1]))).evalf()
         expr1_to_sub = True
         if not str(expr1).replace(".", "").isnumeric():
             symbols_in_the_expression1 = expr1.free_symbols

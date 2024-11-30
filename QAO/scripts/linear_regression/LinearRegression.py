@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.utils import shuffle
-from sympy import Expr
 
 # for managing symbols
 from mqt.qao import Constraints, ObjectiveFunction, Problem, Solver, Variables
+
+if TYPE_CHECKING:
+    from sympy import Expr
 
 df = pd.read_csv("iris_csv.csv")
 df = shuffle(df)
@@ -48,7 +50,7 @@ w = variables.add_continuous_variables_array("w", [feat + 1, 1], -0.25, 0.25, 0.
 objective_function = ObjectiveFunction()
 objective_function.add_objective_function(
     cast(
-        Expr,
+        "Expr",
         (
             np.dot(np.dot(np.dot(np.transpose(w), np.transpose(X_training)), X_training), w)
             - 2 * np.dot(np.dot(np.transpose(w), np.transpose(X_training)), Y_training)

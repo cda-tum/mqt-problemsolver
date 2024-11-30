@@ -32,7 +32,7 @@ class ObjectiveFunction:
         """
         if not minimization:
             objective_function = -objective_function
-        self.objective_functions.append((cast(Expr, expand(objective_function).evalf()), weight))
+        self.objective_functions.append((cast("Expr", expand(objective_function).evalf()), weight))
 
     @staticmethod
     def rewrite_powers(powers: list[str], var: Variables, to_add: float) -> float | bool:

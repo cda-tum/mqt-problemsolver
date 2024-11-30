@@ -3,20 +3,22 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pytest
 
 # for managing symbols
 from qubovert import PUBO, boolean_var
-from sympy import Expr
 
 from mqt.qao.constraints import Constraints
 from mqt.qao.objectivefunction import ObjectiveFunction
 from mqt.qao.problem import Problem
 from mqt.qao.solvers import Solution, Solver
 from mqt.qao.variables import Variables
+
+if TYPE_CHECKING:
+    from sympy import Expr
 
 
 def test_binary_only() -> None:
@@ -293,7 +295,7 @@ def test_cost_function() -> None:
     a0 = variables.add_binary_variable("a")
     b0 = variables.add_discrete_variable("b", [-1, 1, 3])
     c0 = variables.add_continuous_variable("c", -2, 2, 0.25, "", "")
-    cost_function = cast(Expr, a0 + b0 * c0 + c0**2)
+    cost_function = cast("Expr", a0 + b0 * c0 + c0**2)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
     variables.move_to_binary(constraint.constraints)
@@ -886,7 +888,7 @@ def test_problem(lambda_strategy: str) -> None:
     a0 = variables.add_binary_variable("a")
     b0 = variables.add_discrete_variable("b", [-1, 1, 3])
     c0 = variables.add_continuous_variable("c", -2, 2, 0.25, "", "")
-    cost_function = cast(Expr, a0 + b0 * c0 + c0**2)
+    cost_function = cast("Expr", a0 + b0 * c0 + c0**2)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
     constraint.add_constraint("c >= 1", True, True, False)
@@ -984,7 +986,7 @@ def test_simulated_annealer_solver(lambda_strategy: str) -> None:
     a0 = variables.add_binary_variable("a")
     b0 = variables.add_discrete_variable("b", [-1, 1, 3])
     c0 = variables.add_continuous_variable("c", -2, 2, 0.25, "", "")
-    cost_function = cast(Expr, a0 + b0 * c0 + c0**2)
+    cost_function = cast("Expr", a0 + b0 * c0 + c0**2)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
     problem = Problem()
@@ -1053,7 +1055,7 @@ def test_simulated_annealer_solver_constrained(lambda_strategy: str, constraint_
     b0 = variables.add_discrete_variable("b", [-1, 1, 3])
     c0 = variables.add_continuous_variable("c", -2, 2, 0.25)
     objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cast(Expr, a0 + b0 * c0 + c0**2))
+    objective_function.add_objective_function(cast("Expr", a0 + b0 * c0 + c0**2))
     constraint = Constraints()
     constraint.add_constraint(constraint_expr, variable_precision=True)
     problem = Problem()
@@ -1145,7 +1147,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism(
     b0 = variables.add_discrete_variable("b", [-1, 1, 3])
     c0 = variables.add_continuous_variable("c", -2, 2, 0.25)
     objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cast(Expr, a0 + b0 * c0 + c0**2))
+    objective_function.add_objective_function(cast("Expr", a0 + b0 * c0 + c0**2))
     constraint = Constraints()
     constraint.add_constraint(constraint_expr, variable_precision=True)
     problem = Problem()
@@ -1346,7 +1348,7 @@ def test_simulated_annealer_solver_constrained_lambda_update_mechanism_and_strat
     b0 = variables.add_discrete_variable("b", [-1, 1, 3])
     c0 = variables.add_continuous_variable("c", -2, 2, 0.25)
     objective_function = ObjectiveFunction()
-    objective_function.add_objective_function(cast(Expr, a0 + b0 * c0 + c0**2))
+    objective_function.add_objective_function(cast("Expr", a0 + b0 * c0 + c0**2))
     constraint = Constraints()
     constraint.add_constraint(constraint_expr, variable_precision=True)
     problem = Problem()
@@ -1475,7 +1477,7 @@ def test_predict_solver_basic() -> None:
     a0 = variables.add_binary_variable("a")
     b0 = variables.add_binary_variable("b")
     c0 = variables.add_binary_variable("c")
-    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
+    cost_function = cast("Expr", -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
     problem = Problem()
@@ -1503,7 +1505,7 @@ def test_gas_solver_basic() -> None:
     a0 = variables.add_binary_variable("a")
     b0 = variables.add_binary_variable("b")
     c0 = variables.add_binary_variable("c")
-    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
+    cost_function = cast("Expr", -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
     problem = Problem()
@@ -1531,7 +1533,7 @@ def test_qaoa_solver_qubo_basic() -> None:
     a0 = variables.add_binary_variable("a")
     b0 = variables.add_binary_variable("b")
     c0 = variables.add_binary_variable("c")
-    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
+    cost_function = cast("Expr", -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
     problem = Problem()
@@ -1561,7 +1563,7 @@ def test_vqe_solver_qubo_basic() -> None:
     a0 = variables.add_binary_variable("a")
     b0 = variables.add_binary_variable("b")
     c0 = variables.add_binary_variable("c")
-    cost_function = cast(Expr, -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
+    cost_function = cast("Expr", -a0 + 2 * b0 - 3 * c0 - 2 * a0 * c0 - 1 * b0 * c0)
     objective_function = ObjectiveFunction()
     objective_function.add_objective_function(cost_function)
     problem = Problem()
@@ -1616,7 +1618,7 @@ def test_predict_solver_maxcut(problem_name: str) -> None:
             for i in range(nodes):
                 for j in range(i + 1, nodes):
                     cut += weight.item((i, j)) * (x[j] + x[i] - 2 * x[i] * x[j])
-            objective_function.add_objective_function(cast(Expr, cut), minimization=False)
+            objective_function.add_objective_function(cast("Expr", cut), minimization=False)
             constraint = Constraints()
             problem = Problem()
             problem.create_problem(variables, constraint, objective_function)
