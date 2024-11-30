@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import locale
-import os
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from sympy import Expr
 
 # for managing symbols
 from mqt.qao import Constraints, ObjectiveFunction, Problem, Solver, Variables
+
+if TYPE_CHECKING:
+    from sympy import Expr
 
 lambdas_method = [
     "upper_bound_only_positive",
@@ -44,8 +45,7 @@ lambdas_conf = [
     ("upper lower bound posiform and negaform method", "binary search penalty algorithm"),
 ]
 
-files = os.listdir("Data/")
-for file in files:
+for file in Path("Data/").iterdir():
     print(file)
     with Path("./Data/" + file).open("r", encoding=locale.getpreferredencoding(False)) as f:
         lines = f.readlines()
@@ -65,7 +65,7 @@ for file in files:
         variables = Variables()
         obj = variables.add_binary_variables_array("obj", [objects])
         objective_function = ObjectiveFunction()
-        objective_function.add_objective_function(cast(Expr, np.dot(np.transpose(obj), p_arr)), minimization=False)
+        objective_function.add_objective_function(cast("Expr", np.dot(np.transpose(obj), p_arr)), minimization=False)
         constraint = Constraints()
         constraint.add_constraint(str(np.dot(np.transpose(obj), w_arr)) + " <= " + format(W_max))
         problem = Problem()
@@ -85,7 +85,7 @@ for file in files:
         variables = Variables()
         obj = variables.add_binary_variables_array("obj", [objects])
         objective_function = ObjectiveFunction()
-        objective_function.add_objective_function(cast(Expr, np.dot(np.transpose(obj), p_arr)), minimization=False)
+        objective_function.add_objective_function(cast("Expr", np.dot(np.transpose(obj), p_arr)), minimization=False)
         constraint = Constraints()
         constraint.add_constraint(str(np.dot(np.transpose(obj), w_arr)) + " <= " + format(W_max))
         problem = Problem()
