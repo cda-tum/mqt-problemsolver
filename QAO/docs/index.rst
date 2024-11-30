@@ -36,6 +36,7 @@ If you are interested in the theory behind MQT Quantum Auto Optimizer, have a lo
     Problem
     Solver
     Solution
+    Karp
     References
 
  .. toctree::
