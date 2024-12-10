@@ -80,8 +80,8 @@ def calc_needed_time_between_acquisition_attempts(
     # Calculates the time needed for the satellite to change its focus from one acquisition
     # (first_acq) to the other (second_acq)
     # Assumption: required position of the satellite is constant over possible imaging attempts
-    delta_r1 = first_acq.position - first_acq.get_average_satellite_position()
-    delta_r2 = second_acq.position - second_acq.get_average_satellite_position()
+    delta_r1: np.ndarray[Any, np.dtype[np.float64]] = first_acq.position - first_acq.get_average_satellite_position()
+    delta_r2: np.ndarray[Any, np.dtype[np.float64]] = second_acq.position - second_acq.get_average_satellite_position()
     theta = np.arccos(delta_r1 @ delta_r2 / (np.linalg.norm(delta_r1) * np.linalg.norm(delta_r2)))
     result = theta / (ROTATION_SPEED_SATELLITE * 2 * np.pi)
 
