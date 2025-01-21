@@ -160,7 +160,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
             vertices = constraint.get("vertices", [])
             if len(vertices) == 0:
                 vertices = graph.all_vertices
-            return cast(list[int], vertices)
+            return cast("list[int]", vertices)
 
         def get_edges_possibly_all(constraint: dict[str, Any]) -> list[tuple[int, int]]:
             edges = [tuple(edge) for edge in constraint.get("edges", [])]
@@ -266,7 +266,7 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
 
     def __optimal_lambda(self) -> float:
         """Compute the optimal lambda value for all penalties."""
-        return cast(float, np.max(self.graph.adjacency_matrix) * self.settings.max_path_length + 1)
+        return cast("float", np.max(self.graph.adjacency_matrix) * self.settings.max_path_length + 1)
 
     @override
     def _construct_expansion(self, expression: sp.Expr) -> sp.Expr:
@@ -314,9 +314,9 @@ class PathFindingQUBOGenerator(qubo_generator.QUBOGenerator):
         if self.settings.encoding_type == cf.EncodingType.BINARY:
             max_v = int(np.ceil(np.log2(self.graph.n_vertices + 1)))
 
-        p = int(cast(int, parts[0]))
-        v = int(cast(int, parts[1]))
-        i = int(cast(int, parts[2]))
+        p = int(cast("int", parts[0]))
+        v = int(cast("int", parts[1]))
+        i = int(cast("int", parts[2]))
 
         return int((v - 1) + (i - 1) * max_v + (p - 1) * self.settings.max_path_length * max_v + 1)
 

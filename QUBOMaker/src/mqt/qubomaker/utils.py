@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, no_type_check
+from typing import no_type_check
 
 import numpy as np
-import numpy.typing as npt
 from IPython.display import Math, clear_output, display
 from ipywidgets import widgets
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 @no_type_check

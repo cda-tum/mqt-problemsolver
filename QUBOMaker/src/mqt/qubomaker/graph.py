@@ -162,7 +162,7 @@ class Graph:
         """
         if not isinstance(value, Graph):
             return False
-        return cast(bool, np.array_equal(self.adjacency_matrix, value.adjacency_matrix))
+        return cast("bool", np.array_equal(self.adjacency_matrix, value.adjacency_matrix))
 
     def __hash__(self) -> int:
         """Returns the hash of the graph.

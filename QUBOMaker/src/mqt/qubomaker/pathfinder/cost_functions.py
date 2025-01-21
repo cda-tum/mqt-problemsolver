@@ -97,7 +97,7 @@ class Decompose(sp.Function):
         n, i = self.args
         if not isinstance(n, sp.Integer) or not isinstance(i, sp.Integer):
             return self
-        return cast(sp.Expr, sp.Integer(int(n) >> (int(i) - 1) & 1))
+        return cast("sp.Expr", sp.Integer(int(n) >> (int(i) - 1) & 1))
 
 
 class ExpandingSum(sp.Sum):
@@ -288,7 +288,7 @@ class FormulaHelpers:
         expr = functools.reduce(
             lambda total, new: total + expression.subs(dict(zip(variable_symbols, new))),
             assignments,
-            cast(sp.Expr, sp.Integer(0)),
+            cast("sp.Expr", sp.Integer(0)),
         )
 
         if len(assignments) <= 1:
@@ -318,7 +318,7 @@ class FormulaHelpers:
             v = FormulaHelpers.variable(v)
         if isinstance(w, str):
             w = FormulaHelpers.variable(w)
-        return cast(sp.Expr, A(v, w))
+        return cast("sp.Expr", A(v, w))
 
     @staticmethod
     def variable(name: str) -> sp.Symbol:
@@ -354,7 +354,7 @@ class FormulaHelpers:
             vertex = FormulaHelpers.variable(vertex)
         if isinstance(position, str):
             position = FormulaHelpers.variable(position)
-        return cast(sp.Expr, X(path, vertex, position))
+        return cast("sp.Expr", X(path, vertex, position))
 
     @staticmethod
     def get_encoding_variable_domain_wall(path: Any, vertex: Any, position: Any, _num_vertices: int = 0) -> sp.Expr:
@@ -409,7 +409,7 @@ class FormulaHelpers:
             index_symbol = FormulaHelpers.variable("w")
         max_index = int(np.ceil(np.log2(num_vertices + 1)))
         return cast(
-            sp.Expr,
+            "sp.Expr",
             sp.Product(
                 Decompose(vertex, index_symbol)
                 * FormulaHelpers.get_encoding_variable_one_hot(path, index_symbol, position)
@@ -1223,7 +1223,7 @@ class PathsShareNoEdges(PathComparison):
             ),
             ["v", "w"],
             "\\in E",
-            lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
+            lambda: cast("list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]]", graph.all_edges),
         )
 
 
@@ -1261,7 +1261,9 @@ class PathIsValid(PathBound):
                 ),
                 ["v", "w"],
                 "\\not\\in E",
-                lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.non_edges),
+                lambda: cast(
+                    "list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]]", graph.non_edges
+                ),
             ),
             self.path_ids,
         )
@@ -1296,7 +1298,7 @@ class PathIsValid(PathBound):
                     * FormulaHelpers.get_encoding_variable_one_hot("p", FormulaHelpers.variable("v") + 1, "i"),
                     ["v"],
                     "\\in V",
-                    cast(SetCallback, lambda: graph.all_vertices),
+                    cast("SetCallback", lambda: graph.all_vertices),
                 ),
                 settings.max_path_length,
             ),
@@ -1339,7 +1341,9 @@ class MinimizePathLength(PathBound):
                 ),
                 ["v", "w"],
                 "\\in E",
-                lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
+                lambda: cast(
+                    "list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]]", graph.all_edges
+                ),
             ),
             self.path_ids,
         )
@@ -1376,7 +1380,9 @@ class MaximizePathLength(PathBound):
                 ),
                 ["v", "w"],
                 "\\in E",
-                lambda: cast(list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]], graph.all_edges),
+                lambda: cast(
+                    "list[Union[sp.Expr, int, float, tuple[Union[sp.Expr, int, float], ...]]]", graph.all_edges
+                ),
             ),
             self.path_ids,
         )

@@ -70,7 +70,7 @@ class QUBOGenerator:
             sp.Expr: The mathematical representation of the QUBO formulation.
         """
         return cast(
-            sp.Expr,
+            "sp.Expr",
             functools.reduce(
                 lambda current, new: current + new[1] * new[0],
                 self._select_lambdas(),
@@ -125,7 +125,7 @@ class QUBOGenerator:
             new_term = self.__decrease_order(unpowered, auxiliary_dict)
             result += new_term * coeffs[term]
         self.auxiliary_cache = auxiliary_dict
-        return cast(sp.Expr, result)
+        return cast("sp.Expr", result)
 
     @staticmethod
     def __simplify_auxiliary_variables(expression: sp.Expr, auxiliary_dict: dict[sp.Expr, sp.Expr]) -> sp.Expr:
@@ -269,7 +269,7 @@ class QUBOGenerator:
         def get_index(variable: sp.Expr) -> int:
             if variable in all_variables:
                 return all_variables[variable] - 1
-            return auxiliary_variables.index(cast(sp.Symbol, variable)) + self.get_encoding_variable_count()
+            return auxiliary_variables.index(cast("sp.Symbol", variable)) + self.get_encoding_variable_count()
 
         for term, value in coefficients.items():
             if isinstance(term, sp.Mul):
