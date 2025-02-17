@@ -1063,7 +1063,7 @@ class KarpSets:
         Returns:
             str: A formatted string representation of the validation results.
         """
-        result = "Valid Solution" if dictionary.get("Valid Solution", False) else "Invalid Solution"
+        result = "Valid Solution" if dictionary.get("Valid Solution") else "Invalid Solution"
 
         for key, value in dictionary.items():
             if key != "Valid Solution" and isinstance(value, dict):

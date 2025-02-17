@@ -345,7 +345,7 @@ class KarpNumber:
     @staticmethod
     def convert_dict_to_string(dictionary: dict[str, Any]) -> str:
         """Converts a dictionary of solution validation results into a readable string format."""
-        result = "Valid Solution" if dictionary.get("Valid Solution", False) else "Invalid Solution"
+        result = "Valid Solution" if dictionary.get("Valid Solution") else "Invalid Solution"
         for key, value in dictionary.items():
             if key != "Valid Solution":
                 result += f"\n{key}:"
