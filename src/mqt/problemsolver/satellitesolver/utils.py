@@ -41,7 +41,7 @@ def get_success_ratio(ac_reqs: list[LocationRequest], qubo: QuadraticProgram, so
     # sum over all LocationRequests and sum over their imaging_attempt_score if the respective indicator in sol[index] is 1
     solution_vector = solution_vector[::-1]
     return cast(
-        float,
+        "float",
         (
             sum(
                 [
@@ -71,7 +71,7 @@ def create_acquisition_position(
             np.cos(latitude),
         ]
     )
-    return cast(np.ndarray[Any, np.dtype[np.float64]], res)
+    return cast("np.ndarray[Any, np.dtype[np.float64]]", res)
 
 
 def calc_needed_time_between_acquisition_attempts(
@@ -85,12 +85,12 @@ def calc_needed_time_between_acquisition_attempts(
     theta = np.arccos(delta_r1 @ delta_r2 / (np.linalg.norm(delta_r1) * np.linalg.norm(delta_r2)))
     result = theta / (ROTATION_SPEED_SATELLITE * 2 * np.pi)
 
-    return cast(np.ndarray[Any, np.dtype[np.float64]], result)
+    return cast("np.ndarray[Any, np.dtype[np.float64]]", result)
 
 
 def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:
     """Returns True if transition between acq_1 and acq_2 is possible, False otherwise"""
-    t_maneuver = cast(float, calc_needed_time_between_acquisition_attempts(acq_1, acq_2))
+    t_maneuver = cast("float", calc_needed_time_between_acquisition_attempts(acq_1, acq_2))
     t1 = acq_1.imaging_attempt
     t2 = acq_2.imaging_attempt
     if t1 < t2:
@@ -187,4 +187,4 @@ def convert_docplex_to_qubo(model: Model, penalty: int | None = None) -> Quadrat
 def get_longitude(vector: np.ndarray[Any, np.dtype[np.float64]]) -> float:
     temp = vector * np.array([1, 1, 0])
     temp /= np.linalg.norm(temp)
-    return cast(float, np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))
+    return cast("float", np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))
