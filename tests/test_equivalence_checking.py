@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 from typing import TYPE_CHECKING
 
 import pytest
@@ -28,7 +27,6 @@ def test_create_condition_string() -> None:
         equivalence_checking.create_condition_string(num_bits=-5, num_counter_examples=-2)
 
 
-@pytest.mark.skipif(not importlib.util.find_spec("tweedledum"), reason="tweedledum is not installed")
 def test_try_parameter_combinations(tmp_path: Path) -> None:
     """Test the function try_parameter_combinations."""
     path_to_csv = tmp_path / "sub" / "test1.csv"
@@ -46,7 +44,6 @@ def test_try_parameter_combinations(tmp_path: Path) -> None:
     path_to_csv.parent.rmdir()
 
 
-@pytest.mark.skipif(not importlib.util.find_spec("tweedledum"), reason="tweedledum is not installed")
 def test_find_counter_examples() -> None:
     """Test the function find_counter_examples."""
     num_bits = 6

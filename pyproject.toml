@@ -19,7 +19,7 @@ requires-python = ">=3.8"
 dynamic = ["version"]
 
 dependencies = [
-    "qiskit>=0.36.0,<0.42.0",
+    "qiskit>=2.0.0cr1",
     "joblib",
     "numpy",
     "matplotlib",
@@ -53,7 +53,6 @@ classifiers = [
 test = ["pytest>=7"]
 coverage = ["mqt.problemsolver[test]", "coverage[toml]~=6.5.0", "pytest-cov~=4.0.0"]
 dev = ["mqt.problemsolver[coverage]"]
-tweedledum = ["tweedledum==1.0.0"]
 
 [project.urls]
 Homepage = "https://github.com/cda-tum/mqtproblemsolver"
