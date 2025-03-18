@@ -100,12 +100,12 @@ print()
 def modified_logical_counts(space_factor: float, time_factor: float):
     return LogicalCounts(
         {
-            "numQubits": int(ceil(logical_counts["numQubits"] * space_factor)),
-            "tCount": int(ceil(logical_counts["tCount"] * time_factor)),
-            "rotationCount": int(ceil(logical_counts["rotationCount"] * time_factor)),
-            "rotationDepth": int(ceil(logical_counts["rotationDepth"] * time_factor)),
-            "cczCount": int(ceil(logical_counts["cczCount"] * time_factor)),
-            "measurementCount": int(ceil(logical_counts["measurementCount"] * time_factor)),
+            "numQubits": ceil(logical_counts["numQubits"] * space_factor),
+            "tCount": ceil(logical_counts["tCount"] * time_factor),
+            "rotationCount": ceil(logical_counts["rotationCount"] * time_factor),
+            "rotationDepth": ceil(logical_counts["rotationDepth"] * time_factor),
+            "cczCount": ceil(logical_counts["cczCount"] * time_factor),
+            "measurementCount": ceil(logical_counts["measurementCount"] * time_factor),
         }
     )
 

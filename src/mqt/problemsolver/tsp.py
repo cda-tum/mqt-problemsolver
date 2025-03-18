@@ -216,7 +216,7 @@ class TSP:
         job = execute(qc, backend, shots=1000)
         count = job.result().get_counts()
 
-        return cast(str, count.most_frequent())
+        return cast("str", count.most_frequent())
 
     def get_classical_result(self) -> list[int]:
         distance_matrix = np.array(
@@ -229,7 +229,7 @@ class TSP:
         )
         permutation, distance = solve_tsp_dynamic_programming(distance_matrix)
 
-        return cast(list[int], (np.array(permutation) + 1).T)
+        return cast("list[int]", (np.array(permutation) + 1).T)
 
     def controlled_unitary(
         self, qc: QuantumCircuit, qubits: list[QuantumRegister], phases: list[float]

@@ -28,17 +28,17 @@ class LocationRequest:
 
     def get_average_satellite_position(self) -> np.ndarray[Any, np.dtype[np.float64]]:
         longitude = 2 * np.pi / ORBIT_DURATION * self.imaging_attempt
-        return cast(np.ndarray[Any, np.dtype[np.float64]], R_S * np.array([np.cos(longitude), np.sin(longitude), 0]))
+        return cast("np.ndarray[Any, np.dtype[np.float64]]", R_S * np.array([np.cos(longitude), np.sin(longitude), 0]))
 
     def get_longitude_angle(self) -> float:
         # Returns longitude of the acquisition request
         temp = self.position * np.array([1, 1, 0])
         temp /= np.linalg.norm(temp)
-        return cast(float, np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))
+        return cast("float", np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))
 
     def get_latitude_angle(self) -> float:
         # Returns latitude of the acquisition request
-        return cast(float, np.arccos(self.position[2] / R_E))
+        return cast("float", np.arccos(self.position[2] / R_E))
 
     def get_coordinates(self) -> tuple[str, str]:
         # Returns position of the acquisition request as GPS coordinates
