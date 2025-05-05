@@ -116,7 +116,10 @@ def find_counter_examples(
     simulator = AerSimulator(method="statevector")
 
     total_iterations = 0
+    break_loop = False
     for iterations in reversed(range(1, start_iterations + 1)):
+        if break_loop:
+            break
         total_iterations += iterations
         oracle = PhaseOracle(miter)
 
@@ -150,6 +153,7 @@ def find_counter_examples(
                     for t in range(len(found_counter_examples_list))
                 }
                 found_counter_examples = list(found_counter_examples_dict.keys())
+                break_loop = True
                 break
 
             diff = counts_list[i] - counts_list[i + 1]
@@ -160,6 +164,7 @@ def find_counter_examples(
                     for t in range(len(found_counter_examples_list))
                 }
                 found_counter_examples = list(found_counter_examples_dict.keys())
+                break_loop = True
                 break
 
     if counter_examples is None:
