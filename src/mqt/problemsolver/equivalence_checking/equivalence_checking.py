@@ -241,15 +241,15 @@ def verify_counter_examples(result_list: list[str], miter: str) -> bool:
     print("verify_solution")
     print("miter: ", miter)
     print("result_list: ", result_list)
+    # Map 'a' to 'z' to bits
+    var_names = list(string.ascii_lowercase[: len(result_list[0])])
+    # Translate to Python logical syntax
+    python_expr = miter.replace("~", "not ").replace("&", " and ").replace("|", " or ")
+
     invalid_res = False
     for result in result_list:
         print("verifying ", result)
-        # Map 'a' to 'z' to bits
-        var_names = list(string.ascii_lowercase[: len(result)])
         variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(result))}
-
-        # Translate to Python logical syntax
-        python_expr = miter.replace("~", "not ").replace("&", " and ").replace("|", " or ")
         res = eval(python_expr, {"__builtins__": None}, variables)
 
         if not res:
