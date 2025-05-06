@@ -142,12 +142,15 @@ def find_counter_examples(
         for i in range(int(total_num_combinations * 0.5)):
             if (i + 1) == len(counts_list):
                 found_counter_examples = [key for key, _ in sorted_counts]
-                break
+                if verify_counter_examples(found_counter_examples, miter):
+                    break
+                found_counter_examples = []
             diff = counts_list[i] - counts_list[i + 1]
             if diff > counts_list[i] * delta:
                 found_counter_examples = [key for key, _ in sorted_counts[: i + 1]]
                 if verify_counter_examples(found_counter_examples, miter):
                     break
+                found_counter_examples = []
         if found_counter_examples:
             break
 
