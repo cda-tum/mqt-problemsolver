@@ -67,7 +67,8 @@ def test_find_counter_examples() -> None:
     number_iterations = equivalence_checking.find_counter_examples(
         miter=res_string, num_bits=num_bits, shots=shots, delta=delta, counter_examples=counter_examples
     )
-
+    
+    # 5 iterations were determined by multiple experiments in the case of 6 bits and 3 counter examples
     assert number_iterations == 5
 
     with pytest.raises(ValueError, match="Invalid value for delta 1.2, which must be between 0 and 1."):
