@@ -116,56 +116,39 @@ def find_counter_examples(
     simulator = AerSimulator(method="statevector")
 
     total_iterations = 0
-    break_loop = False
+    found_counter_examples = []
+
     for iterations in reversed(range(1, start_iterations + 1)):
-        if break_loop:
-            break
         total_iterations += iterations
         oracle = PhaseOracle(miter)
-
         operator = GroverOperator(oracle).decompose()
+        
         num_bits = operator.num_qubits
-        total_num_combinations = 2**num_bits
+        total_num_combinations = 2 ** num_bits
 
         qc = QuantumCircuit(num_bits)
-        qc.h(list(range(num_bits)))
+        qc.h(range(num_bits))
         qc.compose(operator.power(iterations).decompose(), inplace=True)
         qc.measure_all()
 
         qc = transpile(qc, simulator)
+        result = simulator.run(qc, shots=shots).result()
+        counts = result.get_counts()
 
-        job = simulator.run(qc, shots=shots)
-        result = job.result()
-        counts_dict = dict(result.get_counts())
-        counts_list = list(counts_dict.values())
-        counts_list.sort(reverse=True)
+        # Sort counts descending by value
+        sorted_counts = sorted(counts.items(), key=itemgetter(1), reverse=True)
+        counts_list = [count for _, count in sorted_counts]
 
-        counts_dict = dict(
-            sorted(counts_dict.items(), key=itemgetter(1))[::-1]
-        )  # Sort state dictionary with respect to values (counts)
-
-        found_counter_examples = []
         for i in range(int(total_num_combinations * 0.5)):
             if (i + 1) == len(counts_list):
-                found_counter_examples_list = counts_list
-                found_counter_examples_dict = {
-                    list(counts_dict.keys())[t]: list(counts_dict.values())[t]
-                    for t in range(len(found_counter_examples_list))
-                }
-                found_counter_examples = list(found_counter_examples_dict.keys())
-                break_loop = True
+                found_counter_examples = [key for key, _ in sorted_counts]
                 break
-
             diff = counts_list[i] - counts_list[i + 1]
             if diff > counts_list[i] * delta:
-                found_counter_examples_list = counts_list[: i + 1]
-                found_counter_examples_dict = {
-                    list(counts_dict.keys())[t]: list(counts_dict.values())[t]
-                    for t in range(len(found_counter_examples_list))
-                }
-                found_counter_examples = list(found_counter_examples_dict.keys())
-                break_loop = True
+                found_counter_examples = [key for key, _ in sorted_counts[:i + 1]]
                 break
+        if found_counter_examples:
+            break
 
     if counter_examples is None:
         return found_counter_examples

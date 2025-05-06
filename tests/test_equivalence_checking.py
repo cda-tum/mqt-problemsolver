@@ -50,7 +50,7 @@ def test_try_parameter_combinations(tmp_path: Path) -> None:
 def test_find_counter_examples() -> None:
     """Test the function find_counter_examples."""
     num_bits = 6
-    num_counter_examples = 10
+    num_counter_examples = 3
     res_string, counter_examples = equivalence_checking.create_condition_string(
         num_bits=num_bits, num_counter_examples=num_counter_examples
     )
@@ -63,6 +63,12 @@ def test_find_counter_examples() -> None:
         found_counter_examples.sort()
     counter_examples.sort()
     assert found_counter_examples == counter_examples
+
+    number_iterations = equivalence_checking.find_counter_examples(
+        miter=res_string, num_bits=num_bits, shots=shots, delta=delta, counter_examples=counter_examples
+    )
+
+    assert number_iterations == 5
 
     with pytest.raises(ValueError, match="Invalid value for delta 1.2, which must be between 0 and 1."):
         equivalence_checking.find_counter_examples(miter=res_string, num_bits=5, shots=shots, delta=1.2)
