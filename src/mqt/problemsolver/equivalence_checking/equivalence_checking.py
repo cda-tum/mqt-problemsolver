@@ -251,7 +251,6 @@ def verify_counter_examples(result_list: list[str], miter: str) -> bool:
         print("verifying ", result)
         variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(result))}
         res = eval(python_expr, {"__builtins__": None}, variables)
-
         if not res:
             invalid_res = True
             print(f"{result} is not a counter example.")
