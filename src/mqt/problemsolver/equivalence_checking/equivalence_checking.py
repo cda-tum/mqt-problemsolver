@@ -122,9 +122,9 @@ def find_counter_examples(
         total_iterations += iterations
         oracle = PhaseOracle(miter)
         operator = GroverOperator(oracle).decompose()
-        
+
         num_bits = operator.num_qubits
-        total_num_combinations = 2 ** num_bits
+        total_num_combinations = 2**num_bits
 
         qc = QuantumCircuit(num_bits)
         qc.h(range(num_bits))
@@ -145,7 +145,7 @@ def find_counter_examples(
                 break
             diff = counts_list[i] - counts_list[i + 1]
             if diff > counts_list[i] * delta:
-                found_counter_examples = [key for key, _ in sorted_counts[:i + 1]]
+                found_counter_examples = [key for key, _ in sorted_counts[: i + 1]]
                 break
         if found_counter_examples:
             break
