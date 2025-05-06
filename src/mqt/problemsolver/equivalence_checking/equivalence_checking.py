@@ -117,14 +117,14 @@ def find_counter_examples(
 
     total_iterations = 0
     found_counter_examples = []
+    oracle = PhaseOracle(miter)
+    operator = GroverOperator(oracle).decompose()
+
+    num_bits = operator.num_qubits
+    total_num_combinations = 2**num_bits
 
     for iterations in reversed(range(1, start_iterations + 1)):
         total_iterations += iterations
-        oracle = PhaseOracle(miter)
-        operator = GroverOperator(oracle).decompose()
-
-        num_bits = operator.num_qubits
-        total_num_combinations = 2**num_bits
 
         qc = QuantumCircuit(num_bits)
         qc.h(range(num_bits))
