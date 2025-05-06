@@ -146,7 +146,8 @@ def find_counter_examples(
             diff = counts_list[i] - counts_list[i + 1]
             if diff > counts_list[i] * delta:
                 found_counter_examples = [key for key, _ in sorted_counts[: i + 1]]
-                break
+                if verify_counter_examples(found_counter_examples, miter):
+                    break
         if found_counter_examples:
             break
 
@@ -218,3 +219,37 @@ def try_parameter_combinations(
             i += 1
 
     data.to_csv(path, index=False)
+
+
+def verify_counter_examples(result_list: list[str], miter: str) -> bool:
+    """Verifies the counter examples found by Grover's algorithm.
+
+    Parameters
+    ----------
+    result_list : list[str]
+        List of counter examples
+    miter : str
+        Miter condition string
+    Returns
+    -------
+    bool
+        True if the counter examples are valid, False otherwise
+    """
+    print("verify_solution")
+    print("miter: ", miter)
+    print("result_list: ", result_list)
+    invalid_res = False
+    for result in result_list:
+        print("verifying ", result)
+        # Map 'a' to 'z' to bits
+        var_names = list(string.ascii_lowercase[: len(result)])
+        variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(result))}
+
+        # Translate to Python logical syntax
+        python_expr = miter.replace("~", "not ").replace("&", " and ").replace("|", " or ")
+        res = eval(python_expr, {"__builtins__": None}, variables)
+
+        if not res:
+            invalid_res = True
+            print(f"{result} is not a counter example.")
+    return not invalid_res
