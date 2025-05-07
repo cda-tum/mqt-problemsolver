@@ -7,12 +7,7 @@ from tqdm import tqdm
 from qiskit import QuantumCircuit, transpile
 from qiskit.transpiler.passmanager import PassManager
 
-from qiskit.transpiler.passes import (
-    BasisTranslator,
-)
 from qiskit.transpiler.passes.optimization import *
-
-from qiskit.circuit.equivalence_library import SessionEquivalenceLibrary
 
 from qsharp.interop.qiskit import estimate
 
