@@ -123,6 +123,8 @@ def find_counter_examples(
     num_bits = operator.num_qubits
     total_num_combinations = 2**num_bits
 
+    potential_counter_examples = None
+
     for iterations in reversed(range(1, start_iterations + 1)):
         total_iterations += iterations
 
@@ -142,17 +144,21 @@ def find_counter_examples(
         for i in range(int(total_num_combinations * 0.5)):
             if (i + 1) == len(counts_list) or ((counts_list[i] - counts_list[i + 1]) > (counts_list[i] * delta)):
                 potential_counter_examples = [key for key, _ in sorted_counts[: i + 1]]
-                if verify_counter_examples(potential_counter_examples, miter):
-                    found_counter_examples = potential_counter_examples
-                    break
-                found_counter_examples = []
-        if found_counter_examples:
+                break
+        if potential_counter_examples:
             break
+    
+    # Perform the check only if the potential counter examples are not empty
+    if potential_counter_examples:
+        # Check which of the two separated groups of counter examples are the real ones
+        real_counter_examples = verify_counter_examples(potential_counter_examples, miter)
+    else:
+        real_counter_examples = []
 
     if counter_examples is None:
-        return found_counter_examples
+        return real_counter_examples
 
-    if sorted(found_counter_examples) == sorted(counter_examples):
+    if sorted(real_counter_examples) == sorted(counter_examples):
         return total_iterations
 
     return None
@@ -185,7 +191,6 @@ def try_parameter_combinations(
         Number of runs for each parameter combination
     verbose : bool
         If True, print the current parameter combination
-
     """
     data = pd.DataFrame(columns=["Input Bits", "Counter Examples", *range_deltas])
     i = 0
@@ -230,23 +235,34 @@ def verify_counter_examples(result_list: list[str], miter: str) -> bool:
         Miter condition string
     Returns
     -------
-    bool
-        True if the counter examples are valid, False otherwise
+    list[str]
+        List of actual counter examples
     """
-    print("verify_solution")
-    print("miter: ", miter)
-    print("result_list: ", result_list)
     # Map 'a' to 'z' to bits
     var_names = list(string.ascii_lowercase[: len(result_list[0])])
     # Translate to Python logical syntax
     python_expr = miter.replace("~", "not ").replace("&", " and ").replace("|", " or ")
+    #pick first found element
+    first_result = result_list[0]
 
-    invalid_res = False
-    for result in result_list:
-        print("verifying ", result)
-        variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(result))}
-        res = eval(python_expr, {"__builtins__": None}, variables)
-        if not res:
-            invalid_res = True
-            print(f"{result} is not a counter example.")
-    return not invalid_res
+    variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result))}
+    res = eval(python_expr, {"__builtins__": None}, variables)
+    if not res:
+        print("Need to swtich groups")
+        real_counter_examples = [format(i, f"0{len(result_list[0])}b") for i in range(2 ** len(result_list[0]))]
+        real_counter_examples = [i for i in real_counter_examples if not i in result_list]
+        return real_counter_examples
+    return result_list
+
+
+num_bits = 6
+num_counter_examples = 57
+res_string, counter_examples = create_condition_string(
+    num_bits=num_bits, num_counter_examples=num_counter_examples
+)
+
+shots = 512
+delta = 0.7
+found_counter_examples = find_counter_examples(
+    miter=res_string, num_bits=num_bits, shots=shots, delta=delta
+)
