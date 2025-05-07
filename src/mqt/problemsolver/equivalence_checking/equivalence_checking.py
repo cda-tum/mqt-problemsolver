@@ -151,13 +151,13 @@ def find_counter_examples(
     if potential_counter_examples:
         # Check which of the two separated groups of counter examples are the real ones
         real_counter_examples = verify_counter_examples(potential_counter_examples, miter)
+
+        if counter_examples is None:
+            return real_counter_examples
     else:
         real_counter_examples = []
 
-    if counter_examples is None:
-        return real_counter_examples
-
-    if sorted(real_counter_examples) == sorted(counter_examples):
+    if sorted(real_counter_examples or []) == sorted(counter_examples or []):
         return total_iterations
 
     return None
@@ -223,7 +223,7 @@ def try_parameter_combinations(
     data.to_csv(path, index=False)
 
 
-def verify_counter_examples(result_list: list[str], miter: str) -> bool:
+def verify_counter_examples(result_list: list[str], miter: str) -> list[str]:
     """Verifies the counter examples found by Grover's algorithm.
 
     Parameters
@@ -247,16 +247,6 @@ def verify_counter_examples(result_list: list[str], miter: str) -> bool:
     variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result))}
     res = eval(python_expr, {"__builtins__": None}, variables)
     if not res:
-        print("Need to swtich groups")
         real_counter_examples = [format(i, f"0{len(result_list[0])}b") for i in range(2 ** len(result_list[0]))]
         return [i for i in real_counter_examples if i not in result_list]
     return result_list
-
-
-num_bits = 6
-num_counter_examples = 57
-res_string, counter_examples = create_condition_string(num_bits=num_bits, num_counter_examples=num_counter_examples)
-
-shots = 512
-delta = 0.7
-found_counter_examples = find_counter_examples(miter=res_string, num_bits=num_bits, shots=shots, delta=delta)
