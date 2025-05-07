@@ -116,7 +116,6 @@ def find_counter_examples(
     simulator = AerSimulator(method="statevector")
 
     total_iterations = 0
-    found_counter_examples = []
     oracle = PhaseOracle(miter)
     operator = GroverOperator(oracle).decompose()
 
@@ -147,7 +146,7 @@ def find_counter_examples(
                 break
         if potential_counter_examples:
             break
-    
+
     # Perform the check only if the potential counter examples are not empty
     if potential_counter_examples:
         # Check which of the two separated groups of counter examples are the real ones
@@ -242,7 +241,7 @@ def verify_counter_examples(result_list: list[str], miter: str) -> bool:
     var_names = list(string.ascii_lowercase[: len(result_list[0])])
     # Translate to Python logical syntax
     python_expr = miter.replace("~", "not ").replace("&", " and ").replace("|", " or ")
-    #pick first found element
+    # pick first found element
     first_result = result_list[0]
 
     variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result))}
@@ -250,19 +249,14 @@ def verify_counter_examples(result_list: list[str], miter: str) -> bool:
     if not res:
         print("Need to swtich groups")
         real_counter_examples = [format(i, f"0{len(result_list[0])}b") for i in range(2 ** len(result_list[0]))]
-        real_counter_examples = [i for i in real_counter_examples if not i in result_list]
-        return real_counter_examples
+        return [i for i in real_counter_examples if i not in result_list]
     return result_list
 
 
 num_bits = 6
 num_counter_examples = 57
-res_string, counter_examples = create_condition_string(
-    num_bits=num_bits, num_counter_examples=num_counter_examples
-)
+res_string, counter_examples = create_condition_string(num_bits=num_bits, num_counter_examples=num_counter_examples)
 
 shots = 512
 delta = 0.7
-found_counter_examples = find_counter_examples(
-    miter=res_string, num_bits=num_bits, shots=shots, delta=delta
-)
+found_counter_examples = find_counter_examples(miter=res_string, num_bits=num_bits, shots=shots, delta=delta)
