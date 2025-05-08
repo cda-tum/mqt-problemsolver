@@ -210,8 +210,8 @@ def try_parameter_combinations(
                     results.append(result)
                 if None in results:
                     row.append("-")
-                    raise RuntimeWarning
-                row.append(float(np.mean(np.asarray(results))))
+                else:
+                    row.append(float(np.mean(np.asarray(results))))
             data.loc[i] = row
             i += 1
 

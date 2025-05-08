@@ -47,64 +47,54 @@ def test_try_parameter_combinations(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(not importlib.util.find_spec("tweedledum"), reason="tweedledum is not installed")
-def test_find_counter_examples() -> None:
+@pytest.mark.parametrize(
+    ("num_bits", "num_counter_examples", "delta", "shots"),
+    [
+        (6, 3, 0.7, 512),
+        (6, 32, 0.7, 512),
+        (6, 57, 0.7, 512),
+        (6, 0, 0.7, 512),
+    ],
+)
+def test_find_counter_examples(num_bits: int, num_counter_examples: int, delta: float, shots: int) -> None:
     """Test the function find_counter_examples."""
-    num_bits = 6
-    num_counter_examples = 3
+
     res_string, predetermined_counter_examples = equivalence_checking.create_condition_string(
         num_bits=num_bits, num_counter_examples=num_counter_examples
     )
-    shots = 512
-    delta = 0.7
-    found_counter_examples = equivalence_checking.find_counter_examples(
-        miter=res_string, num_bits=num_bits, shots=shots, delta=delta
-    )
-    if isinstance(found_counter_examples, list):
-        found_counter_examples.sort()
-    predetermined_counter_examples.sort()
-    assert found_counter_examples == predetermined_counter_examples
 
-    number_iterations = equivalence_checking.find_counter_examples(
-        miter=res_string,
-        num_bits=num_bits,
-        shots=shots,
-        delta=delta,
-        predetermined_counter_examples=predetermined_counter_examples,
-    )
+    if num_counter_examples == 32:
+        found_counter_examples = equivalence_checking.find_counter_examples(
+            miter=res_string,
+            num_bits=num_bits,
+            shots=shots,
+            delta=delta,
+            predetermined_counter_examples=predetermined_counter_examples,
+        )
+        assert found_counter_examples is None
 
-    # 5 iterations were determined by multiple experiments in the case of 6 bits and 3 counter examples
-    assert number_iterations == 5
+    else:
+        found_counter_examples = equivalence_checking.find_counter_examples(
+            miter=res_string, num_bits=num_bits, shots=shots, delta=delta
+        )
 
-    # Test, if the correct group of states gets identified as counter examples (using > 50 % counter examples)
-    num_bits = 6
-    num_counter_examples = 57
-    res_string, predetermined_counter_examples = equivalence_checking.create_condition_string(
-        num_bits=num_bits, num_counter_examples=num_counter_examples
-    )
-    shots = 512
-    delta = 0.7
-    found_counter_examples = equivalence_checking.find_counter_examples(
-        miter=res_string, num_bits=num_bits, shots=shots, delta=delta
-    )
-    if isinstance(found_counter_examples, list):
-        found_counter_examples.sort()
-    predetermined_counter_examples.sort()
-    assert found_counter_examples == predetermined_counter_examples
+        if isinstance(found_counter_examples, list):
+            found_counter_examples.sort()
+        predetermined_counter_examples.sort()
 
-    num_bits = 6
-    num_counter_examples = 0  # Test the equivalent case (using 0 counter examples)
-    res_string, predetermined_counter_examples = equivalence_checking.create_condition_string(
-        num_bits=num_bits, num_counter_examples=num_counter_examples
-    )
-    shots = 512
-    delta = 0.7
-    found_counter_examples = equivalence_checking.find_counter_examples(
-        miter=res_string, num_bits=num_bits, shots=shots, delta=delta
-    )
-    if isinstance(found_counter_examples, list):
-        found_counter_examples.sort()
-    predetermined_counter_examples.sort()
-    assert found_counter_examples == predetermined_counter_examples
+        assert found_counter_examples == predetermined_counter_examples
+
+    if num_counter_examples == 3:
+        number_iterations = equivalence_checking.find_counter_examples(
+            miter=res_string,
+            num_bits=num_bits,
+            shots=shots,
+            delta=delta,
+            predetermined_counter_examples=predetermined_counter_examples,
+        )
+
+        # 5 iterations were determined by multiple experiments in the case of 6 bits and 3 counter examples
+        assert number_iterations == 5
 
     with pytest.raises(ValueError, match="Invalid value for delta 1.2, which must be between 0 and 1."):
         equivalence_checking.find_counter_examples(miter=res_string, num_bits=5, shots=shots, delta=1.2)
