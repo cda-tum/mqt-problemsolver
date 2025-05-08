@@ -51,7 +51,7 @@ def test_find_counter_examples() -> None:
     """Test the function find_counter_examples."""
     num_bits = 6
     num_counter_examples = 3
-    res_string, counter_examples = equivalence_checking.create_condition_string(
+    res_string, predetermined_counter_examples = equivalence_checking.create_condition_string(
         num_bits=num_bits, num_counter_examples=num_counter_examples
     )
     shots = 512
@@ -61,20 +61,24 @@ def test_find_counter_examples() -> None:
     )
     if isinstance(found_counter_examples, list):
         found_counter_examples.sort()
-    counter_examples.sort()
-    assert found_counter_examples == counter_examples
+    predetermined_counter_examples.sort()
+    assert found_counter_examples == predetermined_counter_examples
 
     number_iterations = equivalence_checking.find_counter_examples(
-        miter=res_string, num_bits=num_bits, shots=shots, delta=delta, counter_examples=counter_examples
+        miter=res_string,
+        num_bits=num_bits,
+        shots=shots,
+        delta=delta,
+        predetermined_counter_examples=predetermined_counter_examples,
     )
 
     # 5 iterations were determined by multiple experiments in the case of 6 bits and 3 counter examples
     assert number_iterations == 5
 
-    # Test, if the correct group of states gets identified as counter examples
+    # Test, if the correct group of states gets identified as counter examples (using > 50 % counter examples)
     num_bits = 6
     num_counter_examples = 57
-    res_string, counter_examples = equivalence_checking.create_condition_string(
+    res_string, predetermined_counter_examples = equivalence_checking.create_condition_string(
         num_bits=num_bits, num_counter_examples=num_counter_examples
     )
     shots = 512
@@ -84,8 +88,8 @@ def test_find_counter_examples() -> None:
     )
     if isinstance(found_counter_examples, list):
         found_counter_examples.sort()
-    counter_examples.sort()
-    assert found_counter_examples == counter_examples
+    predetermined_counter_examples.sort()
+    assert found_counter_examples == predetermined_counter_examples
 
     with pytest.raises(ValueError, match="Invalid value for delta 1.2, which must be between 0 and 1."):
         equivalence_checking.find_counter_examples(miter=res_string, num_bits=5, shots=shots, delta=1.2)

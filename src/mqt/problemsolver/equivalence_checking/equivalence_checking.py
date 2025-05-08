@@ -81,7 +81,7 @@ def find_counter_examples(
     num_bits: int,
     shots: int,
     delta: float,
-    counter_examples: list[str] | None = None,
+    predetermined_counter_examples: list[str] | None = None,
 ) -> list[str] | int | None:
     """Runs our approach utilizing Grover's algorithm to find counter examples for a given miter.
 
@@ -99,12 +99,12 @@ def find_counter_examples(
         Number of shots to run the quantum circuit for
     delta : float
         Threshold for the stopping condition
-    counter_examples : list[str] | NoneType
+    predetermined_counter_examples : list[str] | NoneType
         List of counter examples
 
     Returns:
     -------
-    Found counter examples for a given miter (counter_examples=None) or the number of iterations to find the counter examples (or "-" if no/wrong counter examples were found) if the counter examples are known beforehand.
+    Found counter examples for a given miter (predetermined_counter_examples=None) or the number of iterations to find the counter examples (or "-" if no/wrong counter examples were found) if the counter examples are known beforehand.
     """
     if not 0 <= delta <= 1:
         msg = f"Invalid value for delta {delta}, which must be between 0 and 1."
@@ -147,19 +147,14 @@ def find_counter_examples(
         if potential_counter_examples:
             break
 
-    # Perform the check only if the potential counter examples are not empty
-    if potential_counter_examples:
-        # Check which of the two separated groups of counter examples are the real ones
-        real_counter_examples = verify_counter_examples(potential_counter_examples, miter)
+    real_counter_examples = (
+        verify_counter_examples(potential_counter_examples, miter) if potential_counter_examples else []
+    )
 
-        if counter_examples is None:
-            return real_counter_examples
-    else:
-        real_counter_examples = []
-
-    if sorted(real_counter_examples or []) == sorted(counter_examples or []):
+    if predetermined_counter_examples is None:
+        return real_counter_examples
+    if sorted(real_counter_examples) == sorted(predetermined_counter_examples):
         return total_iterations
-
     return None
 
 
@@ -204,19 +199,19 @@ def try_parameter_combinations(
                     )
                 results = []
                 for _run in range(num_runs):
-                    miter, counter_examples = create_condition_string(num_bits, num_counter_examples)
+                    miter, predetermined_counter_examples = create_condition_string(num_bits, num_counter_examples)
                     result = find_counter_examples(
                         miter=miter,
                         num_bits=num_bits,
                         shots=shots_factor * (2**num_bits),
                         delta=delta,
-                        counter_examples=counter_examples,
+                        predetermined_counter_examples=predetermined_counter_examples,
                     )
                     results.append(result)
                 if None in results:
                     row.append("-")
-                else:
-                    row.append(float(np.mean(np.asarray(results))))
+                    raise RuntimeWarning
+                row.append(float(np.mean(np.asarray(results))))
             data.loc[i] = row
             i += 1
 
