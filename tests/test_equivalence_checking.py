@@ -53,7 +53,7 @@ def test_try_parameter_combinations(tmp_path: Path) -> None:
         (6, 0, False, None),
     ],
 )
-def test_determine_number_grover_iterations(
+def test_find_counter_examples(
     num_bits: int, num_counter_examples: int, get_counter_examples: bool, expected_num_iters: None | int
 ) -> None:
     """Test the function find_counter_examples."""
