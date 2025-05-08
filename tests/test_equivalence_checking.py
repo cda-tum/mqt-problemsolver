@@ -91,5 +91,20 @@ def test_find_counter_examples() -> None:
     predetermined_counter_examples.sort()
     assert found_counter_examples == predetermined_counter_examples
 
+    num_bits = 6
+    num_counter_examples = 0  # Test the equivalent case (using 0 counter examples)
+    res_string, predetermined_counter_examples = equivalence_checking.create_condition_string(
+        num_bits=num_bits, num_counter_examples=num_counter_examples
+    )
+    shots = 512
+    delta = 0.7
+    found_counter_examples = equivalence_checking.find_counter_examples(
+        miter=res_string, num_bits=num_bits, shots=shots, delta=delta
+    )
+    if isinstance(found_counter_examples, list):
+        found_counter_examples.sort()
+    predetermined_counter_examples.sort()
+    assert found_counter_examples == predetermined_counter_examples
+
     with pytest.raises(ValueError, match="Invalid value for delta 1.2, which must be between 0 and 1."):
         equivalence_checking.find_counter_examples(miter=res_string, num_bits=5, shots=shots, delta=1.2)
