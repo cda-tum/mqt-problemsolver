@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "PathsShareNoVertices"
+    },
+    "path_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 2
+    },
+    "weight": {
+      "type": "number",
+      "default": null
+    }
+  },
+  "required": ["type", "path_ids"],
+  "additionalProperties": false
+}

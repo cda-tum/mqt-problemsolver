@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "PathEndsAt"
+    },
+    "vertices": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "path_id": {
+      "type": "integer",
+      "default": 1
+    },
+    "weight": {
+      "type": "number",
+      "default": null
+    }
+  },
+  "required": ["vertices", "type"],
+  "additionalProperties": false
+}

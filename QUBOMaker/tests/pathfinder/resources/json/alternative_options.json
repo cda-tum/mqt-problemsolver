@@ -1,0 +1,34 @@
+{
+  "settings": {
+    "encoding": "BINARY",
+    "n_paths": 2,
+    "max_path_length": 5,
+    "loops": false
+  },
+  "constraints": [
+    {
+      "type": "PathContainsVerticesExactlyOnce"
+    },
+    {
+      "type": "PathContainsVerticesAtLeastOnce",
+      "vertices": [1, 2]
+    },
+    {
+      "type": "PathContainsVerticesAtMostOnce",
+      "path_ids": [1, 2]
+    },
+    {
+      "type": "PrecedenceConstraint",
+      "precedences": [
+        {
+          "before": 1,
+          "after": 2
+        },
+        {
+          "before": 2,
+          "after": 3
+        }
+      ]
+    }
+  ]
+}

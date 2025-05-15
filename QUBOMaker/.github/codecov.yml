@@ -1,0 +1,25 @@
+ignore:
+  - "notebooks/*"
+  - "docs/*"
+
+component_management:
+  individual_components:
+    - component_id: qubo-pathfinder
+      name: pathfinder
+      paths:
+        - src/mqt/qubomaker/pathfinder
+    - component_id: qubo-maker
+      name: qubomaker
+      paths:
+        - src/mqt/qubomaker
+
+coverage:
+  range: 60..90
+  precision: 1
+  status:
+    project:
+      default:
+        threshold: 0.5%
+    patch:
+      default:
+        threshold: 1%

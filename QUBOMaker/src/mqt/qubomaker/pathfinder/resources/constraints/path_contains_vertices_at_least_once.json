@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "PathContainsVerticesAtLeastOnce"
+    },
+    "vertices": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "default": []
+    },
+    "path_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "default": [1]
+    },
+    "weight": {
+      "type": "number",
+      "default": null
+    }
+  },
+  "required": ["type"],
+  "additionalProperties": false
+}

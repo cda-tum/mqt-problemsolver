@@ -1,0 +1,19 @@
+{
+  "anyOf": [
+    { "$ref": "path_is_valid.json" },
+    { "$ref": "path_position_is.json" },
+    { "$ref": "path_starts_at.json" },
+    { "$ref": "path_ends_at.json" },
+    { "$ref": "path_contains_edges_at_least_once.json" },
+    { "$ref": "path_contains_edges_at_most_once.json" },
+    { "$ref": "path_contains_edges_exactly_once.json" },
+    { "$ref": "path_contains_vertices_at_least_once.json" },
+    { "$ref": "path_contains_vertices_at_most_once.json" },
+    { "$ref": "path_contains_vertices_exactly_once.json" },
+    { "$ref": "paths_share_no_vertices.json" },
+    { "$ref": "paths_share_no_edges.json" },
+    { "$ref": "path_vertex_precedence.json" },
+    { "$ref": "path_minimize_length.json" },
+    { "$ref": "path_maximize_length.json" }
+  ]
+}

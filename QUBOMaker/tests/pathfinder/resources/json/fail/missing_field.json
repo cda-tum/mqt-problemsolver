@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "encoding": "ONE_HOT",
+    "n_paths": 2,
+    "max_path_length": 5,
+    "loops": false
+  },
+  "objective_function": {
+    "type": "MinimizePathLength"
+  },
+  "constraints": [
+    {
+      "type": "PathPositionIs",
+      "position": 1
+    }
+  ]
+}

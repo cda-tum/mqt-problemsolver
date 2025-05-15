@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "PrecedenceConstraint"
+    },
+    "precedences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "before": { "type": "integer" },
+          "after": { "type": "integer" }
+        },
+        "required": ["before", "after"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "path_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "default": [1]
+    },
+    "weight": {
+      "type": "number",
+      "default": null
+    }
+  },
+  "required": ["type", "precedences"],
+  "additionalProperties": false
+}

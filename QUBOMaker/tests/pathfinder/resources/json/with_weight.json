@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "encoding": "UNARY",
+    "n_paths": 1,
+    "max_path_length": 5,
+    "loops": false
+  },
+  "objective_function": {
+    "type": "MaximizePathLength"
+  },
+  "constraints": [
+    {
+      "type": "PathContainsVerticesExactlyOnce",
+      "weight": 500
+    }
+  ]
+}

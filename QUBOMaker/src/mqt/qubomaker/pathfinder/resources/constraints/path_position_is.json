@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "PathPositionIs"
+    },
+    "position": { "type": "integer" },
+    "vertices": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "path_id": {
+      "type": "integer",
+      "default": 1
+    },
+    "weight": {
+      "type": "number",
+      "default": null
+    }
+  },
+  "required": ["type", "position", "vertices"],
+  "additionalProperties": false
+}

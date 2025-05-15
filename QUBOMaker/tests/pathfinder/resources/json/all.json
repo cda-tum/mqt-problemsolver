@@ -1,0 +1,82 @@
+{
+  "settings": {
+    "encoding": "ONE_HOT",
+    "n_paths": 3,
+    "max_path_length": 4,
+    "loops": true
+  },
+  "objective_function": {
+    "type": "MinimizePathLength",
+    "path_ids": [1]
+  },
+  "constraints": [
+    {
+      "type": "PathContainsEdgesAtLeastOnce",
+      "edges": [[1, 2]],
+      "path_ids": [1]
+    },
+    {
+      "type": "PathContainsEdgesAtMostOnce",
+      "edges": [[1, 2]],
+      "path_ids": [1]
+    },
+    {
+      "type": "PathContainsEdgesExactlyOnce",
+      "edges": [[1, 2]],
+      "path_ids": [1]
+    },
+    {
+      "type": "PathContainsVerticesAtLeastOnce",
+      "vertices": [1, 2, 3],
+      "path_ids": [1]
+    },
+    {
+      "type": "PathContainsVerticesAtMostOnce",
+      "vertices": [1, 2, 3],
+      "path_ids": [1]
+    },
+    {
+      "type": "PathContainsVerticesExactlyOnce",
+      "vertices": [1, 2, 3],
+      "path_ids": [1]
+    },
+    {
+      "type": "PathEndsAt",
+      "vertices": [1, 2, 3],
+      "path_id": 1
+    },
+    {
+      "type": "PathStartsAt",
+      "vertices": [1, 2, 3],
+      "path_id": 1
+    },
+    {
+      "type": "PathPositionIs",
+      "position": 2,
+      "vertices": [1, 2, 3],
+      "path_id": 1
+    },
+    {
+      "type": "PrecedenceConstraint",
+      "precedences": [
+        {
+          "before": 1,
+          "after": 2
+        }
+      ],
+      "path_ids": [1]
+    },
+    {
+      "type": "PathsShareNoEdges",
+      "path_ids": [1, 2, 3]
+    },
+    {
+      "type": "PathsShareNoVertices",
+      "path_ids": [1, 2, 3]
+    },
+    {
+      "type": "PathIsValid",
+      "path_ids": [1, 2, 3]
+    }
+  ]
+}

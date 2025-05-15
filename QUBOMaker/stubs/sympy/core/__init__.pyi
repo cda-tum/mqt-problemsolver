@@ -1,0 +1,3 @@
+from sympy import Expr
+
+class Integer(Expr): ...

@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "encoding": "ONE_HOT",
+    "n_paths": 1,
+    "max_path_length": 4,
+    "loops": true
+  },
+  "objective_function": {
+    "type": "MinimizePathLength"
+  },
+  "constraints": [
+    {
+      "type": "PathIsValid"
+    },
+    {
+      "type": "PathContainsVerticesExactlyOnce"
+    }
+  ]
+}

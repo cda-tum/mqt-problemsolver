@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "MinimizePathLength"
+    },
+    "path_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "default": [1]
+    }
+  },
+  "required": ["type"],
+  "additionalProperties": false
+}

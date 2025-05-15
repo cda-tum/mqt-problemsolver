@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "PathIsValid"
+    },
+    "path_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "default": [1]
+    },
+    "weight": {
+      "type": "number",
+      "default": null
+    }
+  },
+  "required": ["type"],
+  "additionalProperties": false
+}
