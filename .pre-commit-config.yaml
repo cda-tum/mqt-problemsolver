@@ -90,3 +90,5 @@ repos:
           - mqt.ddsim
           - pytest
           - pandas-stubs
+          - scipy-stubs
+          - mqt.core

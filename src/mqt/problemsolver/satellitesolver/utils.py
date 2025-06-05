@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+import itertools
+from typing import TYPE_CHECKING, cast
 
-from docplex.mp.model import Model
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+import matplotlib.pyplot as plt
+import numpy as np
+from qubovert import QUBO  # type: ignore[import-not-found]
 
 from mqt.problemsolver.satellitesolver.ImagingLocation import (
     R_E,
@@ -10,16 +16,6 @@ from mqt.problemsolver.satellitesolver.ImagingLocation import (
     ROTATION_SPEED_SATELLITE,
     LocationRequest,
 )
-
-if TYPE_CHECKING:
-    from qiskit_optimization import QuadraticProgram
-import matplotlib.pyplot as plt
-import numpy as np
-from qiskit_optimization.algorithms import MinimumEigenOptimizer
-from qiskit_optimization.converters.quadratic_program_to_qubo import (
-    QuadraticProgramToQubo,
-)
-from qiskit_optimization.translators import from_docplex_mp
 
 
 def init_random_location_requests(n: int) -> list[LocationRequest]:
@@ -33,31 +29,23 @@ def init_random_location_requests(n: int) -> list[LocationRequest]:
     return sort_acquisition_requests(acquisition_requests)
 
 
-def get_success_ratio(ac_reqs: list[LocationRequest], qubo: QuadraticProgram, solution_vector: list[int]) -> float:
-    from qiskit.algorithms.minimum_eigensolvers import NumPyMinimumEigensolver
-
-    exact_mes = NumPyMinimumEigensolver()
-    exact_result = MinimumEigenOptimizer(exact_mes).solve(qubo).fval
+def get_success_ratio(ac_reqs: list[LocationRequest], qubo: NDArray[np.float64], solution_vector: list[int]) -> float:
+    exact_result = solve_with_classical_brute_force(qubo)
     # sum over all LocationRequests and sum over their imaging_attempt_score if the respective indicator in sol[index] is 1
     solution_vector = solution_vector[::-1]
-    return cast(
-        "float",
-        (
-            sum(
-                [
-                    -ac_req.imaging_attempt_score
-                    for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
-                    if solution_vector[index] == 1
-                ]
-            )
-            / exact_result
-        ),
+    return (
+        sum(
+            [
+                -ac_req.imaging_attempt_score
+                for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
+                if solution_vector[index] == 1
+            ]
+        )
+        / exact_result
     )
 
 
-def create_acquisition_position(
-    longitude: float | None = None, latitude: float | None = None
-) -> np.ndarray[Any, np.dtype[np.float64]]:
+def create_acquisition_position(longitude: float | None = None, latitude: float | None = None) -> NDArray[np.float64]:
     # Returns random position of acquisition close to the equator as vector
     if longitude is None:
         longitude = 2 * np.pi * np.random.rand()
@@ -71,21 +59,21 @@ def create_acquisition_position(
             np.cos(latitude),
         ]
     )
-    return cast("np.ndarray[Any, np.dtype[np.float64]]", res)
+    return cast("NDArray[np.float64]", res)
 
 
 def calc_needed_time_between_acquisition_attempts(
     first_acq: LocationRequest, second_acq: LocationRequest
-) -> np.ndarray[Any, np.dtype[np.float64]]:
+) -> NDArray[np.float64]:
     # Calculates the time needed for the satellite to change its focus from one acquisition
     # (first_acq) to the other (second_acq)
     # Assumption: required position of the satellite is constant over possible imaging attempts
-    delta_r1: np.ndarray[Any, np.dtype[np.float64]] = first_acq.position - first_acq.get_average_satellite_position()
-    delta_r2: np.ndarray[Any, np.dtype[np.float64]] = second_acq.position - second_acq.get_average_satellite_position()
+    delta_r1: NDArray[np.float64] = first_acq.position - first_acq.get_average_satellite_position()
+    delta_r2: NDArray[np.float64] = second_acq.position - second_acq.get_average_satellite_position()
     theta = np.arccos(delta_r1 @ delta_r2 / (np.linalg.norm(delta_r1) * np.linalg.norm(delta_r2)))
     result = theta / (ROTATION_SPEED_SATELLITE * 2 * np.pi)
 
-    return cast("np.ndarray[Any, np.dtype[np.float64]]", result)
+    return cast("NDArray[np.float64]", result)
 
 
 def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:
@@ -159,32 +147,95 @@ def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -
     return True
 
 
-def create_satellite_doxplex(all_acqs: list[LocationRequest]) -> Model:
-    """Returns a doxplex model for the satellite problem"""
-    mdl = Model("satellite model")
-    # Create binary variables for each acquisition request
-    requests = mdl.binary_var_list(len(all_acqs), name="location")
-    values = []
-    for req in all_acqs:
-        values.append(req.imaging_attempt_score)  # noqa: PERF401
+def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> QUBO:
+    """Creates a QUBO matrix directly for the satellite location request problem
+    
+    Parameters
+    ----------
+    all_acqs : list[LocationRequest]
+        List of all acquisition requests.
+    penalty : int, optional
+        Penalty for conflicting requests, by default 8
+    
+    Returns
+    -------
+    QUBO: QUBO
+        A QUBO object representing the problem.
+    """
+    n = len(all_acqs)
+    Q_dict = {}
+    values = [req.imaging_attempt_score for req in all_acqs]
 
-    # Add constraints for each acquisition request
-    for i in range(len(all_acqs) - 1):
-        for j in range(i + 1, len(all_acqs)):
+    # Add objective function contributions (diagonal terms)
+    for i in range(n):
+        Q_dict[(i, i)] = -values[i]
+
+    # Add penalty terms for conflicting requests (off-diagonal terms)
+    for i in range(n - 1):
+        for j in range(i + 1, n):
             if not transition_possible(all_acqs[i], all_acqs[j]):
-                mdl.add_constraint((requests[i] + requests[j]) <= 1)
+                Q_dict[(i, j)] = penalty
 
-    # Add objective function
-    mdl.minimize(-mdl.sum(requests[i] * values[i] for i in range(len(all_acqs))))
-    return mdl
-
-
-def convert_docplex_to_qubo(model: Model, penalty: int | None = None) -> QuadraticProgram:
-    """Converts a docplex model to a qubo"""
-    return QuadraticProgramToQubo(penalty=penalty).convert(from_docplex_mp(model))
+    # Create the QUBO object
+    return QUBO(Q_dict)
 
 
-def get_longitude(vector: np.ndarray[Any, np.dtype[np.float64]]) -> float:
+def qubo_to_matrix(qubo: QUBO) -> NDArray[np.float64]:
+    """Extracts a NumPy matrix from a qubovert QUBO object
+
+    Parameters
+    ----------
+    qubo : QUBO
+        A QUBO object representing the problem.
+    
+    Returns
+    -------
+    NDArray[np.float64]
+        A NumPy array representing the QUBO matrix.
+    """
+    Q = np.zeros((len(qubo.variables), len(qubo.variables)))
+    for key, value in qubo.items():
+        # Handle diagonal and off-diagonal separately
+        if isinstance(key, tuple) and len(key) == 2:
+            i, j = key
+            Q[i, j] = value
+            if i != j:
+                Q[j, i] = value  # Ensure symmetry
+        elif isinstance(key, tuple) and len(key) == 1:
+            i = key[0]
+            Q[i, i] = value
+        else:
+            msg = f"Unexpected key format: {key}"
+            raise ValueError(msg)
+    return Q
+
+
+def solve_with_classical_brute_force(qubo: NDArray[np.float64]) -> float:
+    """Solves the QUBO problem using a brute-force approach.
+    This function iterates over all possible binary solutions and calculates the energy for each solution.
+
+    Parameters
+    ----------
+    qubo : NDArray[np.float64]
+        A NumPy array representing the QUBO matrix.
+
+    Returns
+    -------
+    float
+        The minimum energy found across all solutions.
+    """
+    n = np.shape(qubo)[0]
+    min_energy = float("inf")
+
+    # Iterate over all possible solutions
+    for solution in itertools.product([0, 1], repeat=n):
+        energy = sum(qubo[i, j] * solution[i] * solution[j] for i in range(n) for j in range(n))
+        if energy < min_energy:
+            min_energy = energy
+    return min_energy
+
+
+def get_longitude(vector: NDArray[np.float64]) -> float:
     temp = vector * np.array([1, 1, 0])
     temp /= np.linalg.norm(temp)
     return cast("float", np.arccos(temp[0]) if temp[1] >= 0 else 2 * np.pi - np.arccos(temp[0]))

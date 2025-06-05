@@ -7,10 +7,9 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 from python_tsp.exact import solve_tsp_dynamic_programming
-from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, execute
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit.library import QFT
-
-from mqt.ddsim import DDSIMProvider
+from qiskit_aer import AerSimulator
 
 if TYPE_CHECKING:
     from qiskit.circuit import Gate
@@ -212,8 +211,9 @@ class TSP:
         return [a, b, c, d, e, f, g, h, i, j, k, m]
 
     def simulate(self, qc: QuantumCircuit) -> str:
-        backend = DDSIMProvider().get_backend("qasm_simulator")
-        job = execute(qc, backend, shots=1000)
+        qc = qc.decompose().decompose()  # Decompose the circuit to remove any unnecessary gates
+        backend = AerSimulator()
+        job = backend.run(qc, shots=1000)
         count = job.result().get_counts()
 
         return cast("str", count.most_frequent())
