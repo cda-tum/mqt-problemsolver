@@ -76,7 +76,7 @@ def compute_expectation(counts: dict[str, int], Q: NDArray[np.float64]) -> float
         A dictionary where keys are bitstrings and values are their counts.
     Q : NDArray[np.float64]
         The QUBO matrix represented as a NumPy array.
-    
+
     Returns
     -------
     float
@@ -171,7 +171,7 @@ class QAOA:
             The parameters for the QAOA circuit, where params[0] is beta and params[1] is gamma.
         circuit : QuantumCircuit
             The QAOA circuit to be evaluated.
-        
+
         Returns
         -------
         float
@@ -195,7 +195,7 @@ class QAOA:
         ----------
         circuit : QuantumCircuit
             The QAOA circuit to be optimized.
-        
+
         Returns
         -------
         list[float]
@@ -228,7 +228,7 @@ class QAOA:
         ----------
         circuit : QuantumCircuit
             The QAOA circuit to be evaluated.
-        
+
         Returns
         -------
         tuple[str, int, float]
