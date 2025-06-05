@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, execute
+from qiskit import QuantumCircuit, QuantumRegister, qasm3
 
-from mqt.ddsim import DDSIMProvider
+import mqt.core
+from mqt.core.dd import sample
 
 if TYPE_CHECKING:
     from qiskit.circuit import Instruction
@@ -223,7 +224,7 @@ class CSP:
         compute = qc.to_instruction()
 
         # mark solution
-        qc.mct(mct_list, flag, ancilla_qubits=anc_mct, mode="v-chain")
+        qc.mcx(mct_list, flag, ancilla_qubits=anc_mct, mode="v-chain")
 
         # uncompute
         uncompute = compute.inverse()
@@ -309,9 +310,10 @@ class CSP:
         return qc
 
     def simulate(self, qc: QuantumCircuit) -> tuple[int, int, int, int] | None:
-        backend = DDSIMProvider().get_backend("qasm_simulator")
-        job = execute(qc, backend, shots=10000)
-        counts = job.result().get_counts(qc)
+        qc = qc.decompose()
+        qasm_string = qasm3.dumps(qc)
+        quantum_computation = mqt.core.ir.QuantumComputation().from_qasm_str(qasm_string)
+        counts = sample(quantum_computation, shots=10000)
 
         mean_counts = np.mean(list(counts.values()))
 
