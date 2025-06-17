@@ -147,7 +147,7 @@ def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -
     return True
 
 
-def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> QUBO:
+def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> NDArray[np.float64]:
     """Creates a QUBO matrix directly for the satellite location request problem
 
     Parameters
