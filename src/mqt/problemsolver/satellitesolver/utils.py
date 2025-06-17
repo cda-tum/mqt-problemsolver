@@ -147,16 +147,20 @@ def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -
     return True
 
 
-def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> NDArray[np.float64]:
-    """
-    Creates a QUBO matrix for the satellite location request problem.
+def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> QUBO:
+    """Creates a QUBO matrix directly for the satellite location request problem
 
-    Args:
-        all_acqs: List of all acquisition requests.
-        penalty: Penalty for conflicting requests.
+    Parameters
+    ----------
+    all_acqs : list[LocationRequest]
+        List of all acquisition requests.
+    penalty : int, optional
+        Penalty for conflicting requests, by default 8
 
-    Returns:
-        QUBO matrix as a NumPy array.
+    Returns
+    -------
+    QUBO: QUBO
+        A QUBO object representing the problem.
     """
     n = len(all_acqs)
     values = [req.imaging_attempt_score for req in all_acqs]

@@ -41,11 +41,16 @@ def bitstring_to_vector(bitstring: str) -> NDArray[np.int_]:
 def compute_expectation(counts: dict[str, int], Q: NDArray[np.float64]) -> float:
     """Computes the expectation value of the quadratic form Q with respect to the given counts.
 
-    Args:
-        counts: A dictionary where keys are bitstrings and values are their counts.
-        Q: The QUBO matrix represented as a NumPy array.
+    Parameters
+    ----------
+    counts : dict[str, int]
+        A dictionary where keys are bitstrings and values are their counts.
+    Q : NDArray[np.float64]
+        The QUBO matrix represented as a NumPy array.
 
-    Returns:
+    Returns
+    -------
+    float
         The expectation value of the quadratic form Q with respect to the counts.
     """
     total_counts = sum(counts.values())
