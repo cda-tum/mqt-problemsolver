@@ -9,7 +9,9 @@ import numpy as np
 from python_tsp.exact import solve_tsp_dynamic_programming
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit.library import QFT
-from qiskit_aer import AerSimulator
+
+from mqt.core import load
+from mqt.core.dd import sample
 
 if TYPE_CHECKING:
     from qiskit.circuit import Gate
@@ -212,11 +214,9 @@ class TSP:
 
     def simulate(self, qc: QuantumCircuit) -> str:
         qc = qc.decompose().decompose()  # Decompose the circuit to remove any unnecessary gates
-        backend = AerSimulator()
-        job = backend.run(qc, shots=1000)
-        count = job.result().get_counts()
-
-        return cast("str", count.most_frequent())
+        quantum_computation = load(qc)
+        count = sample(quantum_computation, shots=1000)
+        return max(count, key=lambda k: count[k])
 
     def get_classical_result(self) -> list[int]:
         distance_matrix = np.array(

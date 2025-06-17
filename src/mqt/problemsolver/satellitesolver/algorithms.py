@@ -1,65 +1,36 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
+    from qiskit.circuit import QuantumCircuit
+    from qiskit.providers import BackendV2
 
 import numpy as np
 from qiskit import transpile
-from qiskit.circuit import Parameter, QuantumCircuit
-from qiskit_aer import AerSimulator
-from qiskit_ibm_runtime.fake_provider import FakeMontrealV2  # type: ignore[import-not-found]
+from qiskit.circuit.library import EfficientSU2, QAOAAnsatz
+from qiskit.providers.fake_provider import GenericBackendV2
+from qiskit.quantum_info import SparsePauliOp
 from scipy.optimize import minimize
 
 
-def solve_using_qaoa(qubo: NDArray[np.float64], noisy_flag: bool = False, layers: int = 10, num_init: int = 5) -> Any:
-    fake_backend = FakeMontrealV2()
-
-    if noisy_flag:
-        backend = AerSimulator.from_backend(fake_backend)
-        assert backend.options.get("noise_model") is not None
-    else:
-        backend = AerSimulator.from_backend(fake_backend, noise_model=None)
-        assert backend.options.get("noise_model") is None
-
-    backend.set_max_qubits(fake_backend.configuration().num_qubits)
+def solve_using_qaoa(qubo: NDArray[np.float64], noisy_flag: bool = False, layers: int = 10, num_init: int = 1) -> float:
+    backend = GenericBackendV2(noise_info=noisy_flag, num_qubits=qubo.shape[0])
 
     qaoa = QAOA(qubo, layers, num_init, backend)
     qc_qaoa, res_qaoa = qaoa.get_solution()
     return res_qaoa
 
 
-# def solve_using_vqe(qubo: QuadraticProgram, noisy_flag: bool = False) -> Any:
-#     if noisy_flag:
-#         vqe = VQE(VQE_params={"optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())})
-#     else:
-#         vqe = VQE(
-#             VQE_params={
-#                 "optimizer": COBYLA(maxiter=100),
-#                 "sampler": Sampler(),
-#                 "ansatz": RealAmplitudes(num_qubits=qubo.get_num_binary_vars(), reps=3),
-#             }
-#         )
-#     qc_vqe, res_vqe = vqe.get_solution(qubo)
-#     return res_vqe
+def solve_using_vqe(
+    qubo: NDArray[np.float64], noisy_flag: bool = False, ansatz: QuantumCircuit | None = None, num_init: int = 1
+) -> float:
+    backend = GenericBackendV2(noise_info=noisy_flag, num_qubits=qubo.shape[0])
 
-
-# def solve_using_w_qaoa(qubo: QuadraticProgram, noisy_flag: bool = False) -> MinimumEigensolverResult:
-#     if noisy_flag:
-#         wqaoa = W_QAOA(
-#             QAOA_params={"reps": 3, "optimizer": COBYLA(maxiter=100), "sampler": BackendSampler(FakeMontreal())}
-#         )
-#     else:
-#         wqaoa = W_QAOA(
-#             QAOA_params={
-#                 "reps": 3,
-#                 "optimizer": COBYLA(maxiter=100),
-#                 "sampler": Sampler(),
-#             }
-#         )
-#     qc_wqaoa, res_wqaoa = wqaoa.get_solution(qubo)
-#     return res_wqaoa
+    vqe = VQE(qubo, backend, ansatz, num_init)
+    qc_vqe, res_vqe = vqe.get_solution()
+    return res_vqe
 
 
 def bitstring_to_vector(bitstring: str) -> NDArray[np.int_]:
@@ -68,23 +39,17 @@ def bitstring_to_vector(bitstring: str) -> NDArray[np.int_]:
 
 
 def compute_expectation(counts: dict[str, int], Q: NDArray[np.float64]) -> float:
-    """Compute the expectation value of the quadratic form Q with respect to the given counts.
+    """Computes the expectation value of the quadratic form Q with respect to the given counts.
 
-    Parameters
-    ----------
-    counts : dict[str, int]
-        A dictionary where keys are bitstrings and values are their counts.
-    Q : NDArray[np.float64]
-        The QUBO matrix represented as a NumPy array.
-    
-    Returns
-    -------
-    float
+    Args:
+        counts: A dictionary where keys are bitstrings and values are their counts.
+        Q: The QUBO matrix represented as a NumPy array.
+
+    Returns:
         The expectation value of the quadratic form Q with respect to the counts.
     """
     total_counts = sum(counts.values())
     expectation = 0.0
-
     for bitstring, count in counts.items():
         x = bitstring_to_vector(bitstring)
         energy = x @ Q @ x  # Compute x^T Q x
@@ -94,205 +59,177 @@ def compute_expectation(counts: dict[str, int], Q: NDArray[np.float64]) -> float
     return expectation
 
 
-# class VQE(qiskitVQE):  # type: ignore[misc]
-#     def __init__(self, VQE_params: dict[str, Any] | None = None) -> None:
-#         """Function which initializes the VQE class."""
-#         if VQE_params is None or not isinstance(VQE_params, dict):
-#             VQE_params = {}
-#         if VQE_params.get("optimizer") is None:
-#             VQE_params["optimizer"] = COBYLA(maxiter=1000)
-#         if VQE_params.get("sampler") is None:
-#             VQE_params["sampler"] = Sampler()
-#         if VQE_params.get("ansatz") is None:
-#             VQE_params["ansatz"] = RealAmplitudes()
+def cost_func(params: list[float], circuit: QuantumCircuit, backend: BackendV2, qubo: NDArray[np.float64]) -> float:
+    """Computes the cost function for QAOA optimization.
 
-#         super().__init__(**VQE_params)
+    Args:
+        params: A list of floats representing the parameters for the QAOA circuit
+        circuit: The QuantumCircuit representing the QAOA circuit to be evaluated.
 
-#     def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
-#         """Function which returns the quantum circuit of the VQE algorithm and the resulting solution."""
-#         vqe_result = MinimumEigenOptimizer(self).solve(qubo)
-#         qc = self.ansatz
-#         return qc, vqe_result
+    Returns:
+        A float representing the expectation value of the QUBO Hamiltonian with respect
+        to the states produced by the circuit.
+    """
+    param_dict = {param: params[i] for i, param in enumerate(circuit.parameters)}
+    circuit = circuit.assign_parameters(param_dict)
+
+    job = backend.run(circuit, shots=10000)
+    result = job.result()
+    counts = result.get_counts()
+
+    return compute_expectation(counts, qubo)
+
+
+def optimize_with_multiple_init_parameters(
+    num_init: int, circuit: QuantumCircuit, backend: BackendV2, qubo: NDArray[np.float64]
+) -> tuple[list[float], QuantumCircuit]:
+    """Optimizes the QAOA parameters using multiple random initializations.
+
+    Args:
+        circuit: The QuantumCircuit representing the QAOA circuit to be optimized.
+
+    Returns:
+        A list of floats representing the optimized parameters that minimize the cost function.
+    """
+    best_cost = float("inf")
+    best_params = []
+
+    for _ in range(num_init):
+        params = np.random.uniform(0, 2 * np.pi, size=len(circuit.parameters))
+        res = minimize(
+            cost_func,
+            x0=params,
+            args=(circuit, backend, qubo),
+            method="COBYLA",
+            bounds=[(0, 2 * np.pi) for i in range(len(circuit.parameters))],
+            options={"disp": False, "maxiter": 1000},
+        )
+
+        if res.fun < best_cost:
+            best_cost = res.fun
+            best_params = res.x
+    # Assign the best parameters to the circuit
+    param_dict = {param: best_params[i] for i, param in enumerate(circuit.parameters)}
+    circuit = circuit.assign_parameters(param_dict)
+    return best_params, circuit
+
+
+def evaluate_result(
+    num_init: int, circuit: QuantumCircuit, backend: BackendV2, qubo: NDArray[np.float64]
+) -> tuple[str, int, float]:
+    """Evaluates the result of the QAOA circuit.
+
+    Args:
+        circuit: The QAOA circuit to be evaluated.
+
+    Returns:
+        A tuple containing:
+        - The found state as a bitstring.
+        - The count of that state.
+        - The energy computed from the QUBO matrix.
+    """
+    optimized_params, circuit = optimize_with_multiple_init_parameters(num_init, circuit, backend, qubo)
+
+    job = backend.run(circuit, shots=10000)
+    result = job.result()
+    counts = result.get_counts()
+
+    found_state = max(counts, key=counts.get)
+    x = bitstring_to_vector(found_state)
+    energy = x @ qubo @ x
+
+    return found_state, counts[found_state], energy
 
 
 class QAOA:
-    def __init__(self, qubo: NDArray[np.float64], layers: int, num_init: int, backend: AerSimulator) -> None:
+    def __init__(self, qubo: NDArray[np.float64], layers: int, num_init: int, backend: BackendV2) -> None:
         self.qubo = qubo
         self.layers = layers
         self.num_init = num_init
         self.backend = backend
 
-    def qaoa_circuit_from_qubo(self, include_barriers: bool) -> QuantumCircuit:
-        """Constructs a QAOA circuit from the given QUBO matrix.
-
-        Parameters
-        ----------
-        include_barriers : bool
-            If True, adds barriers between layers in the circuit.
-
-        Returns
-        -------
-        QuantumCircuit
-            The QAOA circuit constructed from the QUBO matrix.
-        """
-        Q = self.qubo
-        n_qubits = Q.shape[0]
-        circuit = QuantumCircuit(n_qubits, n_qubits)
-        gamma = Parameter("gamma")
-        beta = Parameter("beta")
-        interactions = [(i, j) for i in range(n_qubits) for j in range(i + 1, n_qubits) if Q[i, j] != 0]
-
-        for i in range(n_qubits):
-            circuit.h(i)
-
-        for _ in range(self.layers):
-            if include_barriers:
-                circuit.barrier()
-            for i, j in interactions:
-                circuit.rzz(gamma, i, j)
-            if include_barriers:
-                circuit.barrier()
-            for i in range(n_qubits):
-                circuit.rx(beta, i)
-
-        if include_barriers:
-            circuit.barrier()
-        for i in range(n_qubits):
-            circuit.measure(i, i)
-
-        return circuit
-
-    def cost_func(self, params: list[float], circuit: QuantumCircuit) -> float:
-        """Cost function for the QAOA optimization.
-
-        Parameters
-        ----------
-        params : list[float]
-            The parameters for the QAOA circuit, where params[0] is beta and params[1] is gamma.
-        circuit : QuantumCircuit
-            The QAOA circuit to be evaluated.
-        
-        Returns
-        -------
-        float
-            The expectation value of the QUBO Hamiltonian with respect to the states produced by the circuit.
-        """
-        beta, gamma = params
-        circuit = circuit.assign_parameters({circuit.parameters[0]: beta, circuit.parameters[1]: gamma})
-
-        # Simulate the circuit and get the statevector
-        transpiled_circuit = transpile(circuit, backend=self.backend)
-        job = self.backend.run(transpiled_circuit, shots=1000)
-        result = job.result()
-        counts = result.get_counts()
-
-        return compute_expectation(counts, self.qubo)
-
-    def optimize_with_multiple_init_parameters(self, circuit: QuantumCircuit) -> list[float]:
-        """Optimize the QAOA parameters using multiple random initializations.
-
-        Parameters
-        ----------
-        circuit : QuantumCircuit
-            The QAOA circuit to be optimized.
-        
-        Returns
-        -------
-        list[float]
-            The optimized parameters [beta, gamma] that minimize the cost function.
-        """
-        best_cost = float("inf")
-        best_params = []
-
-        for _ in range(self.num_init):
-            print(_)
-            beta, gamma = np.random.uniform(0, 2 * np.pi, size=2)
-            res = minimize(
-                self.cost_func,
-                x0=[beta, gamma],
-                args=(circuit),
-                method="COBYLA",
-                bounds=[(0, 2 * np.pi), (0, 2 * np.pi)],
-                options={"disp": False, "maxiter": 1000},
-            )
-
-            if res.fun < best_cost:
-                best_cost = res.fun
-                best_params = res.x
-        return best_params
-
-    def evaluate_result(self, circuit: QuantumCircuit) -> tuple[str, int, float]:
-        """Evaluate the result of the QAOA circuit.
-
-        Parameters
-        ----------
-        circuit : QuantumCircuit
-            The QAOA circuit to be evaluated.
-        
-        Returns
-        -------
-        tuple[str, int, float]
-            A tuple containing the found state as a bitstring, the count of that state, and the energy computed from the QUBO matrix.
-        """
-        optimized_params = self.optimize_with_multiple_init_parameters(circuit)
-        optimized_beta, optimized_gamma = optimized_params
-
-        circuit = circuit.assign_parameters(
-            {circuit.parameters[0]: optimized_beta, circuit.parameters[1]: optimized_gamma}
-        )
-
-        transpiled_circuit = transpile(circuit, backend=self.backend)
-        job = self.backend.run(transpiled_circuit, shots=1000)
-        result = job.result()
-        counts = result.get_counts()
-
-        found_state = max(counts, key=counts.get)
-        x = bitstring_to_vector(found_state)
-        energy = x @ self.qubo @ x  # Compute x^T Q x
-
-        return found_state, counts[found_state], energy
-
     def get_solution(self) -> tuple[QuantumCircuit, float]:
-        """Function which returns the quantum circuit of the QAOA algorithm and the resulting solution.
+        """Returns the quantum circuit of the QAOA algorithm and the resulting solution.
 
-        Returns
-        -------
-        tuple[QuantumCircuit, float]
-            A tuple containing the QAOA circuit and the computed energy of the solution.
+        Returns:
+            tuple: A tuple containing the QAOA circuit (QuantumCircuit) and the computed energy (float) of the solution.
         """
-        circuit = self.qaoa_circuit_from_qubo(include_barriers=False)
-        print(circuit.num_qubits)
-        circuit = transpile(circuit, self.backend)
-
-        state, counts, energy = self.evaluate_result(circuit)
+        circuit = self._qaoa_circuit_from_qubo()
+        circuit = transpile(circuit, backend=self.backend)
+        circuit.measure_all()
+        state, counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
 
         return circuit, energy
 
+    def _qaoa_circuit_from_qubo(self) -> QuantumCircuit:
+        """
+        Convert a QUBO matrix (NumPy array) into a QAOAAnsatz circuit.
 
-# class W_QAOA:
-#     def __init__(self, W_QAOA_params: dict[str, Any] | None = None, QAOA_params: dict[str, Any] | None = None) -> None:
-#         """Function which initializes the QAOA class."""
+        Args:
+            Q_mat: (n, n) NumPy array representing the QUBO coefficients.
+            reps: number of QAOA layers (the p parameter).
 
-#         if not isinstance(W_QAOA_params, dict):
-#             W_QAOA_params = {}
-#         if W_QAOA_params.get("pre_solver") is None:
-#             W_QAOA_params["pre_solver"] = CobylaOptimizer()
-#         if W_QAOA_params.get("relax_for_pre_solver") is None:
-#             W_QAOA_params["relax_for_pre_solver"] = True
-#         if W_QAOA_params.get("qaoa") is None:
-#             if not isinstance(QAOA_params, dict):
-#                 W_QAOA_params["qaoa"] = qiskitQAOA()
-#             else:
-#                 W_QAOA_params["qaoa"] = qiskitQAOA(**QAOA_params)
+        Returns:
+            A QAOAAnsatz instance implementing the cost Hamiltonian for the given QUBO.
+        """
+        Q_mat = self.qubo
+        reps = self.layers
+        n = Q_mat.shape[0]
 
-#         self.W_QAOA_params = W_QAOA_params
-#         self.qaoa = W_QAOA_params["qaoa"]
+        # Build binary QUBO dict
+        # Keys of length 1 for diagonal, length 2 for off-diagonals
+        h: dict[int, float] = {}
+        J = {}
+        for i in range(n):
+            # diagonal term
+            coeff = Q_mat[i, i]
+            if coeff != 0:
+                h[i] = h.get(i, 0.0) + coeff / 2
+        for i in range(n):
+            for j in range(i + 1, n):
+                coeff = Q_mat[i, j] + Q_mat[j, i]  # ensure symmetry
+                if coeff != 0:
+                    J[(i, j)] = coeff / 4
+                    h[i] = h.get(i, 0.0) + coeff / 4
+                    h[j] = h.get(j, 0.0) + coeff / 4
 
-#     def get_solution(self, qubo: QuadraticProgram) -> tuple[QuantumCircuit, MinimumEigensolverResult]:
-#         """Function which returns the quantum circuit of the W-QAOA algorithm and the resulting solution."""
+        # Assemble Pauli terms
+        pauli_list = []
+        for i, val in h.items():
+            label = ["I"] * n
+            label[i] = "Z"
+            pauli_list.append(("".join(label), val))
+        for (i, j), val in J.items():
+            label = ["I"] * n
+            label[i] = "Z"
+            label[j] = "Z"
+            pauli_list.append(("".join(label), val))
 
-#         ws_qaoa = WarmStartQAOAOptimizer(**self.W_QAOA_params)
-#         res = ws_qaoa.solve(qubo)
-#         qc = self.W_QAOA_params["qaoa"].ansatz
+        # Create cost operator
+        cost_op = SparsePauliOp.from_list(pauli_list)
 
-#         return qc, res
+        return QAOAAnsatz(cost_operator=cost_op, reps=reps)
+
+
+class VQE:
+    def __init__(
+        self, qubo: NDArray[np.float64], backend: BackendV2, ansatz: QuantumCircuit | None = None, num_init: int = 1
+    ) -> None:
+        self.qubo = qubo
+        self.backend = backend
+        self.num_init = num_init
+        if ansatz is None:
+            self.ansatz = EfficientSU2(num_qubits=qubo.shape[0], entanglement="linear")
+        else:
+            self.ansatz = ansatz
+
+    def get_solution(self) -> tuple[QuantumCircuit, float]:
+        """Returns the quantum circuit of the VQE algorithm and the resulting solution.
+        Returns:
+            tuple: A tuple containing the VQE circuit (QuantumCircuit) and the computed energy (float) of the solution.
+        """
+        circuit = self.ansatz
+        circuit = transpile(circuit, backend=self.backend)
+        circuit.measure_all()
+        state, counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
+        return circuit, energy

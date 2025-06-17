@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
@@ -8,7 +7,8 @@ if TYPE_CHECKING:
 
 import matplotlib.pyplot as plt
 import numpy as np
-from qubovert import QUBO  # type: ignore[import-not-found]
+from scipy import sparse
+from scipy.sparse.linalg import eigsh
 
 from mqt.problemsolver.satellitesolver.ImagingLocation import (
     R_E,
@@ -30,7 +30,7 @@ def init_random_location_requests(n: int) -> list[LocationRequest]:
 
 
 def get_success_ratio(ac_reqs: list[LocationRequest], qubo: NDArray[np.float64], solution_vector: list[int]) -> float:
-    exact_result = solve_with_classical_brute_force(qubo)
+    exact_result = solve_classically(qubo)
     # sum over all LocationRequests and sum over their imaging_attempt_score if the respective indicator in sol[index] is 1
     solution_vector = solution_vector[::-1]
     return (
@@ -147,92 +147,74 @@ def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -
     return True
 
 
-def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> QUBO:
-    """Creates a QUBO matrix directly for the satellite location request problem
-    
-    Parameters
-    ----------
-    all_acqs : list[LocationRequest]
-        List of all acquisition requests.
-    penalty : int, optional
-        Penalty for conflicting requests, by default 8
-    
-    Returns
-    -------
-    QUBO: QUBO
-        A QUBO object representing the problem.
+def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> NDArray[np.float64]:
+    """
+    Creates a QUBO matrix for the satellite location request problem.
+
+    Args:
+        all_acqs: List of all acquisition requests.
+        penalty: Penalty for conflicting requests.
+
+    Returns:
+        QUBO matrix as a NumPy array.
     """
     n = len(all_acqs)
-    Q_dict = {}
     values = [req.imaging_attempt_score for req in all_acqs]
 
-    # Add objective function contributions (diagonal terms)
-    for i in range(n):
-        Q_dict[(i, i)] = -values[i]
+    # Initialize QUBO matrix
+    Q = np.zeros((n, n), dtype=float)
 
-    # Add penalty terms for conflicting requests (off-diagonal terms)
+    # Objective (diagonal) terms
+    for i, v in enumerate(values):
+        Q[i, i] = -v
+
+    # Penalty for conflicts (off-diagonals)
     for i in range(n - 1):
         for j in range(i + 1, n):
             if not transition_possible(all_acqs[i], all_acqs[j]):
-                Q_dict[(i, j)] = penalty
+                Q[i, j] = penalty
+                Q[j, i] = penalty  # ensure symmetry
 
-    # Create the QUBO object
-    return QUBO(Q_dict)
-
-
-def qubo_to_matrix(qubo: QUBO) -> NDArray[np.float64]:
-    """Extracts a NumPy matrix from a qubovert QUBO object
-
-    Parameters
-    ----------
-    qubo : QUBO
-        A QUBO object representing the problem.
-    
-    Returns
-    -------
-    NDArray[np.float64]
-        A NumPy array representing the QUBO matrix.
-    """
-    Q = np.zeros((len(qubo.variables), len(qubo.variables)))
-    for key, value in qubo.items():
-        # Handle diagonal and off-diagonal separately
-        if isinstance(key, tuple) and len(key) == 2:
-            i, j = key
-            Q[i, j] = value
-            if i != j:
-                Q[j, i] = value  # Ensure symmetry
-        elif isinstance(key, tuple) and len(key) == 1:
-            i = key[0]
-            Q[i, i] = value
-        else:
-            msg = f"Unexpected key format: {key}"
-            raise ValueError(msg)
     return Q
 
 
-def solve_with_classical_brute_force(qubo: NDArray[np.float64]) -> float:
-    """Solves the QUBO problem using a brute-force approach.
-    This function iterates over all possible binary solutions and calculates the energy for each solution.
-
-    Parameters
-    ----------
-    qubo : NDArray[np.float64]
-        A NumPy array representing the QUBO matrix.
-
-    Returns
-    -------
-    float
-        The minimum energy found across all solutions.
+def solve_classically(Q: NDArray[np.float64], k: int = 1) -> float:
     """
-    n = np.shape(qubo)[0]
-    min_energy = float("inf")
+    Re-implementation of NumPyMinimumEigensolver:
+    1) build sparse diag matrix,
+    2) detect diagonal,
+    3) extract/sort diagonal,
+    4) fallback to eigensolver if needed.
+    """
+    print("Solving classically...")
+    n = Q.shape[0]
+    dim = 1 << n
 
-    # Iterate over all possible solutions
-    for solution in itertools.product([0, 1], repeat=n):
-        energy = sum(qubo[i, j] * solution[i] * solution[j] for i in range(n) for j in range(n))
-        if energy < min_energy:
-            min_energy = energy
-    return min_energy
+    # 1) build the diagonal of the Hamiltonian H_x = x^T Q x
+    #    We'll enumerate all 2^n basis states to get the diag entries.
+    diag = np.empty(dim)
+    for state in range(dim):
+        # get binary vector x of length n
+        x = ((state >> np.arange(n)) & 1).astype(float)
+        diag[state] = x @ Q @ x
+
+    # 2) form a sparse diagonal matrix
+    H = sparse.diags(diag, format="csr")
+
+    # 3) check if purely diagonal
+    if sparse.diags(H.diagonal(), format="csr").nnz == H.nnz:
+        # just take the k smallest diagonal entries
+        vals = np.partition(diag, k - 1)[:k]
+        return float(vals.min())
+
+    # 4) otherwise use Lanczos (or dense) to get the lowest eigenvalue
+    if k < dim - 1:
+        # sparse Hermitian solver
+        vals = eigsh(H, k=k, which="SA", return_eigenvectors=False)
+        return float(np.min(vals))
+    # dense fallback
+    vals = np.linalg.eigvalsh(H.toarray())
+    return float(vals[0])
 
 
 def get_longitude(vector: NDArray[np.float64]) -> float:

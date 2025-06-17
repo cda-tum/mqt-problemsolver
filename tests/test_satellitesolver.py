@@ -16,8 +16,7 @@ from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
 @pytest.fixture
 def qubo() -> NDArray[np.float64]:
     ac_reqs = utils.init_random_location_requests(3)
-    qubo = utils.create_satellite_qubo(ac_reqs)
-    return utils.qubo_to_matrix(qubo)
+    return utils.create_satellite_qubo(ac_reqs)
 
 
 def test_solve_using_qaoa(qubo: NDArray[np.float64]) -> None:
@@ -25,14 +24,9 @@ def test_solve_using_qaoa(qubo: NDArray[np.float64]) -> None:
     assert res_qaoa is not None
 
 
-# def test_solve_using_wqaoa(qubo: QuadraticProgram) -> None:
-#     res_qaoa = algorithms.solve_using_w_qaoa(qubo)
-#     assert res_qaoa is not None
-
-
-# def test_solve_using_vqe(qubo: QuadraticProgram) -> None:
-#     res_qaoa = algorithms.solve_using_vqe(qubo)
-#     assert res_qaoa is not None
+def test_solve_using_vqe(qubo: NDArray[np.float64]) -> None:
+    res_qaoa = algorithms.solve_using_vqe(qubo)
+    assert res_qaoa is not None
 
 
 def test_eval_all_instances_Satellite_Solver() -> None:

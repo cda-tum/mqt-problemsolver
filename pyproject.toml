@@ -23,11 +23,10 @@ dependencies = [
     "joblib",
     "numpy",
     "matplotlib",
-    "mqt.core",
+    "mqt.core>=3.0.2",
     "networkx",
     "python_tsp",
     "docplex",
-    "qubovert",
     "qiskit_aer",
     "qiskit_ibm_runtime",
     "pandas",
@@ -46,6 +45,8 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
@@ -55,7 +56,6 @@ classifiers = [
 test = ["pytest>=7"]
 coverage = ["mqt.problemsolver[test]", "coverage[toml]~=6.5.0", "pytest-cov~=4.0.0"]
 dev = ["mqt.problemsolver[coverage]"]
-tweedledum = ["tweedledum==1.0.0"]
 
 [project.urls]
 Homepage = "https://github.com/cda-tum/mqtproblemsolver"

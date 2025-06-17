@@ -87,7 +87,6 @@ repos:
           - types-setuptools
           - python_tsp
           - networkx
-          - mqt.ddsim
           - pytest
           - pandas-stubs
           - scipy-stubs
