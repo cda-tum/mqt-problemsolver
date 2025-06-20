@@ -198,9 +198,7 @@ def solve_classically(Q: NDArray[np.float64], k: int = 1) -> float:
     #    We'll enumerate all 2^n basis states to get the diag entries.
     diag = np.empty(dim)
     for state in range(dim):
-        # get binary vector x of length n
-        x = ((state >> np.arange(n)) & 1).astype(float)
-        diag[state] = x @ Q @ x
+        diag[state] = Q[state, state]
 
     # 2) form a sparse diagonal matrix
     H = sparse.diags(diag, format="csr")

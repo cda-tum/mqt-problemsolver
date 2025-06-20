@@ -160,8 +160,8 @@ class QAOA:
             tuple: A tuple containing the QAOA circuit (QuantumCircuit) and the computed energy (float) of the solution.
         """
         circuit = self._qaoa_circuit_from_qubo()
-        circuit = transpile(circuit, backend=self.backend)
         circuit.measure_all()
+        circuit = transpile(circuit, backend=self.backend)
         state, counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
 
         return circuit, energy
@@ -234,7 +234,7 @@ class VQE:
             tuple: A tuple containing the VQE circuit (QuantumCircuit) and the computed energy (float) of the solution.
         """
         circuit = self.ansatz
-        circuit = transpile(circuit, backend=self.backend)
         circuit.measure_all()
+        circuit = transpile(circuit, backend=self.backend)
         state, counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
         return circuit, energy
