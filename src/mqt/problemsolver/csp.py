@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, execute
+from qiskit import QuantumCircuit, QuantumRegister
 
-from mqt.ddsim import DDSIMProvider
+from mqt.core import load
+from mqt.core.dd import sample
 
 if TYPE_CHECKING:
     from qiskit.circuit import Instruction
@@ -38,9 +39,9 @@ class CSP:
         solution -- Solution to the problem if it exists.
         """
         if quantum_algorithm == "Grover":
-            qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
+            qc, anc, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
             qc, mct_list = self.encode_constraints(qc, a, b, c, d, anc, constraints=constraints)
-            oracle = self.create_oracle(qc, mct_list, flag, anc_mct)
+            oracle = self.create_oracle(qc, mct_list, flag)
             for m in (5, 6, 7, 8, 12):
                 qc = self.create_grover(oracle, nqubits, nancilla, ninputs=nqubits - 1, grover_iterations=m)
                 solution = self.simulate(qc)
@@ -218,12 +219,11 @@ class CSP:
         qc: QuantumCircuit,
         mct_list: list[QuantumRegister],
         flag: QuantumRegister,
-        anc_mct: QuantumRegister,
     ) -> Instruction:
         compute = qc.to_instruction()
 
         # mark solution
-        qc.mct(mct_list, flag, ancilla_qubits=anc_mct, mode="v-chain")
+        qc.mcx(mct_list, flag)
 
         # uncompute
         uncompute = compute.inverse()
@@ -236,7 +236,6 @@ class CSP:
         self,
     ) -> tuple[
         QuantumCircuit,
-        QuantumRegister,
         QuantumRegister,
         QuantumRegister,
         int,
@@ -262,7 +261,6 @@ class CSP:
         d = (d_low, d_high)
 
         anc = QuantumRegister(28, "anc")
-        anc_mct = QuantumRegister(10, "mct_ancilla")
         flag = QuantumRegister(1, "flag")
         qc = QuantumCircuit(
             a_low,
@@ -274,13 +272,12 @@ class CSP:
             d_low,
             d_high,
             anc,
-            anc_mct,
             flag,
         )
 
         nqubits = 9
-        nancilla = anc.size + anc_mct.size
-        return (qc, anc, anc_mct, flag, nqubits, nancilla, (a, b, c, d))
+        nancilla = anc.size
+        return (qc, anc, flag, nqubits, nancilla, (a, b, c, d))
 
     def create_grover(
         self,
@@ -309,9 +306,9 @@ class CSP:
         return qc
 
     def simulate(self, qc: QuantumCircuit) -> tuple[int, int, int, int] | None:
-        backend = DDSIMProvider().get_backend("qasm_simulator")
-        job = execute(qc, backend, shots=10000)
-        counts = job.result().get_counts(qc)
+        qc = qc.decompose()
+        quantum_computation = load(qc)
+        counts = sample(quantum_computation, shots=10000)
 
         mean_counts = np.mean(list(counts.values()))
 
