@@ -177,7 +177,7 @@ class TSP:
         for i in range(self.num_qubits_qft):
             qc.append(
                 self.final_U(times=i, eigenstate_register=eigenstate_register),
-                [qft_register[self.num_qubits_qft - 1 - i]] + eigenstate_register[:],
+                [qft_register[self.num_qubits_qft - 1 - i], *eigenstate_register[:]],
             )
 
         # Inverse QFT
@@ -271,19 +271,19 @@ class TSP:
         phases = self.get_all_phases()
         # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4;
 
-        self.controlled_unitary(qc, [control_qreg[0]] + eigenstate_register[0:2], [0.0] + phases[0:3])
+        self.controlled_unitary(qc, [control_qreg[0], *eigenstate_register[0:2]], [0.0, *phases[0:3]])
 
         self.controlled_unitary(
             qc,
-            [control_qreg[0]] + eigenstate_register[2:4],
-            [phases[3]] + [0] + phases[4:6],
+            [control_qreg[0], *eigenstate_register[2:4]],
+            [phases[3], 0, *phases[4:6]],
         )
         self.controlled_unitary(
             qc,
-            [control_qreg[0]] + eigenstate_register[4:6],
-            phases[6:8] + [0] + [phases[8]],
+            [control_qreg[0], *eigenstate_register[4:6]],
+            [*phases[6:8], 0, phases[8]],
         )
-        self.controlled_unitary(qc, [control_qreg[0]] + eigenstate_register[6:8], phases[9:12] + [0])
+        self.controlled_unitary(qc, [control_qreg[0], *eigenstate_register[6:8]], [*phases[9:12], 0])
 
     def final_U(self, times: int, eigenstate_register: QuantumRegister) -> Gate:
         control_qreg = QuantumRegister(1, "control")
