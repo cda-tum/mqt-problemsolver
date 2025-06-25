@@ -119,7 +119,7 @@ def generate_data(csv_filename, benchmarks, transpiler_passes, transpiler_passes
             with open(file_path, "r") as f:
                 qasm_str = f.read()
                 qc = QuantumCircuit.from_qasm_str(qasm_str)
-        
+
             transpiled_circuit = transpile(qc, basis_gates=basis_gates, optimization_level=0, seed_transpiler=0)
             num_qubits = transpiled_circuit.num_qubits
 
@@ -143,8 +143,14 @@ def generate_data(csv_filename, benchmarks, transpiler_passes, transpiler_passes
                     gate_count_optimized = sum(optimized_ops.values())
                     gate_count_diff = (gate_count_optimized - gate_count_original) / gate_count_original
                     
-                    qubits, runtime = estimate_resources(transpiled_circuit)
-                    optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
+                    try:
+                        qubits, runtime = estimate_resources(transpiled_circuit)
+                        optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
+                    except:
+                        transpiled_circuit = transpiled_circuit.remove_final_measurements()
+                        optimized_circuit = optimized_circuit.remove_final_measurements()
+                        qubits, runtime = estimate_resources(transpiled_circuit)
+                        optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
 
                     relative_qubits_delta = (optimized_qubits - qubits) / qubits
                     relative_runtime_delta = (optimized_runtime - runtime) / runtime
