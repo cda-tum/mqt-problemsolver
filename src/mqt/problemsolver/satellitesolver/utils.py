@@ -7,8 +7,8 @@ if TYPE_CHECKING:
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import sparse
-from scipy.sparse.linalg import eigsh
+from numpy.linalg import eigvalsh
+from qiskit.quantum_info import Pauli, SparsePauliOp
 
 from mqt.problemsolver.satellitesolver.ImagingLocation import (
     R_E,
@@ -182,41 +182,78 @@ def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> 
     return Q
 
 
-def solve_classically(Q: NDArray[np.float64], k: int = 1) -> float:
+def cost_op_from_qubo(Q: NDArray[np.float64]) -> tuple[SparsePauliOp, float]:
+    """Convert a QUBO matrix to an Ising Hamiltonian.
+
+    Args:
+        Q: QUBO matrix (symmetric, square numpy array).
+
+    Returns:
+        A tuple (qubit_op, offset) representing the Ising Hamiltonian and constant offset.
     """
-    Re-implementation of NumPyMinimumEigensolver:
-    1) build sparse diag matrix,
-    2) detect diagonal,
-    3) extract/sort diagonal,
-    4) fallback to eigensolver if needed.
+    if not isinstance(Q, np.ndarray) or Q.ndim != 2 or Q.shape[0] != Q.shape[1]:
+        msg = "QUBO matrix must be a square numpy array."
+        raise ValueError(msg)
+
+    num_vars = Q.shape[0]
+    zero = np.zeros(num_vars, dtype=bool)
+    pauli_list = []
+    offset = 0.0
+
+    for i in range(num_vars):
+        # Diagonal: linear terms
+        coef = Q[i, i]
+        weight = coef / 2
+        z_p = zero.copy()
+        z_p[i] = True
+        pauli_list.append(SparsePauliOp(Pauli((z_p, zero)), -weight))
+        offset += weight
+
+        for j in range(i + 1, num_vars):
+            coef = Q[i, j] + Q[j, i]  # ensure symmetry
+            if coef == 0:
+                continue
+
+            weight = coef / 4
+            # z_i z_j term
+            z_p = zero.copy()
+            z_p[i] = True
+            z_p[j] = True
+            pauli_list.append(SparsePauliOp(Pauli((z_p, zero)), weight))
+
+            # local z_i term
+            z_p = zero.copy()
+            z_p[i] = True
+            pauli_list.append(SparsePauliOp(Pauli((z_p, zero)), -weight))
+
+            # local z_j term
+            z_p = zero.copy()
+            z_p[j] = True
+            pauli_list.append(SparsePauliOp(Pauli((z_p, zero)), -weight))
+
+            offset += weight
+
+    qubit_op = sum(pauli_list).simplify(atol=0) if pauli_list else SparsePauliOp("I" * max(1, num_vars), 0)
+
+    return qubit_op, offset
+
+
+def solve_classically(qubo: NDArray[np.float64]) -> float:
     """
-    print("Solving classically...")
-    n = Q.shape[0]
-    dim = 1 << n
+    Solve the Hamiltonian problem classically using eigenvalue decomposition.
 
-    # 1) build the diagonal of the Hamiltonian H_x = x^T Q x
-    #    We'll enumerate all 2^n basis states to get the diag entries.
-    diag = np.empty(dim)
-    for state in range(dim):
-        diag[state] = Q[state, state]
+    Args:
+        cost_op: The Hamiltonian matrix derived from the QUBO.
 
-    # 2) form a sparse diagonal matrix
-    H = sparse.diags(diag, format="csr")
+    Returns:
+        The minimum eigenvalue of the Hamiltonian matrix.
+    """
+    H, offset = cost_op_from_qubo(qubo)
+    H_mat = H.to_matrix()
+    eigenvalues = eigvalsh(H_mat)
 
-    # 3) check if purely diagonal
-    if sparse.diags(H.diagonal(), format="csr").nnz == H.nnz:
-        # just take the k smallest diagonal entries
-        vals = np.partition(diag, k - 1)[:k]
-        return float(vals.min())
-
-    # 4) otherwise use Lanczos (or dense) to get the lowest eigenvalue
-    if k < dim - 1:
-        # sparse Hermitian solver
-        vals = eigsh(H, k=k, which="SA", return_eigenvectors=False)
-        return float(np.min(vals))
-    # dense fallback
-    vals = np.linalg.eigvalsh(H.toarray())
-    return float(vals[0])
+    # Find the minimum eigenvalue
+    return np.min(eigenvalues) + offset
 
 
 def get_longitude(vector: NDArray[np.float64]) -> float:

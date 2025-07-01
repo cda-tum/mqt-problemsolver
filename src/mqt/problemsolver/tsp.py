@@ -213,7 +213,7 @@ class TSP:
         return [a, b, c, d, e, f, g, h, i, j, k, m]
 
     def simulate(self, qc: QuantumCircuit) -> str:
-        qc = qc.decompose().decompose()  # Decompose the circuit to remove any unnecessary gates
+        qc = qc.decompose(reps=2)  # Decompose the circuit to remove any unnecessary gates
         quantum_computation = load(qc)
         count = sample(quantum_computation, shots=1000)
         return max(count, key=lambda k: count[k])

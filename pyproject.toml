@@ -28,7 +28,6 @@ dependencies = [
     "python_tsp",
     "docplex",
     "qiskit_aer",
-    "qiskit_ibm_runtime",
     "pandas",
     "scipy"
 ]
