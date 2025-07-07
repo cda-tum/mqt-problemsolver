@@ -3,10 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister
-
 from mqt.core import load
 from mqt.core.dd import sample
+from qiskit import QuantumCircuit, QuantumRegister
 
 if TYPE_CHECKING:
     from qiskit.circuit import Instruction
@@ -287,14 +286,12 @@ class CSP:
         ninputs: int,
         grover_iterations: int,
     ) -> QuantumCircuit:
-        import numpy as np
-
         qc = QuantumCircuit(nqubits + nancilla, ninputs)
         qc.h(range(ninputs))
         qc.x(nqubits + nancilla - 1)
         qc.h(nqubits + nancilla - 1)
 
-        for _ in range(round(grover_iterations)):
+        for _ in range(grover_iterations):
             qc.append(oracle, range(nqubits + nancilla))
             qc.h(range(ninputs))
             qc.x(range(ninputs))

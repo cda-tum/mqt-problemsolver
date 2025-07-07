@@ -35,11 +35,9 @@ def get_success_ratio(ac_reqs: list[LocationRequest], qubo: NDArray[np.float64],
     solution_vector = solution_vector[::-1]
     return (
         sum(
-            [
-                -ac_req.imaging_attempt_score
-                for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
-                if solution_vector[index] == 1
-            ]
+            -ac_req.imaging_attempt_score
+            for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
+            if solution_vector[index] == 1
         )
         / exact_result
     )
@@ -52,13 +50,11 @@ def create_acquisition_position(longitude: float | None = None, latitude: float 
     if latitude is None:
         latitude = np.random.uniform(np.pi / 2 - 15 / 360 * 2 * np.pi, np.pi / 2 + 15 / 360 * 2 * np.pi)
 
-    res = R_E * np.array(
-        [
-            np.cos(longitude) * np.sin(latitude),
-            np.sin(longitude) * np.sin(latitude),
-            np.cos(latitude),
-        ]
-    )
+    res = R_E * np.array([
+        np.cos(longitude) * np.sin(latitude),
+        np.sin(longitude) * np.sin(latitude),
+        np.cos(latitude),
+    ])
     return cast("NDArray[np.float64]", res)
 
 

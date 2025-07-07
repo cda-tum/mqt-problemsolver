@@ -114,7 +114,7 @@ class QAOA:
     def get_to_be_removed_gate_indices(self) -> list[int]:
         """Returns the indices of the gates to be removed"""
         indices_to_be_removed_parameterized_gates = []
-        for i, gate in enumerate(self.qc_compiled._data):
+        for i, gate in enumerate(self.qc_compiled.data):
             if (
                 gate.operation.name == "rz"
                 and isinstance(gate.operation.params[0], Parameter)
@@ -131,15 +131,15 @@ class QAOA:
         # Iterate over all gates to be removed
         for i in self.to_be_removed_gates_indices:
             # Remove the Parameter from the ParameterTable for the specific parameter.
-            param = qc._data[i].operation.params[0]
+            param = qc.data[i].operation.params[0]
             if param in qc.parameters:
                 qc.parameters.remove(param)
             indices.add(i)
-            if optimize_swaps and qc._data[i - 1].operation.name == "cx" and qc._data[i - 1] == qc._data[i + 1]:
+            if optimize_swaps and qc.data[i - 1].operation.name == "cx" and qc.data[i - 1] == qc.data[i + 1]:
                 indices.add(i - 1)
                 indices.add(i + 1)
 
-        qc._data = [v for i, v in enumerate(qc._data) if i not in indices]
+        qc.data = [v for i, v in enumerate(qc.data) if i not in indices]
 
         if self.satellite_use_case:
             return self.apply_factors_to_qc(qc)

@@ -34,7 +34,7 @@ def test_check_gates() -> None:
         optimize_swaps=False,
     )
     assert isinstance(compiled_qc, QuantumCircuit)
-    assert len(compiled_qc._data) == len(q.qc_compiled._data) - 1
+    assert len(compiled_qc.data) == len(q.qc_compiled.data) - 1
 
 
 def test_qaoa_init_satellite() -> None:

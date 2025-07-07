@@ -9,27 +9,27 @@ if TYPE_CHECKING:
 
 import numpy as np
 from qiskit import transpile
-from qiskit.circuit.library import EfficientSU2, QAOAAnsatz
+from qiskit.circuit.library import QAOAAnsatz, efficient_su2
 from qiskit.providers.fake_provider import GenericBackendV2
 from scipy.optimize import minimize
 
 from mqt.problemsolver.satellitesolver.utils import cost_op_from_qubo
 
 
-def solve_using_qaoa(qubo: NDArray[np.float64], noisy_flag: bool = False, layers: int = 10, num_init: int = 5) -> float:
+def solve_using_qaoa(qubo: NDArray[np.float64], noisy_flag: bool = True, layers: int = 10, num_init: int = 5) -> float:
     backend = GenericBackendV2(noise_info=noisy_flag, num_qubits=qubo.shape[0])
     qaoa = QAOA(qubo, layers, num_init, backend)
-    qc_qaoa, res_qaoa = qaoa.get_solution()
+    _qc_qaoa, res_qaoa = qaoa.get_solution()
     return res_qaoa
 
 
 def solve_using_vqe(
-    qubo: NDArray[np.float64], noisy_flag: bool = False, ansatz: QuantumCircuit | None = None, num_init: int = 5
+    qubo: NDArray[np.float64], noisy_flag: bool = True, ansatz: QuantumCircuit | None = None, num_init: int = 5
 ) -> float:
     backend = GenericBackendV2(noise_info=noisy_flag, num_qubits=qubo.shape[0])
 
     vqe = VQE(qubo, backend, ansatz, num_init)
-    qc_vqe, res_vqe = vqe.get_solution()
+    _qc_vqe, res_vqe = vqe.get_solution()
     return res_vqe
 
 
@@ -133,7 +133,7 @@ def evaluate_result(
         - The count of that state.
         - The energy computed from the QUBO matrix.
     """
-    optimized_params, circuit = optimize_with_multiple_init_parameters(num_init, circuit, backend, qubo)
+    _optimized_params, circuit = optimize_with_multiple_init_parameters(num_init, circuit, backend, qubo)
 
     job = backend.run(circuit, shots=10000)
     result = job.result()
@@ -167,7 +167,7 @@ class QAOA:
         circuit = self._qaoa_circuit_from_cost_op()
         circuit.measure_all()
         circuit = transpile(circuit, backend=self.backend)
-        state, counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
+        _state, _counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
 
         return circuit, energy
 
@@ -185,7 +185,7 @@ class VQE:
         self.backend = backend
         self.num_init = num_init
         if ansatz is None:
-            self.ansatz = EfficientSU2(num_qubits=qubo.shape[0], entanglement="linear")
+            self.ansatz = efficient_su2(num_qubits=qubo.shape[0], entanglement="linear")
         else:
             self.ansatz = ansatz
 
@@ -197,5 +197,5 @@ class VQE:
         circuit = self.ansatz
         circuit.measure_all()
         circuit = transpile(circuit, backend=self.backend)
-        state, counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
+        _state, _counts, energy = evaluate_result(self.num_init, circuit, self.backend, self.qubo)
         return circuit, energy
