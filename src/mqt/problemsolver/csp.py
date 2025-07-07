@@ -297,7 +297,7 @@ class CSP:
         qc.x(nqubits + nancilla - 1)
         qc.h(nqubits + nancilla - 1)
 
-        for _ in range(round(grover_iterations)):
+        for _ in range(grover_iterations):
             qc.append(oracle, range(nqubits + nancilla))
             qc.h(range(ninputs))
             qc.x(range(ninputs))
