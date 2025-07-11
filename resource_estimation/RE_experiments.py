@@ -16,16 +16,14 @@ from qsharp.estimator import EstimatorParams, EstimatorResult, LogicalCounts, QE
 # ```
 
 
-logical_counts = LogicalCounts(
-    {
-        "numQubits": 1318,
-        "tCount": 96,
-        "rotationCount": 11987084,
-        "rotationDepth": 11986482,
-        "cczCount": 67474931068,
-        "measurementCount": 63472407520,
-    }
-)
+logical_counts = LogicalCounts({
+    "numQubits": 1318,
+    "tCount": 96,
+    "rotationCount": 11987084,
+    "rotationDepth": 11986482,
+    "cczCount": 67474931068,
+    "measurementCount": 63472407520,
+})
 
 # --- Default qubit models ---
 
@@ -98,16 +96,14 @@ print()
 
 
 def modified_logical_counts(space_factor: float, time_factor: float):
-    return LogicalCounts(
-        {
-            "numQubits": ceil(logical_counts["numQubits"] * space_factor),
-            "tCount": ceil(logical_counts["tCount"] * time_factor),
-            "rotationCount": ceil(logical_counts["rotationCount"] * time_factor),
-            "rotationDepth": ceil(logical_counts["rotationDepth"] * time_factor),
-            "cczCount": ceil(logical_counts["cczCount"] * time_factor),
-            "measurementCount": ceil(logical_counts["measurementCount"] * time_factor),
-        }
-    )
+    return LogicalCounts({
+        "numQubits": ceil(logical_counts["numQubits"] * space_factor),
+        "tCount": ceil(logical_counts["tCount"] * time_factor),
+        "rotationCount": ceil(logical_counts["rotationCount"] * time_factor),
+        "rotationDepth": ceil(logical_counts["rotationDepth"] * time_factor),
+        "cczCount": ceil(logical_counts["cczCount"] * time_factor),
+        "measurementCount": ceil(logical_counts["measurementCount"] * time_factor),
+    })
 
 
 params = EstimatorParams()

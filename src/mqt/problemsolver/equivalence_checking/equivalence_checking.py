@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import GroverOperator, PhaseOracle
+from qiskit.circuit.library import PhaseOracle, grover_operator
 from qiskit.compiler import transpile
 from qiskit_aer import AerSimulator
 
@@ -117,7 +117,7 @@ def find_counter_examples(
 
     total_iterations = 0
     oracle = PhaseOracle(miter)
-    operator = GroverOperator(oracle).decompose()
+    operator = grover_operator(oracle).decompose()
 
     num_bits = operator.num_qubits
     total_num_combinations = 2**num_bits

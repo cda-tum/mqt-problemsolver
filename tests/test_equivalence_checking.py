@@ -23,7 +23,7 @@ def test_create_condition_string() -> None:
     assert len(counter_examples) == num_counter_examples
     assert res_string == "~a & ~b & ~c | a & ~b & ~c"
 
-    with pytest.raises(ValueError, match="The number of bits or counter examples cannot be used."):
+    with pytest.raises(ValueError, match=r"The number of bits or counter examples cannot be used."):
         equivalence_checking.create_condition_string(num_bits=-5, num_counter_examples=-2)
 
 
@@ -54,7 +54,7 @@ def test_try_parameter_combinations(tmp_path: Path) -> None:
     ],
 )
 def test_find_counter_examples(
-    num_bits: int, num_counter_examples: int, get_counter_examples: bool, expected_num_iters: None | int
+    num_bits: int, num_counter_examples: int, get_counter_examples: bool, expected_num_iters: int | None
 ) -> None:
     """Test the function find_counter_examples."""
 
@@ -79,5 +79,5 @@ def test_find_counter_examples(
 
 def test_faulty_delta_value() -> None:
     """Test the function find_counter_examples with a faulty delta value."""
-    with pytest.raises(ValueError, match="Invalid value for delta 1.2, which must be between 0 and 1."):
+    with pytest.raises(ValueError, match=r"Invalid value for delta 1.2, which must be between 0 and 1."):
         equivalence_checking.find_counter_examples(miter="", num_bits=5, shots=512, delta=1.2)

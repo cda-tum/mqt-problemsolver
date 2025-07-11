@@ -6,11 +6,11 @@ from typing import TYPE_CHECKING, cast
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+from mqt.core import load
+from mqt.core.dd import sample
 from python_tsp.exact import solve_tsp_dynamic_programming
-from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister, execute
-from qiskit.circuit.library import QFT
-
-from mqt.ddsim import DDSIMProvider
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.synthesis.qft import synth_qft_full
 
 if TYPE_CHECKING:
     from qiskit.circuit import Gate
@@ -177,12 +177,12 @@ class TSP:
         for i in range(self.num_qubits_qft):
             qc.append(
                 self.final_U(times=i, eigenstate_register=eigenstate_register),
-                [qft_register[self.num_qubits_qft - 1 - i]] + eigenstate_register[:],
+                [qft_register[self.num_qubits_qft - 1 - i], *eigenstate_register[:]],
             )
 
         # Inverse QFT
         qc.barrier()
-        qft = QFT(
+        qft = synth_qft_full(
             num_qubits=len(qft_register),
             inverse=True,
             insert_barriers=True,
@@ -212,22 +212,19 @@ class TSP:
         return [a, b, c, d, e, f, g, h, i, j, k, m]
 
     def simulate(self, qc: QuantumCircuit) -> str:
-        backend = DDSIMProvider().get_backend("qasm_simulator")
-        job = execute(qc, backend, shots=1000)
-        count = job.result().get_counts()
-
-        return cast("str", count.most_frequent())
+        qc = qc.decompose(reps=2)  # Decompose the circuit to remove any unnecessary gates
+        quantum_computation = load(qc)
+        count = sample(quantum_computation, shots=1000)
+        return max(count, key=lambda k: count[k])
 
     def get_classical_result(self) -> list[int]:
-        distance_matrix = np.array(
-            [
-                [0, self.dist_1_2, self.dist_1_3, self.dist_1_4],
-                [self.dist_1_2, 0, self.dist_2_3, self.dist_2_4],
-                [self.dist_1_3, self.dist_2_3, 0, self.dist_3_4],
-                [self.dist_1_4, self.dist_1_3, self.dist_3_4, 0],
-            ]
-        )
-        permutation, distance = solve_tsp_dynamic_programming(distance_matrix)
+        distance_matrix = np.array([
+            [0, self.dist_1_2, self.dist_1_3, self.dist_1_4],
+            [self.dist_1_2, 0, self.dist_2_3, self.dist_2_4],
+            [self.dist_1_3, self.dist_2_3, 0, self.dist_3_4],
+            [self.dist_1_4, self.dist_1_3, self.dist_3_4, 0],
+        ])
+        permutation, _distance = solve_tsp_dynamic_programming(distance_matrix)
 
         return cast("list[int]", (np.array(permutation) + 1).T)
 
@@ -271,19 +268,19 @@ class TSP:
         phases = self.get_all_phases()
         # a,b,c = phases for U1; d,e,f = phases for U2; g,h,i = phases for U3; j,k,l = phases for U4;
 
-        self.controlled_unitary(qc, [control_qreg[0]] + eigenstate_register[0:2], [0.0] + phases[0:3])
+        self.controlled_unitary(qc, [control_qreg[0], *eigenstate_register[0:2]], [0.0, *phases[0:3]])
 
         self.controlled_unitary(
             qc,
-            [control_qreg[0]] + eigenstate_register[2:4],
-            [phases[3]] + [0] + phases[4:6],
+            [control_qreg[0], *eigenstate_register[2:4]],
+            [phases[3], 0, *phases[4:6]],
         )
         self.controlled_unitary(
             qc,
-            [control_qreg[0]] + eigenstate_register[4:6],
-            phases[6:8] + [0] + [phases[8]],
+            [control_qreg[0], *eigenstate_register[4:6]],
+            [*phases[6:8], 0, phases[8]],
         )
-        self.controlled_unitary(qc, [control_qreg[0]] + eigenstate_register[6:8], phases[9:12] + [0])
+        self.controlled_unitary(qc, [control_qreg[0], *eigenstate_register[6:8]], [*phases[9:12], 0])
 
     def final_U(self, times: int, eigenstate_register: QuantumRegister) -> Gate:
         control_qreg = QuantumRegister(1, "control")
