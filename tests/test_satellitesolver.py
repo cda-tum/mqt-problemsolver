@@ -12,6 +12,8 @@ from mqt.problemsolver.satellitesolver import algorithms, utils
 from mqt.problemsolver.satellitesolver.evaluator import eval_all_instances_Satellite_Solver
 from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
 
+np.random.seed(42)  # Set seed for reproducibility
+
 
 @pytest.fixture
 def qubo() -> NDArray[np.float64]:

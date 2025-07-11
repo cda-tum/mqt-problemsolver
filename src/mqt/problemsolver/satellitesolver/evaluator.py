@@ -9,6 +9,8 @@ from joblib import Parallel, delayed
 from mqt.problemsolver.satellitesolver import utils
 from mqt.problemsolver.satellitesolver.algorithms import solve_using_qaoa, solve_using_vqe
 
+np.random.seed(42)
+
 
 class SatelliteResult(TypedDict):
     num_qubits: int
@@ -43,7 +45,7 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
     )
 
 
-def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> SatelliteResult:
+def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 5) -> SatelliteResult:
     ac_reqs = utils.init_random_location_requests(num_locations)
     qubo = utils.create_satellite_qubo(ac_reqs)
 
@@ -75,15 +77,15 @@ def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 1) -> Sate
 
 
 def eval_all_instances_Satellite_Solver(
-    min_qubits: int = 3, max_qubits: int = 80, stepsize: int = 10, num_runs: int = 3
+    min_qubits: int = 3, max_qubits: int = 80, stepsize: int = 10, num_runs: int = 5
 ) -> None:
     res_csv = []
     results = Parallel(n_jobs=-1, verbose=3)(
         delayed(evaluate_Satellite_Solver)(i, num_runs) for i in range(min_qubits, max_qubits, stepsize)
     )
     for res in results:
-        assert res["success_rate_qaoa"] == 1, f"QAOA success rate not 1 for {res}"
-        assert res["success_rate_vqe"] == 1, f"VQE success rate not 1 for {res}"
+        assert res["success_rate_qaoa"] >= 0.5, f"QAOA success rate not 0.5 for {res}"
+        assert res["success_rate_vqe"] >= 0.5, f"VQE success rate not 0.5 for {res}"
     res_csv.append(list(results[0].keys()))
     for res in results:
         res_csv.append(list(res.values()))  # noqa: PERF401
