@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import GroverOperator, PhaseOracle
+from qiskit.circuit.library import PhaseOracle, grover_operator
 from qiskit.compiler import transpile
 from qiskit_aer import AerSimulator
 
@@ -81,7 +81,7 @@ def find_counter_examples(
     num_bits: int,
     shots: int,
     delta: float,
-    counter_examples: list[str] | None = None,
+    predetermined_counter_examples: list[str] | None = None,
 ) -> list[str] | int | None:
     """Runs our approach utilizing Grover's algorithm to find counter examples for a given miter.
 
@@ -99,12 +99,12 @@ def find_counter_examples(
         Number of shots to run the quantum circuit for
     delta : float
         Threshold for the stopping condition
-    counter_examples : list[str] | NoneType
+    predetermined_counter_examples : list[str] | NoneType
         List of counter examples
 
     Returns:
     -------
-    Found counter examples for a given miter (counter_examples=None) or the number of iterations to find the counter examples (or "-" if no/wrong counter examples were found) if the counter examples are known beforehand.
+    Found counter examples for a given miter (predetermined_counter_examples=None) or the number of iterations to find the counter examples (or "-" if no/wrong counter examples were found) if the counter examples are known beforehand.
     """
     if not 0 <= delta <= 1:
         msg = f"Invalid value for delta {delta}, which must be between 0 and 1."
@@ -116,58 +116,45 @@ def find_counter_examples(
     simulator = AerSimulator(method="statevector")
 
     total_iterations = 0
+    oracle = PhaseOracle(miter)
+    operator = grover_operator(oracle).decompose()
+
+    num_bits = operator.num_qubits
+    total_num_combinations = 2**num_bits
+
+    potential_counter_examples = None
+
     for iterations in reversed(range(1, start_iterations + 1)):
         total_iterations += iterations
-        oracle = PhaseOracle(miter)
-
-        operator = GroverOperator(oracle).decompose()
-        num_bits = operator.num_qubits
-        total_num_combinations = 2**num_bits
 
         qc = QuantumCircuit(num_bits)
-        qc.h(list(range(num_bits)))
+        qc.h(range(num_bits))
         qc.compose(operator.power(iterations).decompose(), inplace=True)
         qc.measure_all()
 
         qc = transpile(qc, simulator)
+        result = simulator.run(qc, shots=shots).result()
+        counts = result.get_counts()
 
-        job = simulator.run(qc, shots=shots)
-        result = job.result()
-        counts_dict = dict(result.get_counts())
-        counts_list = list(counts_dict.values())
-        counts_list.sort(reverse=True)
+        # Sort counts descending by value
+        sorted_counts = sorted(counts.items(), key=itemgetter(1), reverse=True)
+        counts_list = [count for _, count in sorted_counts]
 
-        counts_dict = dict(
-            sorted(counts_dict.items(), key=itemgetter(1))[::-1]
-        )  # Sort state dictionary with respect to values (counts)
-
-        found_counter_examples = []
         for i in range(int(total_num_combinations * 0.5)):
-            if (i + 1) == len(counts_list):
-                found_counter_examples_list = counts_list
-                found_counter_examples_dict = {
-                    list(counts_dict.keys())[t]: list(counts_dict.values())[t]
-                    for t in range(len(found_counter_examples_list))
-                }
-                found_counter_examples = list(found_counter_examples_dict.keys())
+            if (i + 1) == len(counts_list) or ((counts_list[i] - counts_list[i + 1]) > (counts_list[i] * delta)):
+                potential_counter_examples = [key for key, _ in sorted_counts[: i + 1]]
                 break
+        if potential_counter_examples:
+            break
 
-            diff = counts_list[i] - counts_list[i + 1]
-            if diff > counts_list[i] * delta:
-                found_counter_examples_list = counts_list[: i + 1]
-                found_counter_examples_dict = {
-                    list(counts_dict.keys())[t]: list(counts_dict.values())[t]
-                    for t in range(len(found_counter_examples_list))
-                }
-                found_counter_examples = list(found_counter_examples_dict.keys())
-                break
+    real_counter_examples = (
+        verify_counter_examples(potential_counter_examples, miter) if potential_counter_examples else []
+    )
 
-    if counter_examples is None:
-        return found_counter_examples
-
-    if sorted(found_counter_examples) == sorted(counter_examples):
+    if predetermined_counter_examples is None:
+        return real_counter_examples
+    if sorted(real_counter_examples) == sorted(predetermined_counter_examples):
         return total_iterations
-
     return None
 
 
@@ -198,7 +185,6 @@ def try_parameter_combinations(
         Number of runs for each parameter combination
     verbose : bool
         If True, print the current parameter combination
-
     """
     data = pd.DataFrame(columns=["Input Bits", "Counter Examples", *range_deltas])
     i = 0
@@ -213,13 +199,13 @@ def try_parameter_combinations(
                     )
                 results = []
                 for _run in range(num_runs):
-                    miter, counter_examples = create_condition_string(num_bits, num_counter_examples)
+                    miter, predetermined_counter_examples = create_condition_string(num_bits, num_counter_examples)
                     result = find_counter_examples(
                         miter=miter,
                         num_bits=num_bits,
                         shots=shots_factor * (2**num_bits),
                         delta=delta,
-                        counter_examples=counter_examples,
+                        predetermined_counter_examples=predetermined_counter_examples,
                     )
                     results.append(result)
                 if None in results:
@@ -230,3 +216,32 @@ def try_parameter_combinations(
             i += 1
 
     data.to_csv(path, index=False)
+
+
+def verify_counter_examples(result_list: list[str], miter: str) -> list[str]:
+    """Verifies the counter examples found by Grover's algorithm.
+
+    Parameters
+    ----------
+    result_list : list[str]
+        List of counter examples
+    miter : str
+        Miter condition string
+    Returns
+    -------
+    list[str]
+        List of actual counter examples
+    """
+    # Map 'a' to 'z' to bits
+    var_names = list(string.ascii_lowercase[: len(result_list[0])])
+    # Translate to Python logical syntax
+    python_expr = miter.replace("~", "not ").replace("&", " and ").replace("|", " or ")
+    # pick first found element
+    first_result = result_list[0]
+
+    variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result))}
+    res = eval(python_expr, {"__builtins__": None}, variables)
+    if not res:
+        real_counter_examples = [format(i, f"0{len(result_list[0])}b") for i in range(2 ** len(result_list[0]))]
+        return [i for i in real_counter_examples if i not in result_list]
+    return result_list

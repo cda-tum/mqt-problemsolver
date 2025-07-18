@@ -1,9 +1,9 @@
 [build-system]
 requires = [
-    "setuptools>=61",
-    "setuptools_scm[toml]>=7"
+    "hatchling>=1.27.0",
+    "hatch-vcs>=0.4.0"
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
 [project]
 name = "mqt.problemsolver"
@@ -11,49 +11,61 @@ description = "MQT ProblemSolver - A MQT tool for Solving Problems Using Quantum
 readme = "README.md"
 authors = [
     { name = "Nils Quetschlich", email = "nils.quetschlich@tum.de" },
-    { name = "Lukas Burgholzer", email = "lukas.burgholzer@jku.at"},
+    { name = "Lukas Burgholzer", email = "burgholzer@me.com" },
+    { name = "Tobias Forster", email = "tobias.forster@tum.de" },
 ]
 keywords = ["MQT",  "quantum computing"]
-license = { file = "LICENSE" }
-requires-python = ">=3.8"
+license = "MIT"
+license-files = ["LICENSE.md"]
+requires-python = ">=3.9"
 dynamic = ["version"]
 
 dependencies = [
-    "qiskit>=0.36.0,<0.42.0",
-    "joblib",
-    "numpy",
-    "matplotlib",
-    "mqt.ddsim",
-    "networkx",
-    "python_tsp",
-    "docplex",
-    "qiskit_optimization",
-    "qiskit_aer",
-    "pandas"
+    "mqt.core>=3.0.2",
+    "qiskit>=2.0.3",
+    "qiskit_aer>=0.16.4",
+    "numpy>=2.1; python_version >= '3.13'",
+    "numpy>=1.26; python_version >= '3.12'",
+    "numpy>=1.24; python_version >= '3.11'",
+    "numpy>=1.22",
+    "scipy>=1.14.1; python_version >= '3.13'",
+    "scipy>=1.13.1",
+    "pandas>=2.1.2",
+    "pandas>=2.2.3; python_version >= '3.13'",
+    "matplotlib>=3.9.4",
+    "networkx>=2.8.8",
+    "python_tsp>=0.5.0",
+    "docplex>=2.28.240",
+    "joblib>=1.4.2",
 ]
 
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
 ]
 
-[project.optional-dependencies]
-test = ["pytest>=7"]
-coverage = ["mqt.problemsolver[test]", "coverage[toml]~=6.5.0", "pytest-cov~=4.0.0"]
-dev = ["mqt.problemsolver[coverage]"]
-tweedledum = ["tweedledum==1.0.0"]
+[dependency-groups]
+test = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "pytest-sugar>=1.0.0",
+    "pytest-xdist>=3.7.0",
+]
+dev = [
+    {include-group = "test"},
+]
 
 [project.urls]
 Homepage = "https://github.com/cda-tum/mqtproblemsolver"
@@ -61,7 +73,37 @@ Homepage = "https://github.com/cda-tum/mqtproblemsolver"
 Discussions = "https://github.com/cda-tum/mqtproblemsolver/discussions"
 Research = "https://www.cda.cit.tum.de/research/quantum/"
 
-[tool.setuptools_scm]
+[tool.hatch.build.targets.wheel]
+packages = ["src/mqt"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/mqt/problemsolver/_version.py"
+
+
+[tool.pytest.ini_options]
+minversion = "7.2"
+testpaths = ["tests/"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--showlocals",
+    "--numprocesses=auto",  # Automatically use all available CPU cores for parallel testing
+]
+log_cli_level = "INFO"
+xfail_strict = true
+filterwarnings = [
+    "error",
+    # Qiskit 2.1 internal deprecation warnings
+    'ignore:.*The class .* is deprecated as of Qiskit 2.1.*:DeprecationWarning:qiskit.*',
+    # Qiskit 2.1 starts to warn about the upcoming Python 3.9 removal in Qiskit 2.3.
+    # We will drop 3.9 support around the same time, at which point this warning filter can be removed
+    'ignore:.*Using Qiskit with Python 3.9 is deprecated as of the 2.1.0 release.*:DeprecationWarning:',
+]
+
 
 [tool.coverage]
 run.source = ["mqt.problemsolver"]
@@ -71,26 +113,33 @@ report.exclude_also = [
     'raise AssertionError',
     'raise NotImplementedError',
 ]
+run.disable_warnings = [
+    "no-sysmon",
+]
+
+show_missing = true
+skip_empty = true
+precision = 1
+
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
-files = ["src", "tests", "setup.py"]
+files = ["src", "tests"]
 python_version = "3.9"
 strict = true
-show_error_codes = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 warn_unreachable = true
 explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "mqt.ddsim.*", "joblib.*", "qiskit_optimization.*", "docplex.*", "qiskit_aer.*"]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "joblib.*", "docplex.*", "qiskit_aer.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 120
 extend-include = ["*.ipynb"]
-src = ["src"]
+preview = true
 unsafe-fixes = true
 
 [tool.ruff.lint]
@@ -131,22 +180,37 @@ extend-select = [
     "UP",          # pyupgrade
     "YTT",         # flake8-2020
 ]
-extend-ignore = [
-    "PLR",  # Design related pylint codes
-    "ISC001", # Added because of ruff-format warning
-    "SLF001", # Added because private member variables must be accessed
+ignore = [
+    "ISC001",  # Conflicts with formatter
+    "E501",    # Line too long (Black is enough)
+    "PLR",     # Design related pylint codes
+    "S101",    # Use of assert detected
 ]
+flake8-unused-arguments.ignore-variadic-names = true
 isort.required-imports = ["from __future__ import annotations"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "*.pyi" = ["D"]  # pydocstyle
 "*.ipynb" = [
     "D",    # pydocstyle
     "E402", # Allow imports to appear anywhere in Jupyter notebooks
     "I002", # Allow missing `from __future__ import annotations` import
-    "F405",
-    "B018"
 ]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.typos]
+default.extend-ignore-re = [
+    '"id": ".*",',
+    "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",  # ignore line
+    "(?s)(#|//)\\s*spellchecker:off.*?\\n\\s*(#|//)\\s*spellchecker:on" # ignore block
+]
+[tool.typos.default.extend-words]
+wille = "wille"
+anc = "anc"
+aer = "aer"
+
+
+[tool.repo-review]
+ignore = ["GH200", "RTD100", "PY004"]
