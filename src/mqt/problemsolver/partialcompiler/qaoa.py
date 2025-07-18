@@ -1,19 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+    from qiskit.providers import BackendV2
+
 import numpy as np
-from docplex.mp.model import Model
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit import Parameter
-from qiskit.providers.fake_provider import (
-    FakeBackend,
-    FakeMontreal,
-    FakeQuito,
-    FakeWashington,
-)
-from qiskit_optimization.converters.quadratic_program_to_qubo import (
-    QuadraticProgramToQubo,
-)
-from qiskit_optimization.translators import from_docplex_mp
+from qiskit.providers.fake_provider import GenericBackendV2
 
 
 class QAOA:
@@ -40,6 +36,7 @@ class QAOA:
         self.remove_gates = remove_gates  # List of length number of parameterized gates, contains either False (if it shall not be removed) or the parameter name of the gate to be removed
         self.qc_compiled = self.compile_qc(baseline=False, opt_level=3)  # Compiled QC with all gates
         self.to_be_removed_gates_indices = self.get_to_be_removed_gate_indices()  # Indices of the gates to be checked
+        self.penalty = 5  # Penalty for the QUBO model
 
     def get_uncompiled_circuits(
         self,
@@ -117,7 +114,7 @@ class QAOA:
     def get_to_be_removed_gate_indices(self) -> list[int]:
         """Returns the indices of the gates to be removed"""
         indices_to_be_removed_parameterized_gates = []
-        for i, gate in enumerate(self.qc_compiled._data):
+        for i, gate in enumerate(self.qc_compiled.data):
             if (
                 gate.operation.name == "rz"
                 and isinstance(gate.operation.params[0], Parameter)
@@ -134,62 +131,92 @@ class QAOA:
         # Iterate over all gates to be removed
         for i in self.to_be_removed_gates_indices:
             # Remove the Parameter from the ParameterTable for the specific parameter.
-            del qc._parameter_table[qc._data[i].operation.params[0]]
+            param = qc.data[i].operation.params[0]
+            if param in qc.parameters:
+                qc.parameters.remove(param)
             indices.add(i)
-            if optimize_swaps and qc._data[i - 1].operation.name == "cx" and qc._data[i - 1] == qc._data[i + 1]:
+            if optimize_swaps and qc.data[i - 1].operation.name == "cx" and qc.data[i - 1] == qc.data[i + 1]:
                 indices.add(i - 1)
                 indices.add(i + 1)
 
-        qc._data = [v for i, v in enumerate(qc._data) if i not in indices]
+        qc.data = [v for i, v in enumerate(qc.data) if i not in indices]
 
         if self.satellite_use_case:
             return self.apply_factors_to_qc(qc)
 
         return qc
 
-    def apply_factors_to_qc(self, qc: QuantumCircuit) -> QuantumCircuit:
-        """Applies factors to each qubit representing the location image value and the dependencies to other image locations."""
-        # create QUBO formulation based on interactions of between qubits
-        qubo = QuadraticProgramToQubo().convert(from_docplex_mp(self.create_model_from_pair_list()))
-        # extract the factors: one for each qubit/image location, one factor for all ZZ interactions, one factor for all mixer layers
-        ising = qubo.to_ising()
-        coeffs = np.array(ising[0].primitive.coeffs, dtype=float)
-        coeffs_qubits = coeffs[: self.num_qubits]
-        coeffs_interactions = coeffs[self.num_qubits + 1]
+    def create_model_from_pair_list(self) -> NDArray[np.float64]:
+        """
+        Constructs the QUBO matrix Q for the optimization problem.
 
-        # apply the factors, i.e. multiply the parameters with the factors
+        The matrix Q is of size num_qubits x num_qubits and encodes the following:
+          - Objective: Minimize the linear term -∑ x_i, where Q[i, i] = -1.
+          - Constraints: Ensure x_i + x_j ≤ 1 by adding a penalty term P·x_i x_j
+            for each pair (i, j) in remove_pairs.
+
+        Returns:
+            Q: The QUBO matrix representing the optimization problem.
+        """
+        n = self.num_qubits
+        Q = np.zeros((n, n))
+        # linear objective: minimize -∑ x_i
+        for i in range(n):
+            Q[i, i] = -1.0
+
+        # conflict penalties
+        for i, j in self.remove_pairs:
+            Q[i, j] += self.penalty
+            Q[j, i] += self.penalty
+
+        return Q
+
+    def apply_factors_to_qc(self, qc: QuantumCircuit) -> QuantumCircuit:
+        """
+        Updates the parameterized QAOA-style circuit `qc` with actual Ising coefficients.
+
+        This function assigns values to the circuit parameters based on the Ising model
+        derived from the QUBO matrix. Parameters are named "qubit_<i>" for single-qubit
+        Z-rotations and "a_<i>_<j>" (or just "a_...") for ZZ-interaction gates.
+
+        Args:
+            qc: QuantumCircuit object representing the parameterized QAOA circuit.
+
+        Returns:
+            QuantumCircuit object with updated parameter values based on the Ising model.
+        """
+        # 1) build QUBO
+        Q = self.create_model_from_pair_list()
+
+        # 2) map to Ising: H = x^T Q x  with  x = (1-Z)/2
+        #    ⇒ h_i = -½ ∑_j Q[i,j] ,    J_{ij} = ½ Q[i,j]  (i≠j)
+        h = -np.sum(Q, axis=1) / 2.0
+        J = Q.copy() / 2.0
+        np.fill_diagonal(J, 0.0)
+
+        # 3) assign each qc parameter to 2y·h or 2y·J  (the factor of 2 comes
+        #    from the fact that Rz(θ) = exp(-i θ/2 Z))
         for param in qc.parameters:
-            if "a_" in param.name:
-                # factor of 2 is applied to the problem layer gates since this was not done at initialization
-                # (in comparison to the mixer layer), because otherwise the removal of the gates would be more complicated
-                # since the gates would have ParameterExpression and not Parameter objects
-                qc.assign_parameters({param: coeffs_interactions * param * 2}, inplace=True)
-            elif "qubit_" in param.name:
-                qc.assign_parameters({param: coeffs_qubits[int(param.name.split("_")[1])] * param}, inplace=True)
+            name = param.name
+
+            if name.startswith("qubit_"):
+                # single-qubit Z-term
+                idx = int(name.split("_", 1)[1])
+                qc.assign_parameters({param: 2 * h[idx] * param}, inplace=True)
+
+            elif name.startswith("a_"):
+                parts = name.split("_")
+                if len(parts) == 3:
+                    # per-edge interaction
+                    i, j = map(int, parts[1:])
+                    qc.assign_parameters({param: 2 * J[i, j] * param}, inplace=True)
+                else:
+                    # "global" a-parameter: sum all J's
+                    total_J = J[np.triu_indices(self.num_qubits, 1)].sum()
+                    qc.assign_parameters({param: 2 * total_J * param}, inplace=True)
 
         return qc
 
-    def create_model_from_pair_list(self) -> Model:
-        """Creates a model from the interaction pairs"""
-        mdl = Model("satellite model")
-        locations = mdl.binary_var_list(self.num_qubits, name="locations")
-        for i, j in self.remove_pairs:
-            mdl.add_constraint((locations[i] + locations[j]) <= 1)
-        mdl.minimize(-mdl.sum(locations[i] for i in range(self.num_qubits)))
-        return mdl
 
-
-def get_backend(num_qubits: int) -> FakeBackend:
-    quito = FakeQuito()
-    if num_qubits <= quito.configuration().n_qubits:
-        return quito
-
-    montreal = FakeMontreal()
-    if num_qubits <= montreal.configuration().n_qubits:
-        return montreal
-
-    washington = FakeWashington()
-    if num_qubits <= washington.configuration().n_qubits:
-        return washington
-
-    return None
+def get_backend(num_qubits: int) -> BackendV2:
+    return GenericBackendV2(num_qubits=num_qubits, noise_info=True)
