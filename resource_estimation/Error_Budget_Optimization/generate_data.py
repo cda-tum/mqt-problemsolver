@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import numpy as np
 from IPython.display import clear_output
@@ -104,15 +105,13 @@ def generate_data(total_error_budget, counts, path="MQTBench"):
         A list of lists, where each inner list contains circuit-specific counts and the corresponding
         optimized error budget partition.
     """
-    qasm_files = [
-        os.path.join(root, file) for root, _, files in os.walk(path) for file in files if file.endswith(".qasm")
-    ]
+    qasm_files = [Path(root) / file for root, _, files in os.walk(path) for file in files if file.endswith(".qasm")]
     qasm_files = sorted(qasm_files)
-
+    print(qasm_files[-1])
     results = []
 
     for file in tqdm(qasm_files):
-        with open(file, encoding="utf-8") as f:
+        with Path.open(file, encoding="utf-8") as f:
             qasm = f.read()
             qc = QuantumCircuit.from_qasm_str(qasm)
         try:

@@ -40,7 +40,7 @@ def evaluate(X, Y, total_budget):
         c["measurementCount"] = int(X[i, 6])
         logical_counts = LogicalCounts(c)
         params_sum = params[0] + params[1] + params[2]
-        params = [
+        params_normalized = [
             params[0] / params_sum * total_budget,
             params[1] / params_sum * total_budget,
             params[2] / params_sum * total_budget,
@@ -48,9 +48,9 @@ def evaluate(X, Y, total_budget):
 
         parameters = EstimatorParams()
         parameters.error_budget = ErrorBudgetPartition()
-        parameters.error_budget.logical = params[0]
-        parameters.error_budget.t_states = params[1]
-        parameters.error_budget.rotations = params[2]
+        parameters.error_budget.logical = params_normalized[0]
+        parameters.error_budget.t_states = params_normalized[1]
+        parameters.error_budget.rotations = params_normalized[2]
 
         default_parameters = EstimatorParams()
         default_parameters.error_budget = total_budget
@@ -87,7 +87,7 @@ def evaluate(X, Y, total_budget):
     )
 
 
-def plot_results(product_diffs, product_diffs_optimal, name, legend=False, bin_width=4):
+def plot_results(product_diffs, product_diffs_optimal, legend=False, bin_width=4):
     """
     Plots histograms comparing predicted and optimal space-time differences.
     This function visualizes the distribution of space-time differences (in percent)
@@ -96,7 +96,6 @@ def plot_results(product_diffs, product_diffs_optimal, name, legend=False, bin_w
     Args:
         product_diffs: List of space-time differences for predicted distributions.
         product_diffs_optimal: List of space-time differences for best found distributions.
-        name: Name of the plot (not used in the function).
         legend: Whether to display the legend on the plot. Defaults to False.
         bin_width: Width of histogram bins. Defaults to 4.
     Returns:
