@@ -5,6 +5,22 @@ import joblib
 import matplotlib.pyplot as plt
 
 def evaluate(X, Y, total_budget):
+    """
+    Evaluates the impact of different error budget partitions on quantum resource estimates.
+    Args:
+        X: A 2D array where each row contains quantum circuit logical counts (e.g., numQubits, tCount, rotationCount, etc.).
+        Y: A 2D array where each row contains error budgetds for logical, t_states, and rotations.
+        total_budget: The total error budget to be distributed among logical, t_states, and rotations.
+    Returns:
+        qubits_diffs: List of relative differences in physical qubits compared to the default budget distribution.
+        runtime_diffs: List of relative differences in runtime compared to the default budget distribution.
+        product_diffs: List of relative differences in the product of qubits and runtime compared to the default budget distribution.
+        qubits_list: List of estimated physical qubits for each parameter set.
+        runtime_list: List of estimated runtimes for each parameter set.
+        default_qubits_list: List of physical qubits using the default budget for each parameter set.
+        default_runtime_list: List of runtimes using the default budget for each parameter set.
+    """
+
     qubits_diffs = []
     runtime_diffs = []
     product_diffs = []
@@ -12,7 +28,6 @@ def evaluate(X, Y, total_budget):
     runtime_list = []
     default_qubits_list = []
     default_runtime_list = []
-    no_changes = 0
     for i, params in enumerate(Y):
         c = {}
         c['numQubits'] = int(X[i,0])
@@ -47,9 +62,6 @@ def evaluate(X, Y, total_budget):
         product_diff = ((qubits * runtime) - (default_qubits * default_runtime))/(default_qubits * default_runtime)
         if product_diff > 0:
             product_diff = 0
-        
-        if product_diff == 0:
-            no_changes += 1
 
         qubits_diffs.append(qubits_diff)
         runtime_diffs.append(runtime_diff)
@@ -64,6 +76,21 @@ def evaluate(X, Y, total_budget):
     
 
 def plot_results(product_diffs, product_diffs_optimal, name, legend=False, bin_width=4):
+    """
+    Plots histograms comparing predicted and optimal space-time differences.
+    This function visualizes the distribution of space-time differences (in percent)
+    for predicted and optimal product distributions. It overlays two histograms for
+    comparison and customizes axis ticks, labels, and legend.
+    Args:
+        product_diffs: List of space-time differences for predicted distributions.
+        product_diffs_optimal: List of space-time differences for best found distributions.
+        name: Name of the plot (not used in the function).
+        legend: Whether to display the legend on the plot. Defaults to False.
+        bin_width: Width of histogram bins. Defaults to 4.
+    Returns:
+        None. Displays the plot.
+    """
+
     product_diffs = [100 * i for i in product_diffs]
     product_diffs_optimal = [100 * i for i in product_diffs_optimal]
 
@@ -77,22 +104,15 @@ def plot_results(product_diffs, product_diffs_optimal, name, legend=False, bin_w
     bin_edges = np.arange(data_min, data_max + bin_width, bin_width)
 
     x_ticks = np.arange(-100, 1, 20)
-
     fig, ax = plt.subplots(figsize=(5,2.5))
-
     ax.hist(product_diffs_optimal, bins=bin_edges, color='steelblue', edgecolor='black', alpha=0.5, label='Best Distributions Determined')
     ax.hist(product_diffs, bins=bin_edges, color='orange', edgecolor='black', alpha=0.5, label='Predicted Distributions')
-
     ax.set_xlim(data_min, data_max)
-
     ax.set_xticks([-100, -80, -60, -40, -20, 0])
     ax.set_yticks([0, 40, 80, 120])
-
     ax.set_xlabel('Space-Time Difference [%]', fontsize=15)
     ax.tick_params(axis='both', which='major', labelsize=15)
-
     if legend:
         ax.legend(loc='upper left', fontsize=12)
-
     plt.tight_layout()
     plt.show()
