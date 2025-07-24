@@ -1,8 +1,8 @@
-import numpy as np
+from __future__ import annotations
 
+import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 
-import joblib
 
 def process_data(data):
     """
@@ -36,6 +36,7 @@ def process_data(data):
     X_train, X_test = X[train_indices], X[test_indices]
     Y_train, Y_test = Y[train_indices], Y[test_indices]
     return X_train, X_test, Y_train, Y_test
+
 
 def train(data):
     """

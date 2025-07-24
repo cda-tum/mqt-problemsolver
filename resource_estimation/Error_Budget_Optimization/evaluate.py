@@ -1,8 +1,9 @@
-import numpy as np
-from qsharp.estimator import EstimatorParams, ErrorBudgetPartition, LogicalCounts
-from qsharp.interop.qiskit import estimate
-import joblib
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
+import numpy as np
+from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
+
 
 def evaluate(X, Y, total_budget):
     """
@@ -30,17 +31,21 @@ def evaluate(X, Y, total_budget):
     default_runtime_list = []
     for i, params in enumerate(Y):
         c = {}
-        c['numQubits'] = int(X[i,0])
-        c['tCount'] = int(X[i,1])
-        c['rotationCount'] = int(X[i,2])
-        c['rotationDepth'] = int(X[i,3])
-        c['cczCount'] = int(X[i,4])
-        c['ccixCount'] = int(X[i,5])
-        c['measurementCount'] = int(X[i,6])
+        c["numQubits"] = int(X[i, 0])
+        c["tCount"] = int(X[i, 1])
+        c["rotationCount"] = int(X[i, 2])
+        c["rotationDepth"] = int(X[i, 3])
+        c["cczCount"] = int(X[i, 4])
+        c["ccixCount"] = int(X[i, 5])
+        c["measurementCount"] = int(X[i, 6])
         logical_counts = LogicalCounts(c)
         params_sum = params[0] + params[1] + params[2]
-        params = [params[0]/params_sum * total_budget, params[1]/params_sum * total_budget, params[2]/params_sum * total_budget]
-        
+        params = [
+            params[0] / params_sum * total_budget,
+            params[1] / params_sum * total_budget,
+            params[2] / params_sum * total_budget,
+        ]
+
         parameters = EstimatorParams()
         parameters.error_budget = ErrorBudgetPartition()
         parameters.error_budget.logical = params[0]
@@ -57,9 +62,9 @@ def evaluate(X, Y, total_budget):
         default_qubits = default_result["physicalCounts"]["physicalQubits"]
         default_runtime = default_result["physicalCounts"]["runtime"]
 
-        qubits_diff = (qubits - default_qubits)/default_qubits
-        runtime_diff = (runtime - default_runtime)/default_runtime
-        product_diff = ((qubits * runtime) - (default_qubits * default_runtime))/(default_qubits * default_runtime)
+        qubits_diff = (qubits - default_qubits) / default_qubits
+        runtime_diff = (runtime - default_runtime) / default_runtime
+        product_diff = ((qubits * runtime) - (default_qubits * default_runtime)) / (default_qubits * default_runtime)
         if product_diff > 0:
             product_diff = 0
 
@@ -71,9 +76,16 @@ def evaluate(X, Y, total_budget):
         default_qubits_list.append(default_qubits)
         default_runtime_list.append(default_runtime)
 
-    return qubits_diffs, runtime_diffs, product_diffs, qubits_list, runtime_list, default_qubits_list, default_runtime_list
+    return (
+        qubits_diffs,
+        runtime_diffs,
+        product_diffs,
+        qubits_list,
+        runtime_list,
+        default_qubits_list,
+        default_runtime_list,
+    )
 
-    
 
 def plot_results(product_diffs, product_diffs_optimal, name, legend=False, bin_width=4):
     """
@@ -103,16 +115,25 @@ def plot_results(product_diffs, product_diffs_optimal, name, legend=False, bin_w
 
     bin_edges = np.arange(data_min, data_max + bin_width, bin_width)
 
-    x_ticks = np.arange(-100, 1, 20)
-    fig, ax = plt.subplots(figsize=(5,2.5))
-    ax.hist(product_diffs_optimal, bins=bin_edges, color='steelblue', edgecolor='black', alpha=0.5, label='Best Distributions Determined')
-    ax.hist(product_diffs, bins=bin_edges, color='orange', edgecolor='black', alpha=0.5, label='Predicted Distributions')
+    np.arange(-100, 1, 20)
+    _fig, ax = plt.subplots(figsize=(5, 2.5))
+    ax.hist(
+        product_diffs_optimal,
+        bins=bin_edges,
+        color="steelblue",
+        edgecolor="black",
+        alpha=0.5,
+        label="Best Distributions Determined",
+    )
+    ax.hist(
+        product_diffs, bins=bin_edges, color="orange", edgecolor="black", alpha=0.5, label="Predicted Distributions"
+    )
     ax.set_xlim(data_min, data_max)
     ax.set_xticks([-100, -80, -60, -40, -20, 0])
     ax.set_yticks([0, 40, 80, 120])
-    ax.set_xlabel('Space-Time Difference [%]', fontsize=15)
-    ax.tick_params(axis='both', which='major', labelsize=15)
+    ax.set_xlabel("Space-Time Difference [%]", fontsize=15)
+    ax.tick_params(axis="both", which="major", labelsize=15)
     if legend:
-        ax.legend(loc='upper left', fontsize=12)
+        ax.legend(loc="upper left", fontsize=12)
     plt.tight_layout()
     plt.show()
