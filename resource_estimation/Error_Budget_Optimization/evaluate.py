@@ -22,13 +22,7 @@ def evaluate(X, Y, total_budget):
         default_runtime_list: List of runtimes using the default budget for each parameter set.
     """
 
-    qubits_diffs = []
-    runtime_diffs = []
     product_diffs = []
-    qubits_list = []
-    runtime_list = []
-    default_qubits_list = []
-    default_runtime_list = []
     for i, params in enumerate(Y):
         c = {}
         c["numQubits"] = int(X[i, 0])
@@ -62,29 +56,13 @@ def evaluate(X, Y, total_budget):
         default_qubits = default_result["physicalCounts"]["physicalQubits"]
         default_runtime = default_result["physicalCounts"]["runtime"]
 
-        qubits_diff = (qubits - default_qubits) / default_qubits
-        runtime_diff = (runtime - default_runtime) / default_runtime
         product_diff = ((qubits * runtime) - (default_qubits * default_runtime)) / (default_qubits * default_runtime)
         if product_diff > 0:
             product_diff = 0
 
-        qubits_diffs.append(qubits_diff)
-        runtime_diffs.append(runtime_diff)
         product_diffs.append(product_diff)
-        qubits_list.append(qubits)
-        runtime_list.append(runtime)
-        default_qubits_list.append(default_qubits)
-        default_runtime_list.append(default_runtime)
 
-    return (
-        qubits_diffs,
-        runtime_diffs,
-        product_diffs,
-        qubits_list,
-        runtime_list,
-        default_qubits_list,
-        default_runtime_list,
-    )
+    return product_diffs
 
 
 def plot_results(product_diffs, product_diffs_optimal, legend=False, bin_width=4):
