@@ -106,7 +106,6 @@ def generate_data(total_error_budget, counts, path="MQTBench"):
         optimized error budget partition.
     """
     qasm_files = [Path(root) / file for root, _, files in os.walk(path) for file in files if file.endswith(".qasm")]
-    print(qasm_files[-1])
     results = []
 
     for file in tqdm(qasm_files):
