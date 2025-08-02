@@ -135,13 +135,19 @@ These two implementations are provided by the functions `try_parameter_combinati
 
 # Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions
 
-Applying error correction to execute quantum circuits fault-tolerantly induces massive overheads in the required physical resources, often in the orders of magnitude. This leads to thousands of qubits already for toy-sized quantum applications. Obviously, these need to be reduced, for which the so-called error budget can be a particular lever. Even though error correction is applied, a certain error rate still remains in the execution of the quantum circuit. Hence, the end user defines a maximum tolerated error rate, the error budget, for the quantum application to be considered by the compiler. Since an error-corrected quantum circuit consists of different parts, this error budget is distributed among these parts. The way how it is distributed can have a significant effect on the resulting required resources. To find an efficient distribution, we use resource estimation to evaluate different distributions as well as a machine learning model approach that automatically determines such efficient distributions for a given quantum circuit.
+Applying error correction to execute quantum circuits fault-tolerantly induces massive overheads in the required physical resources, often in the orders of magnitude.
+This leads to thousands of qubits already for toy-sized quantum applications. Obviously, these need to be reduced, for which the so-called error budget can be a particular lever.
+Even though error correction is applied, a certain error rate still remains in the execution of the quantum circuit.
+Hence, the end user defines a maximum tolerated error rate, the error budget, for the quantum application to be considered by the compiler.
+Since an error-corrected quantum circuit consists of different parts, this error budget is distributed among these parts.
+The way how it is distributed can have a significant effect on the resulting required resources.
+To find an efficient distribution, we use resource estimation to evaluate different distributions as well as a machine learning model approach that automatically determines such efficient distributions for a given quantum circuit.
 
 <p align="center">
-<img src="img/error_budget_approach.png" height=150px>
+<img src="img/error_budget_approach.svg" height=150px>
 </p>
 
-The implementation of the approach can be found under `resource_estimation/Error_Budget_Optimization`. An example usage of the implementation is shown in the `example_use.ipynb` notebook.
+The implementation of the approach can be found under `resource_estimation/error_budget_optimization`. An example usage of the implementation is shown in the `example_use.ipynb` notebook.
 
 # Usage
 

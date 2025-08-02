@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+import copy
+import math
 import os
+from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
-from IPython.display import clear_output
 from qiskit import QuantumCircuit
 from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
 from qsharp.interop.qiskit import estimate
 from tqdm import tqdm
 
 
-def find_optimized_budgets(total_budget, num_iterations, counts):
+def find_optimized_budgets(
+    total_budget: float, num_iterations: int, counts: LogicalCounts
+) -> tuple[list[float], int, int]:
     """
     Randomly distributes the total error budget among logical, T-state, and rotation errors,
     and estimates the physical resource requirements for each distribution. Tracks the distribution
@@ -28,7 +32,7 @@ def find_optimized_budgets(total_budget, num_iterations, counts):
             - The best metric found (runtime * physical qubits).
             - The default metric (runtime * physical qubits with default partition).
     """
-    parameters = EstimatorParams()
+
     default_parameters = EstimatorParams()
     default_parameters.error_budget = total_budget
 
@@ -37,69 +41,58 @@ def find_optimized_budgets(total_budget, num_iterations, counts):
 
     default_physicalqubits = default_result["physicalCounts"]["physicalQubits"]
     default_runtime = default_result["physicalCounts"]["runtime"]
+    default_metric = default_runtime * default_physicalqubits
 
-    running_metric = None
-
-    running_optimal_parameters = {}
-    logical_cache = []
-    t_cache = []
-    rotation_cache = []
+    best_metric = math.inf
 
     for _i in range(num_iterations):
+        parameters = EstimatorParams()
         parameters.error_budget = ErrorBudgetPartition()
-        logical_budget_random = np.random.uniform(0, 1)
-        t_budget_random = np.random.uniform(0, 1)
-        rotation_budget_random = np.random.uniform(0, 1)
-        budget_sum = logical_budget_random + t_budget_random + rotation_budget_random
 
-        logical_budget = (logical_budget_random / budget_sum) * total_budget
-        t_budget = (t_budget_random / budget_sum) * total_budget
-        rotation_budget = (rotation_budget_random / budget_sum) * total_budget
+        rng = np.random.default_rng()
+        low = np.nextafter(0, 1)  # Exclude zero to avoid zero error budgets
+        budgets = rng.uniform(low, 1, size=3)
+        budgets = budgets / np.sum(budgets)  # Normalize to sum to 1
 
-        parameters.error_budget.logical = logical_budget
-        parameters.error_budget.t_states = t_budget
-        parameters.error_budget.rotations = rotation_budget
+        parameters.error_budget.logical = float(budgets[0] * total_budget)
+        parameters.error_budget.t_states = float(budgets[1] * total_budget)
+        parameters.error_budget.rotations = float(budgets[2] * total_budget)
 
         result = counts.estimate(params=parameters)
-        default_result = counts.estimate()
 
         physicalqubits = result["physicalCounts"]["physicalQubits"]
         runtime = result["physicalCounts"]["runtime"]
 
-        default_metric = default_runtime * default_physicalqubits
         current_metric = runtime * physicalqubits
 
-        if running_metric is None:
-            running_metric = current_metric
-            logical_cache = logical_budget
-            t_cache = t_budget
-            rotation_cache = rotation_budget
+        if current_metric < best_metric:
+            best_metric = current_metric
+            best_parameters = copy.deepcopy(parameters)
 
-        if current_metric < running_metric:
-            running_metric = current_metric
-            logical_cache = logical_budget
-            t_cache = t_budget
-            rotation_cache = rotation_budget
-
-    running_optimal_parameters["logical_budget"] = logical_cache
-    running_optimal_parameters["t_budget"] = t_cache
-    running_optimal_parameters["rotation_budget"] = rotation_cache
-
-    return list(running_optimal_parameters.values()), running_metric, default_metric
+    return (
+        [
+            best_parameters.error_budget.logical,
+            best_parameters.error_budget.t_states,
+            best_parameters.error_budget.rotations,
+        ],
+        best_metric,
+        default_metric,
+    )
 
 
-def generate_data(total_error_budget, counts, path="MQTBench"):
+def generate_data(
+    total_error_budget: float, number_of_randomly_generated_distributions: int, path="mqtbench"
+) -> OrderedDict[str, float | int]:
     """
     Generates a dataset consisting of logical counts of quantum circuits and respective optimized error budgets.
 
-    This function searches for QASM files in the "MQTBench" directory, loads each circuit,
+    This function searches for QASM files in the given directory, loads each circuit,
     estimates its logical counts, and computes optimized error budget partitions using random sampling.
     For each circuit, it collects relevant counts and the optimal error budget distribution,
     appending the results to a list.
 
     Args:
-        total_error_budget: The total error budget to be distributed among error types.
-        counts: LogicalCounts object or dictionary containing logical counts for estimation.
+        total_error_budget: The total error budget to be distributed among error types..
 
     Returns:
         A list of lists, where each inner list contains circuit-specific counts and the corresponding
@@ -109,29 +102,25 @@ def generate_data(total_error_budget, counts, path="MQTBench"):
     results = []
 
     for file in tqdm(qasm_files):
-        with Path.open(file, encoding="utf-8") as f:
-            qasm = f.read()
-            qc = QuantumCircuit.from_qasm_str(qasm)
+        qc = QuantumCircuit.from_qasm_file(file)
         try:
             estimation = estimate(qc)
             counts = estimation["logicalCounts"]
             if counts["rotationCount"] == 0:
-                continue
+                continue  # Skip circuits without rotations, as we want to ensure distributing error budgets among all three types.
             counts = LogicalCounts(counts)
-            combinations, _running_metric, _default_metric = find_optimized_budgets(total_error_budget, 1000, counts)
-            specific_data = [
-                int(counts["numQubits"]),
-                int(counts["tCount"]),
-                int(counts["rotationCount"]),
-                int(counts["rotationDepth"]),
-                int(counts["cczCount"]),
-                int(counts["ccixCount"]),
-                int(counts["measurementCount"]),
-            ]
-            specific_data += combinations
+            combinations, _running_metric, _default_metric = find_optimized_budgets(
+                total_error_budget, number_of_randomly_generated_distributions, counts
+            )
+            specific_data = OrderedDict()
+            for key, value in counts.items():
+                specific_data[key] = value
+            specific_data["logical"] = combinations[0]
+            specific_data["t_states"] = combinations[1]
+            specific_data["rotations"] = combinations[2]
             results.append(specific_data)
         except Exception as e:
             print(f"Error processing {file}: {e}")
             continue
-        clear_output(wait=True)
+        # clear_output(wait=True)
     return results

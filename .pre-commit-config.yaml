@@ -82,8 +82,8 @@ repos:
     rev: v1.16.1
     hooks:
       - id: mypy
-        files: ^(src/mqt|tests|noxfile.py)
-        args: []
+        files: ^(src/mqt|tests|noxfile\.py|resource_estimation/error_budget_optimization/.*)$
+        exclude: ^resource_estimation/error_budget_optimization/(paper_data/.*|mqtbench\.zip)$
         additional_dependencies:
           - numpy
           - nox
@@ -105,7 +105,7 @@ repos:
         name: Disallow improper capitalization
         language: pygrep
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest|Mqt|Tum
-        exclude: .pre-commit-config.yaml|\.zip$|\.pkl$
+        exclude: .pre-commit-config.yaml|\.pkl$
 
   # Check best practices for scientific Python code
   - repo: https://github.com/scientific-python/cookie

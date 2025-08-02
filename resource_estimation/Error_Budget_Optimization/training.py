@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 
+if TYPE_CHECKING:
+    from collections import OrderedDict
 
-def process_data(data):
+    from numpy.typing import NDArray
+
+
+def process_data(data: OrderedDict[str, float | int]) -> tuple[NDArray, NDArray, NDArray, NDArray]:
     """
     Splits the input data into training and testing sets.
 
@@ -13,7 +20,7 @@ def process_data(data):
     using a 75/25 ratio.
 
     Args:
-        data: A NumPy array where the last three columns are considered targets (Y)
+        data: A list where the last three columns are considered targets (Y)
             and the remaining columns are features (X).
 
     Returns:
@@ -22,7 +29,8 @@ def process_data(data):
         Y_train: Training set targets.
         Y_test: Testing set targets.
     """
-    data = np.array(data)
+    # Transform list of OrderedDicts to a NumPy array of values
+    data = np.array([list(d.values()) for d in data])
     X = data[:, :-3]
     Y = data[:, -3:]
 
@@ -38,7 +46,7 @@ def process_data(data):
     return X_train, X_test, Y_train, Y_test
 
 
-def train(data):
+def train(data: NDArray) -> tuple[RandomForestRegressor, NDArray, NDArray]:
     """
     Trains a Random Forest Regressor on the provided data.
 

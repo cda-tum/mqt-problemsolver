@@ -1,16 +1,21 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import matplotlib.pyplot as plt
 import numpy as np
 from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
-def evaluate(X, Y, total_budget):
+
+def evaluate(X: NDArray, Y: NDArray, total_budget: float) -> list[float]:
     """
     Evaluates the impact of different error budget partitions on quantum resource estimates.
     Args:
         X: A 2D array where each row contains quantum circuit logical counts (e.g., numQubits, tCount, rotationCount, etc.).
-        Y: A 2D array where each row contains error budgetds for logical, t_states, and rotations.
+        Y: A 2D array where each row contains error budgets for logical, t_states, and rotations.
         total_budget: The total error budget to be distributed among logical, t_states, and rotations.
     Returns:
         qubits_diffs: List of relative differences in physical qubits compared to the default budget distribution.
@@ -65,7 +70,9 @@ def evaluate(X, Y, total_budget):
     return product_diffs
 
 
-def plot_results(product_diffs, product_diffs_optimal, legend=False, bin_width=4):
+def plot_results(
+    product_diffs: list[float], product_diffs_optimal: list[float], legend: bool = False, bin_width: int = 4
+) -> None:
     """
     Plots histograms comparing predicted and optimal space-time differences.
     This function visualizes the distribution of space-time differences (in percent)
