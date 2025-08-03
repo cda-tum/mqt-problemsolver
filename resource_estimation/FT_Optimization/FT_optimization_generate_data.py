@@ -2,16 +2,20 @@ from __future__ import annotations
 
 import pathlib
 import time
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from pytket import Circuit, OpType
 from pytket.extensions.qiskit import tk_to_qiskit
-from pytket.passes import AutoRebase, RebaseCustom
+from pytket.passes import AutoRebase, BasePass, RebaseCustom
 from pytket.qasm import circuit_from_qasm
 from qiskit import QuantumCircuit, transpile
 from qiskit.transpiler.passmanager import PassManager
 from qsharp.interop.qiskit import estimate
 from tqdm import tqdm
+
+if TYPE_CHECKING:
+    from qiskit.transpiler import TransformationPass
 
 SINGLE_QUBIT_AND_CX_QISKIT_STDGATES = [
     "x",
@@ -46,12 +50,12 @@ SINGLE_QUBIT_AND_CX_TKET_STDGATES = {
 }
 
 
-def estimate_resources(quantum_circuit):
+def estimate_resources(quantum_circuit: QuantumCircuit) -> tuple[int, int]:
     result = estimate(quantum_circuit, optimization_level=0)
     return result["physicalCounts"]["physicalQubits"], result["physicalCounts"]["runtime"]
 
 
-def tk1_to_rzry(a, b, c):
+def tk1_to_rzry(a: float, b: float, c: float) -> Circuit:
     circ = Circuit(1)
     if a == 0.5 and b == 0.5 and c == 0.5:
         circ.H(0)
@@ -84,13 +88,19 @@ def tk1_to_rzry(a, b, c):
     return circ
 
 
-def cx_to_cx():
+def cx_to_cx() -> Circuit:
     circ = Circuit(2)
     circ.CX(1, 0)
     return circ
 
 
-def generate_data(csv_filename, benchmarks, transpiler_passes, transpiler_passes_names, sdk_name):
+def generate_data(
+    csv_filename: pathlib.Path,
+    benchmarks: list[str],
+    transpiler_passes: list[BasePass | TransformationPass],
+    transpiler_passes_names: list[str],
+    sdk_name: str,
+) -> None:
     basis_gates = SINGLE_QUBIT_AND_CX_QISKIT_STDGATES
     if sdk_name == "qiskit":
         circuit_folder = "MQTBenchQiskit"

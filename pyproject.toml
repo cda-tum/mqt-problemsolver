@@ -138,7 +138,7 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 120
-extend-include = ["*.ipynb"]
+extend-include = ["*.ipynb", "resource_estimation/error_budget_optimization/*.py", "resource_estimation/error_budget_optimization/*.ipynb", "resource_estimation/ft_optimization/*.py", "resource_estimation/ft_optimization/*.ipynb"]
 preview = true
 unsafe-fixes = true
 

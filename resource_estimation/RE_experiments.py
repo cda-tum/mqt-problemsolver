@@ -95,7 +95,7 @@ print()
 # --- Modifying logical counts ---
 
 
-def modified_logical_counts(space_factor: float, time_factor: float):
+def modified_logical_counts(space_factor: float, time_factor: float) -> LogicalCounts:
     return LogicalCounts({
         "numQubits": ceil(logical_counts["numQubits"] * space_factor),
         "tCount": ceil(logical_counts["tCount"] * time_factor),
