@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pathlib
-import time
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -119,34 +118,23 @@ def generate_data(
         "Optimized Physical Qubits",
         "Runtime",
         "Optimized Runtime",
-        "Optimization Time",
     ]
 
     df_existing = (
-        pd.read_excel(csv_filename) if pathlib.Path.exists(csv_filename) else pd.DataFrame(columns=column_order)
+        pd.read_excel(csv_filename) if pathlib.Path(csv_filename).exists() else pd.DataFrame(columns=column_order)
     )
 
     if sdk_name == "qiskit":
         for benchmark in tqdm(benchmarks):
             file_path = pathlib.Path(circuit_folder) / f"{benchmark}.qasm"
 
-            with pathlib.Path.open(file_path, encoding="utf-8") as f:
-                qasm_str = f.read()
-                qc = QuantumCircuit.from_qasm_str(qasm_str)
-
+            qc = QuantumCircuit.from_qasm_file(file_path)
             transpiled_circuit = transpile(qc, basis_gates=basis_gates, optimization_level=0, seed_transpiler=0)
             num_qubits = transpiled_circuit.num_qubits
 
             for transpiler_pass in transpiler_passes:
-                start_time = time.time()
                 pass_manager = PassManager(transpiler_pass)
-                try:
-                    optimized_circuit = pass_manager.run(transpiled_circuit)
-                except Exception as e:
-                    print(f"Error processing {benchmark} {transpiler_pass}")
-                    print(e)
-                    continue
-                optimization_time = time.time() - start_time
+                optimized_circuit = pass_manager.run(transpiled_circuit)
 
                 if transpiled_circuit != optimized_circuit:
                     original_ops = transpiled_circuit.count_ops()
@@ -186,7 +174,6 @@ def generate_data(
                                     optimized_qubits,
                                     runtime,
                                     optimized_runtime,
-                                    optimization_time,
                                 ]
                             ],
                             columns=column_order,
@@ -213,11 +200,9 @@ def generate_data(
 
             for i, transpiler_pass in enumerate(transpiler_passes):
                 optimized_circuit = Circuit.from_dict(qc.to_dict())
-                start_time = time.time()
                 transpiler_pass.apply(optimized_circuit)
                 custom_rebase_pass.apply(optimized_circuit)
                 auto_rebase_pass.apply(optimized_circuit)
-                optimization_time = time.time() - start_time
 
                 if qc != optimized_circuit:
                     optimized_qiskit_circuit = tk_to_qiskit(optimized_circuit)
@@ -255,7 +240,6 @@ def generate_data(
                                     optimized_qubits,
                                     runtime,
                                     optimized_runtime,
-                                    optimization_time,
                                 ]
                             ],
                             columns=column_order,
@@ -263,5 +247,3 @@ def generate_data(
 
                         df_existing = pd.concat([df_existing, new_data], ignore_index=True)
                         df_existing.to_excel(csv_filename, index=False)
-
-    print(f"Results saved and updated in {csv_filename}")
