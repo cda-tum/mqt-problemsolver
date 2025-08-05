@@ -75,14 +75,14 @@ def find_optimized_budgets(
             best_parameters.error_budget.t_states,
             best_parameters.error_budget.rotations,
         ],
-        best_metric,
-        default_metric,
+        int(best_metric),
+        int(default_metric),
     )
 
 
 def generate_data(
-    total_error_budget: float, number_of_randomly_generated_distributions: int, path="mqtbench"
-) -> OrderedDict[str, float | int]:
+    total_error_budget: float, number_of_randomly_generated_distributions: int, path: str = "mqtbench"
+) -> list[OrderedDict[str, float | int]]:
     """
     Generates a dataset consisting of logical counts of quantum circuits and respective optimized error budgets.
 

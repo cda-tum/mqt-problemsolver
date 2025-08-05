@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 
-def process_data(data: OrderedDict[str, float | int]) -> tuple[NDArray, NDArray, NDArray, NDArray]:
+def process_data(data: list[OrderedDict[str, float | int]]) -> tuple[NDArray, NDArray, NDArray, NDArray]:
     """
     Splits the input data into training and testing sets.
 
@@ -30,9 +30,9 @@ def process_data(data: OrderedDict[str, float | int]) -> tuple[NDArray, NDArray,
         Y_test: Testing set targets.
     """
     # Transform list of OrderedDicts to a NumPy array of values
-    data = np.array([list(d.values()) for d in data])
-    X = data[:, :-3]
-    Y = data[:, -3:]
+    data_array = np.array([list(d.values()) for d in data])
+    X = data_array[:, :-3]
+    Y = data_array[:, -3:]
 
     np.random.seed(142)
     indices = np.random.permutation(len(X))
