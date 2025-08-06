@@ -7,10 +7,29 @@ from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
+from mqt.bench import get_benchmark
 from qiskit import QuantumCircuit
 from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
 from qsharp.interop.qiskit import estimate
 from tqdm import tqdm
+
+
+def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> list[QuantumCircuit]:
+    """
+    Generates a list of benchmarks with their respective sizes.
+
+    Args:
+        benchmarks_and_sizes: A list containing tuples each containing the benchmark name and a list of sizes.
+
+    Returns:
+        A list of tuples, each containing the benchmark name and its corresponding sizes.
+    """
+    circuits = []
+    for benchmark, sizes in benchmarks_and_sizes:
+        for size in sizes:
+            circuit = get_benchmark(benchmark_name=benchmark, circuit_size=size, level="indep")
+            circuits.append(circuit)
+    return circuits
 
 
 def find_optimized_budgets(
@@ -81,7 +100,10 @@ def find_optimized_budgets(
 
 
 def generate_data(
-    total_error_budget: float, number_of_randomly_generated_distributions: int, path: str = "mqtbench"
+    total_error_budget: float,
+    number_of_randomly_generated_distributions: int,
+    benchmarks: list[QuantumCircuit] | None = None,
+    path: str | None = None,
 ) -> list[OrderedDict[str, float | int]]:
     """
     Generates a dataset consisting of logical counts of quantum circuits and respective optimized error budgets.
@@ -92,17 +114,19 @@ def generate_data(
     appending the results to a list.
 
     Args:
-        total_error_budget: The total error budget to be distributed among error types..
+        total_error_budget: The total error budget to be distributed among error types.
 
     Returns:
         A list of lists, where each inner list contains circuit-specific counts and the corresponding
         optimized error budget partition.
     """
-    qasm_files = [Path(root) / file for root, _, files in os.walk(path) for file in files if file.endswith(".qasm")]
+
+    if path:
+        qasm_files = [Path(root) / file for root, _, files in os.walk(path) for file in files if file.endswith(".qasm")]
+        benchmarks = [QuantumCircuit.from_qasm_file(file) for file in qasm_files]
     results = []
 
-    for file in tqdm(qasm_files):
-        qc = QuantumCircuit.from_qasm_file(file)
+    for qc in tqdm(benchmarks):
         try:
             estimation = estimate(qc)
             counts = estimation["logicalCounts"]
@@ -120,7 +144,7 @@ def generate_data(
             specific_data["rotations"] = combinations[2]
             results.append(specific_data)
         except Exception as e:
-            print(f"Error processing {file}: {e}")
+            print(f"Error processing the current circuit: {qc.name}. Error: {e}")
             continue
         # clear_output(wait=True)
     return results
