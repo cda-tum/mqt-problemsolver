@@ -34,7 +34,7 @@ classical solver provide:
 </p>
 
 When provided with a problem description, MQT ProblemSolver offers a selection of implemented quantum algorithms.
-The user just has to chose one and all further (quantum) calculation steps are encapsulated within MQT ProblemSolver.
+The user just has to choose one and all further (quantum) calculation steps are encapsulated within MQT ProblemSolver.
 After the calculation finished, the respective solution is returned - again in the same format as classical
 solvers use.
 
