@@ -13,59 +13,73 @@ if TYPE_CHECKING:
 def evaluate(X: NDArray, Y: NDArray, total_budget: float) -> list[float]:
     """
     Evaluates the impact of different error budget partitions on quantum resource estimates.
+
     Args:
-        X: A 2D array where each row contains quantum circuit logical counts (e.g., numQubits, tCount, rotationCount, etc.).
+        X: A 2D array where each row contains quantum circuit logical counts
+           (numQubits, tCount, rotationCount, etc.).
         Y: A 2D array where each row contains error budgets for logical, t_states, and rotations.
-        total_budget: The total error budget to be distributed among logical, t_states, and rotations.
+        total_budget: The total error budget to be distributed among components.
+
     Returns:
-        qubits_diffs: List of relative differences in physical qubits compared to the default budget distribution.
-        runtime_diffs: List of relative differences in runtime compared to the default budget distribution.
-        product_diffs: List of relative differences in the product of qubits and runtime compared to the default budget distribution.
-        qubits_list: List of estimated physical qubits for each parameter set.
-        runtime_list: List of estimated runtimes for each parameter set.
-        default_qubits_list: List of physical qubits using the default budget for each parameter set.
-        default_runtime_list: List of runtimes using the default budget for each parameter set.
+        List of relative differences in the product of qubits and runtime compared to
+        the default budget distribution.
     """
+    if len(X) != len(Y):
+        msg = "Input arrays X and Y must have the same number of rows"
+        raise ValueError(msg)
+
+    if X.shape[1] < 7:
+        msg = "X array must have at least 7 columns for the logical counts"
+        raise ValueError(msg)
+
+    logical_count_names = [
+        "numQubits",
+        "tCount",
+        "rotationCount",
+        "rotationDepth",
+        "cczCount",
+        "ccixCount",
+        "measurementCount",
+    ]
 
     product_diffs = []
+
     for i, params in enumerate(Y):
-        c = {}
-        c["numQubits"] = int(X[i, 0])
-        c["tCount"] = int(X[i, 1])
-        c["rotationCount"] = int(X[i, 2])
-        c["rotationDepth"] = int(X[i, 3])
-        c["cczCount"] = int(X[i, 4])
-        c["ccixCount"] = int(X[i, 5])
-        c["measurementCount"] = int(X[i, 6])
-        logical_counts = LogicalCounts(c)
-        params_sum = params[0] + params[1] + params[2]
-        params_normalized = [
-            params[0] / params_sum * total_budget,
-            params[1] / params_sum * total_budget,
-            params[2] / params_sum * total_budget,
-        ]
+        # Create logical counts dictionary
+        counts_dict = {name: int(X[i, j]) for j, name in enumerate(logical_count_names)}
+        logical_counts = LogicalCounts(counts_dict)
 
-        parameters = EstimatorParams()
-        parameters.error_budget = ErrorBudgetPartition()
-        parameters.error_budget.logical = params_normalized[0]
-        parameters.error_budget.t_states = params_normalized[1]
-        parameters.error_budget.rotations = params_normalized[2]
+        # Normalize parameters to the total budget
+        params_sum = sum(params[:3])
+        params_normalized = [param / params_sum * total_budget for param in params[:3]]
 
-        default_parameters = EstimatorParams()
-        default_parameters.error_budget = total_budget
+        # Create custom error budget
+        custom_params = EstimatorParams()
+        custom_params.error_budget = ErrorBudgetPartition()
+        custom_params.error_budget.logical = params_normalized[0]
+        custom_params.error_budget.t_states = params_normalized[1]
+        custom_params.error_budget.rotations = params_normalized[2]
 
-        result = logical_counts.estimate(parameters)
-        default_result = logical_counts.estimate(default_parameters)
+        # Use default error budget for comparison
+        default_params = EstimatorParams()
+        default_params.error_budget = total_budget
+
+        # Compute estimates
+        result = logical_counts.estimate(custom_params)
+        default_result = logical_counts.estimate(default_params)
+
+        # Extract resource estimates
         qubits = result["physicalCounts"]["physicalQubits"]
         runtime = result["physicalCounts"]["runtime"]
         default_qubits = default_result["physicalCounts"]["physicalQubits"]
         default_runtime = default_result["physicalCounts"]["runtime"]
 
-        product_diff = ((qubits * runtime) - (default_qubits * default_runtime)) / (default_qubits * default_runtime)
-        if product_diff > 0:
-            product_diff = 0
+        # Calculate improvement (negative values indicate improvement)
+        product_ratio = (qubits * runtime) / (default_qubits * default_runtime)
+        product_diff = product_ratio - 1.0
 
-        product_diffs.append(product_diff)
+        # Cap positive differences at 0 (no improvement)
+        product_diffs.append(min(product_diff, 0))
 
     return product_diffs
 
@@ -75,34 +89,33 @@ def plot_results(
 ) -> None:
     """
     Plots histograms comparing predicted and optimal space-time differences.
+
     This function visualizes the distribution of space-time differences (in percent)
     for predicted and optimal product distributions. It overlays two histograms for
     comparison and customizes axis ticks, labels, and legend.
+
     Args:
         product_diffs: List of space-time differences for predicted distributions.
         product_diffs_optimal: List of space-time differences for best found distributions.
         legend: Whether to display the legend on the plot. Defaults to False.
         bin_width: Width of histogram bins. Defaults to 4.
-    Returns:
-        None. Displays the plot.
     """
+    # Convert to percentages
+    product_diffs_pct = [100 * diff for diff in product_diffs]
+    product_diffs_optimal_pct = [100 * diff for diff in product_diffs_optimal]
 
-    product_diffs = [100 * i for i in product_diffs]
-    product_diffs_optimal = [100 * i for i in product_diffs_optimal]
-
-    all_data = product_diffs + product_diffs_optimal
-    data_min = min(all_data)
-    data_max = max(all_data)
-
-    data_min = min(0, data_min)
-    data_max += bin_width
-
+    # Calculate bin edges
+    all_data = product_diffs_pct + product_diffs_optimal_pct
+    data_min = min(0, *all_data)  # Ensure 0 is included
+    data_max = max(all_data) + bin_width
     bin_edges = np.arange(data_min, data_max + bin_width, bin_width)
 
-    np.arange(-100, 1, 20)
+    # Create plot
     _fig, ax = plt.subplots(figsize=(5, 2.5))
+
+    # Plot histograms
     ax.hist(
-        product_diffs_optimal,
+        product_diffs_optimal_pct,
         bins=bin_edges,
         color="steelblue",
         edgecolor="black",
@@ -110,14 +123,18 @@ def plot_results(
         label="Best Distributions Determined",
     )
     ax.hist(
-        product_diffs, bins=bin_edges, color="orange", edgecolor="black", alpha=0.5, label="Predicted Distributions"
+        product_diffs_pct, bins=bin_edges, color="orange", edgecolor="black", alpha=0.5, label="Predicted Distributions"
     )
+
+    # Configure plot appearance
     ax.set_xlim(data_min, data_max)
     ax.set_xticks([-100, -80, -60, -40, -20, 0])
     ax.set_yticks([0, 40, 80, 120])
     ax.set_xlabel("Space-Time Difference [%]", fontsize=15)
     ax.tick_params(axis="both", which="major", labelsize=15)
+
     if legend:
         ax.legend(loc="upper left", fontsize=12)
+
     plt.tight_layout()
     plt.show()
