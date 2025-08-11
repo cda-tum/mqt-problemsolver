@@ -136,9 +136,6 @@ pretty = true
 module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "joblib.*", "docplex.*", "qiskit_aer.*", "qsharp.*", "sklearn.*"]
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-module = "pytket.*"
-follow_imports = "skip"
 
 [tool.ruff]
 line-length = 120
