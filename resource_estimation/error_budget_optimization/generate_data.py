@@ -23,12 +23,11 @@ def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> li
     Returns:
         A list of tuples, each containing the benchmark name and its corresponding sizes.
     """
-    circuits = []
-    for benchmark, sizes in benchmarks_and_sizes:
-        for size in sizes:
-            circuit = get_benchmark(benchmark=benchmark, circuit_size=size, level=BenchmarkLevel.INDEP)
-            circuits.append(circuit)
-    return circuits
+    return [
+        get_benchmark(benchmark=benchmark, circuit_size=size, level=BenchmarkLevel.INDEP)
+        for benchmark, sizes in benchmarks_and_sizes
+        for size in sizes
+    ]
 
 
 def find_optimized_budgets(
