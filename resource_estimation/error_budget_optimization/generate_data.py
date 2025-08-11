@@ -3,17 +3,22 @@ from __future__ import annotations
 import copy
 import math
 import os
+import zipfile
 from collections import OrderedDict
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 from mqt.bench import BenchmarkLevel, get_benchmark
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, qasm2
 from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
 from qsharp.interop.qiskit import estimate
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
-def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> list[QuantumCircuit]:
+
+def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> Iterator[QuantumCircuit]:
     """
     Generates a list of benchmarks with their respective sizes.
 
@@ -21,13 +26,11 @@ def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> li
         benchmarks_and_sizes: A list containing tuples each containing the benchmark name and a list of sizes.
 
     Returns:
-        A list of tuples, each containing the benchmark name and its corresponding sizes.
+        A generator of quantum circuits.
     """
-    return [
-        get_benchmark(benchmark=benchmark, circuit_size=size, level=BenchmarkLevel.INDEP)
-        for benchmark, sizes in benchmarks_and_sizes
-        for size in sizes
-    ]
+    for benchmark, sizes in benchmarks_and_sizes:
+        for size in sizes:
+            yield get_benchmark(benchmark=benchmark, circuit_size=size, level=BenchmarkLevel.INDEP)
 
 
 def find_optimized_budgets(
@@ -96,11 +99,53 @@ def find_optimized_budgets(
     )
 
 
+def _circuit_generator(
+    path: str | Path | None = None,
+    benchmarks_and_sizes: list[tuple[str, list[int]]] | None = None,
+) -> Iterator[QuantumCircuit]:
+    """Creates a generator that yields quantum circuits from various sources."""
+    if path:
+        path = Path(path)
+        if path.is_dir():
+            for root, _, files in os.walk(path):
+                for file in files:
+                    if file.endswith(".qasm"):
+                        yield qasm2.load(
+                            str(Path(root) / file),
+                            custom_instructions=qasm2.LEGACY_CUSTOM_INSTRUCTIONS,
+                        )
+        elif path.is_file() and path.suffix == ".zip":
+            with zipfile.ZipFile(path, "r") as zf:
+                for file_info in zf.infolist():
+                    if (
+                        file_info.filename.endswith(".qasm")
+                        and not file_info.is_dir()
+                        and not file_info.filename.startswith("__MACOSX/")
+                    ):
+                        with zf.open(file_info) as qasm_file:
+                            qasm_str = qasm_file.read().decode("utf-8")
+                            qc = qasm2.loads(
+                                qasm_str,
+                                custom_instructions=qasm2.LEGACY_CUSTOM_INSTRUCTIONS,
+                            )
+                            qc.name = Path(file_info.filename).stem
+                            yield qc
+        else:
+            msg = f"Path '{path}' is not a valid directory or .zip file."
+            raise ValueError(msg)
+
+    elif benchmarks_and_sizes:
+        yield from generate_benchmarks(benchmarks_and_sizes)
+    else:
+        msg = "Either 'path' or 'benchmarks_and_sizes' must be provided."
+        raise ValueError(msg)
+
+
 def generate_data(
     total_error_budget: float,
     number_of_randomly_generated_distributions: int,
-    benchmarks: list[QuantumCircuit] | None = None,
-    path: str | None = None,
+    path: str | Path | None = None,
+    benchmarks_and_sizes: list[tuple[str, list[int]]] | None = None,
 ) -> list[OrderedDict[str, float | int]]:
     """
     Generates a dataset consisting of logical counts of quantum circuits and respective optimized error budgets.
@@ -112,27 +157,22 @@ def generate_data(
 
     Args:
         total_error_budget: The total error budget to be distributed among error types.
+        number_of_randomly_generated_distributions: The number of random distributions to try.
+        path: Path to a directory with .qasm files or a .zip file containing them.
+        benchmarks_and_sizes: A list of benchmark specifications to generate circuits on the fly.
 
     Returns:
         A list of lists, where each inner list contains circuit-specific counts and the corresponding
         optimized error budget partition.
     """
-    if path:
-        # Collect QASM files and load circuits
-        circuits = [
-            QuantumCircuit.from_qasm_file(str(Path(root) / file))
-            for root, _, files in os.walk(path)
-            for file in files
-            if file.endswith(".qasm")
-        ]
-    elif benchmarks:
-        circuits = benchmarks
-    else:
-        msg = "Either 'path' or 'benchmarks' must be provided."
+    if (path and benchmarks_and_sizes) or (not path and not benchmarks_and_sizes):
+        msg = "Provide either 'path' or 'benchmarks_and_sizes', but not both."
         raise ValueError(msg)
-    results = []
 
-    for qc in circuits:
+    results = []
+    circuit_iterator = _circuit_generator(path, benchmarks_and_sizes)
+
+    for qc in circuit_iterator:
         try:
             # Estimate logical counts
             counts = estimate(qc)["logicalCounts"]
