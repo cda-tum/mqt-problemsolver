@@ -55,9 +55,9 @@ def find_optimized_budgets(
 
     default_result = counts.estimate(default_parameters)
 
-    default_physicalqubits = default_result["physicalCounts"]["physicalQubits"]
+    default_physical_qubits = default_result["physicalCounts"]["physicalQubits"]
     default_runtime = default_result["physicalCounts"]["runtime"]
-    default_metric = default_runtime * default_physicalqubits
+    default_metric = default_runtime * default_physical_qubits
 
     best_metric = math.inf
 
@@ -76,10 +76,10 @@ def find_optimized_budgets(
 
         result = counts.estimate(params=parameters)
 
-        physicalqubits = result["physicalCounts"]["physicalQubits"]
+        physical_qubits = result["physicalCounts"]["physicalQubits"]
         runtime = result["physicalCounts"]["runtime"]
 
-        current_metric = runtime * physicalqubits
+        current_metric = runtime * physical_qubits
 
         if current_metric < best_metric:
             best_metric = current_metric
@@ -117,10 +117,14 @@ def generate_data(
         A list of lists, where each inner list contains circuit-specific counts and the corresponding
         optimized error budget partition.
     """
-
     if path:
-        qasm_files = [Path(root) / file for root, _, files in os.walk(path) for file in files if file.endswith(".qasm")]
-        circuits = [QuantumCircuit.from_qasm_file(file) for file in qasm_files]
+        # Collect QASM files and load circuits
+        circuits = [
+            QuantumCircuit.from_qasm_file(str(Path(root) / file))
+            for root, _, files in os.walk(path)
+            for file in files
+            if file.endswith(".qasm")
+        ]
     elif benchmarks:
         circuits = benchmarks
     else:
@@ -130,23 +134,26 @@ def generate_data(
 
     for qc in circuits:
         try:
-            estimation = estimate(qc)
-            counts = estimation["logicalCounts"]
+            # Estimate logical counts
+            counts = estimate(qc)["logicalCounts"]
             if counts["rotationCount"] == 0:
                 continue  # Skip circuits without rotations, as we want to ensure distributing error budgets among all three types.
+
+            # Optimize error budgets
             counts = LogicalCounts(counts)
-            combinations, _running_metric, _default_metric = find_optimized_budgets(
+            combinations, *_ = find_optimized_budgets(
                 total_error_budget, number_of_randomly_generated_distributions, counts
             )
-            specific_data = OrderedDict()
-            for key, value in counts.items():
-                specific_data[key] = value
-            specific_data["logical"] = combinations[0]
-            specific_data["t_states"] = combinations[1]
-            specific_data["rotations"] = combinations[2]
+
+            # Collect results
+            specific_data = OrderedDict(counts)
+            specific_data.update({
+                "logical": combinations[0],
+                "t_states": combinations[1],
+                "rotations": combinations[2],
+            })
             results.append(specific_data)
         except Exception as e:
-            print(f"Error processing the current circuit: {qc.name}. Error: {e}")
-            continue
-        # clear_output(wait=True)
+            print(f"Error processing circuit {qc.name}: {e}")
+
     return results
