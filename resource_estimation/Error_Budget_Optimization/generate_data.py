@@ -11,7 +11,6 @@ from mqt.bench import get_benchmark
 from qiskit import QuantumCircuit
 from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
 from qsharp.interop.qiskit import estimate
-from tqdm import tqdm
 
 
 def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> list[QuantumCircuit]:
@@ -56,7 +55,6 @@ def find_optimized_budgets(
     default_parameters.error_budget = total_budget
 
     default_result = counts.estimate(default_parameters)
-    default_result["logicalCounts"]
 
     default_physicalqubits = default_result["physicalCounts"]["physicalQubits"]
     default_runtime = default_result["physicalCounts"]["runtime"]
@@ -123,10 +121,15 @@ def generate_data(
 
     if path:
         qasm_files = [Path(root) / file for root, _, files in os.walk(path) for file in files if file.endswith(".qasm")]
-        benchmarks = [QuantumCircuit.from_qasm_file(file) for file in qasm_files]
+        circuits = [QuantumCircuit.from_qasm_file(file) for file in qasm_files]
+    elif benchmarks:
+        circuits = benchmarks
+    else:
+        msg = "Either 'path' or 'benchmarks' must be provided."
+        raise ValueError(msg)
     results = []
 
-    for qc in tqdm(benchmarks):
+    for qc in circuits:
         try:
             estimation = estimate(qc)
             counts = estimation["logicalCounts"]

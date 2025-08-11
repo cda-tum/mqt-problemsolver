@@ -82,8 +82,8 @@ repos:
     rev: v1.16.1
     hooks:
       - id: mypy
-        files: ^(src/mqt/.*|tests/.*|noxfile\.py|resource_estimation/error_budget_optimization/.*|resource_estimation/.*)$
-        exclude: '^(resource_estimation/error_budget_optimization/(paper_data/.*|mqtbench\.zip)|resource_estimation/ft_optimization/(mqtbenchqiskit/.*|mqtbenchtket/.*))$'
+        files: ^(src/mqt|tests|noxfile\.py|resource_estimation)
+        exclude: ^(resource_estimation/error_budget_optimization/(paper_data/.*|mqtbench\.zip)|resource_estimation/ft_optimization/(mqtbenchqiskit/.*|mqtbenchtket/.*))
         additional_dependencies:
           - numpy
           - nox
@@ -91,6 +91,7 @@ repos:
           - scipy-stubs
           - pandas-stubs
           - mqt-core
+          - mqt-bench<=1.1.9
 
   # Check for spelling
   - repo: https://github.com/crate-ci/typos
