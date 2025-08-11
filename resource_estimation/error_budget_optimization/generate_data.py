@@ -7,7 +7,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
-from mqt.bench import get_benchmark
+from mqt.bench import BenchmarkLevel, get_benchmark
 from qiskit import QuantumCircuit
 from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
 from qsharp.interop.qiskit import estimate
@@ -26,7 +26,7 @@ def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> li
     circuits = []
     for benchmark, sizes in benchmarks_and_sizes:
         for size in sizes:
-            circuit = get_benchmark(benchmark_name=benchmark, circuit_size=size, level="indep")
+            circuit = get_benchmark(benchmark=benchmark, circuit_size=size, level=BenchmarkLevel.INDEP)
             circuits.append(circuit)
     return circuits
 
