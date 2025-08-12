@@ -252,6 +252,6 @@ def generate_data(
                 })
                 results.append(specific_data)
             except Exception as e:
-                print(f"Error processing circuit {qc.name}: {e}")
+                print(f"Error processing logical counts entry {c}: {e}")
 
     return results
