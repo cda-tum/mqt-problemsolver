@@ -10,12 +10,42 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from mqt.bench import BenchmarkLevel, get_benchmark
-from qiskit import QuantumCircuit, qasm2
+from qiskit import QuantumCircuit, qasm2, transpile
 from qsharp.estimator import ErrorBudgetPartition, EstimatorParams, LogicalCounts
 from qsharp.interop.qiskit import estimate
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+
+QISKIT_STD_GATES = [
+    "p",
+    "x",
+    "y",
+    "z",
+    "h",
+    "s",
+    "sdg",
+    "t",
+    "tdg",
+    "sx",
+    "rx",
+    "ry",
+    "rz",
+    "cx",
+    "cy",
+    "cz",
+    "cp",
+    "crx",
+    "cry",
+    "crz",
+    "ch",
+    "ccx",
+    "cu",
+    "id",
+    "u1",
+    "u2",
+    "u3",
+]  # Removing swap gates and non-standard gates to ensure compatibility with the estimator.
 
 
 def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> Iterator[QuantumCircuit]:
@@ -146,6 +176,7 @@ def generate_data(
     number_of_randomly_generated_distributions: int,
     path: str | Path | None = None,
     benchmarks_and_sizes: list[tuple[str, list[int]]] | None = None,
+    logical_counts: list[OrderedDict[str, int]] | None = None,
 ) -> list[OrderedDict[str, float | int]]:
     """
     Generates a dataset consisting of logical counts of quantum circuits and respective optimized error budgets.
@@ -165,35 +196,62 @@ def generate_data(
         A list of lists, where each inner list contains circuit-specific counts and the corresponding
         optimized error budget partition.
     """
-    if (path and benchmarks_and_sizes) or (not path and not benchmarks_and_sizes):
-        msg = "Provide either 'path' or 'benchmarks_and_sizes', but not both."
+    # Ensure that exactly one of 'path', 'benchmarks_and_sizes', or 'logical_counts' is provided
+    provided = [path is not None, benchmarks_and_sizes is not None, logical_counts is not None]
+    if sum(provided) != 1:
+        msg = "Provide exactly one of 'path', 'benchmarks_and_sizes', or 'logical_counts'."
         raise ValueError(msg)
 
-    results = []
-    circuit_iterator = _circuit_generator(path, benchmarks_and_sizes)
+    if path or benchmarks_and_sizes:
+        results = []
+        circuit_iterator = _circuit_generator(path, benchmarks_and_sizes)
 
-    for qc in circuit_iterator:
-        try:
-            # Estimate logical counts
-            counts = estimate(qc)["logicalCounts"]
-            if counts["rotationCount"] == 0:
-                continue  # Skip circuits without rotations, as we want to ensure distributing error budgets among all three types.
+        for qc in circuit_iterator:
+            qc.remove_final_measurements()  # Remove final measurements to avoid estimation errors
+            transpiled_qc = transpile(qc, basis_gates=QISKIT_STD_GATES, optimization_level=1)
+            try:
+                # Estimate logical counts
+                counts = estimate(transpiled_qc)["logicalCounts"]
+                if counts["rotationCount"] == 0:
+                    continue  # Skip circuits without rotations, as we want to ensure distributing error budgets among all three types.
+                # Optimize error budgets
+                counts = LogicalCounts(counts)
+                combinations, *_ = find_optimized_budgets(
+                    total_error_budget, number_of_randomly_generated_distributions, counts
+                )
 
-            # Optimize error budgets
-            counts = LogicalCounts(counts)
-            combinations, *_ = find_optimized_budgets(
-                total_error_budget, number_of_randomly_generated_distributions, counts
-            )
+                # Collect results
+                specific_data = OrderedDict(counts)
+                specific_data.update({
+                    "logical": combinations[0],
+                    "t_states": combinations[1],
+                    "rotations": combinations[2],
+                })
+                results.append(specific_data)
+            except Exception as e:
+                print(f"Error processing circuit {qc.name}: {e}")
 
-            # Collect results
-            specific_data = OrderedDict(counts)
-            specific_data.update({
-                "logical": combinations[0],
-                "t_states": combinations[1],
-                "rotations": combinations[2],
-            })
-            results.append(specific_data)
-        except Exception as e:
-            print(f"Error processing circuit {qc.name}: {e}")
+    elif logical_counts:
+        results = []
+        for c in logical_counts:
+            counts = LogicalCounts(c)
+            try:
+                if counts["rotationCount"] == 0:
+                    continue  # Skip circuits without rotations, as we want to ensure distributing error budgets among all three types.
+                # Optimize error budgets
+                combinations, *_ = find_optimized_budgets(
+                    total_error_budget, number_of_randomly_generated_distributions, counts
+                )
+
+                # Collect results
+                specific_data = OrderedDict(counts)
+                specific_data.update({
+                    "logical": combinations[0],
+                    "t_states": combinations[1],
+                    "rotations": combinations[2],
+                })
+                results.append(specific_data)
+            except Exception as e:
+                print(f"Error processing circuit {qc.name}: {e}")
 
     return results

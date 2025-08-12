@@ -46,7 +46,7 @@ def process_data(data: list[OrderedDict[str, float | int]]) -> tuple[NDArray, ND
     return X_train, X_test, Y_train, Y_test
 
 
-def train(data: NDArray) -> tuple[RandomForestRegressor, NDArray, NDArray]:
+def train(data: list[OrderedDict[str, float | int]]) -> tuple[RandomForestRegressor, NDArray, NDArray]:
     """
     Trains a Random Forest Regressor on the provided data.
 
