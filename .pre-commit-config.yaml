@@ -82,7 +82,7 @@ repos:
     rev: v1.16.1
     hooks:
       - id: mypy
-        files: ^(src/mqt|tests|noxfile.py)
+        files: ^(src/mqt|tests|noxfile.py|resource_estimation)
         args: []
         additional_dependencies:
           - numpy
@@ -91,6 +91,7 @@ repos:
           - scipy-stubs
           - pandas-stubs
           - mqt-core
+          - mqt-bench>=2.0.1
 
   # Check for spelling
   - repo: https://github.com/crate-ci/typos
@@ -105,7 +106,7 @@ repos:
         name: Disallow improper capitalization
         language: pygrep
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest|Mqt|Tum
-        exclude: .pre-commit-config.yaml
+        exclude: .pre-commit-config.yaml|\.pkl$|\.zip$
 
   # Check best practices for scientific Python code
   - repo: https://github.com/scientific-python/cookie

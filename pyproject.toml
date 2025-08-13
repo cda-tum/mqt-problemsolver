@@ -133,12 +133,13 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "joblib.*", "docplex.*", "qiskit_aer.*"]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "joblib.*", "docplex.*", "qiskit_aer.*", "qsharp.*", "sklearn.*"]
 ignore_missing_imports = true
+
 
 [tool.ruff]
 line-length = 120
-extend-include = ["*.ipynb"]
+extend-include = ["resource_estimation"]
 preview = true
 unsafe-fixes = true
 
