@@ -125,6 +125,7 @@ def generate_data(
 
     if sdk_name == "qiskit":
         for benchmark in benchmarks:
+            skip = False
             file_path = pathlib.Path(circuit_folder) / f"{benchmark}.qasm"
 
             qc = QuantumCircuit.from_qasm_file(file_path)
@@ -132,6 +133,8 @@ def generate_data(
             num_qubits = transpiled_circuit.num_qubits
 
             for transpiler_pass in transpiler_passes:
+                if skip:
+                    continue
                 pass_manager = PassManager(transpiler_pass)
                 optimized_circuit = pass_manager.run(transpiled_circuit)
 
@@ -145,7 +148,7 @@ def generate_data(
                     try:
                         qubits, runtime = estimate_resources(transpiled_circuit)
                         optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
-                    except BaseException as e:
+                    except Exception as e:
                         print("Removing measurements to avoid estimation errors:", e)
                         try:
                             transpiled_circuit.remove_final_measurements()
@@ -153,6 +156,8 @@ def generate_data(
                             qubits, runtime = estimate_resources(transpiled_circuit)
                             optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
                         except BaseException as e:
+                            print(benchmark)
+                            skip = True
                             print("Skipping circuit due to not having magic states or measurements:", e)
                             continue
 
