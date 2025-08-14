@@ -11,7 +11,6 @@ from pytket.qasm import circuit_from_qasm
 from qiskit import QuantumCircuit, transpile
 from qiskit.transpiler.passmanager import PassManager
 from qsharp.interop.qiskit import estimate
-from tqdm import tqdm
 
 if TYPE_CHECKING:
     from qiskit.transpiler import TransformationPass
@@ -102,9 +101,9 @@ def generate_data(
 ) -> None:
     basis_gates = SINGLE_QUBIT_AND_CX_QISKIT_STDGATES
     if sdk_name == "qiskit":
-        circuit_folder = "MQTBenchQiskit"
+        circuit_folder = "mqtbenchqiskit"
     elif sdk_name == "tket":
-        circuit_folder = "MQTBenchTket"
+        circuit_folder = "mqtbenchtket"
 
     column_order = [
         "Benchmark",
@@ -125,7 +124,7 @@ def generate_data(
     )
 
     if sdk_name == "qiskit":
-        for benchmark in tqdm(benchmarks):
+        for benchmark in benchmarks:
             file_path = pathlib.Path(circuit_folder) / f"{benchmark}.qasm"
 
             qc = QuantumCircuit.from_qasm_file(file_path)
@@ -143,16 +142,19 @@ def generate_data(
                     gate_count_original = sum(original_ops.values())
                     gate_count_optimized = sum(optimized_ops.values())
                     gate_count_diff = (gate_count_optimized - gate_count_original) / gate_count_original
-
                     try:
                         qubits, runtime = estimate_resources(transpiled_circuit)
                         optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
-                    except Exception as e:
-                        print(e)
-                        transpiled_circuit = transpiled_circuit.remove_final_measurements()
-                        optimized_circuit = optimized_circuit.remove_final_measurements()
-                        qubits, runtime = estimate_resources(transpiled_circuit)
-                        optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
+                    except BaseException as e:
+                        print("Removing measurements to avoid estimation errors:", e)
+                        try:
+                            transpiled_circuit.remove_final_measurements()
+                            optimized_circuit.remove_final_measurements()
+                            qubits, runtime = estimate_resources(transpiled_circuit)
+                            optimized_qubits, optimized_runtime = estimate_resources(optimized_circuit)
+                        except BaseException as e:
+                            print("Skipping circuit due to not having magic states or measurements:", e)
+                            continue
 
                     relative_qubits_delta = (optimized_qubits - qubits) / qubits
                     relative_runtime_delta = (optimized_runtime - runtime) / runtime
@@ -183,7 +185,7 @@ def generate_data(
                         df_existing.to_excel(csv_filename, index=False)
 
     elif sdk_name == "tket":
-        for benchmark in tqdm(benchmarks):
+        for benchmark in benchmarks:
             qasm_file = pathlib.Path(circuit_folder) / f"{benchmark}.qasm"
             qc = circuit_from_qasm(qasm_file)
 

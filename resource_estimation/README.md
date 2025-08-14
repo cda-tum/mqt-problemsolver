@@ -1,3 +1,0 @@
-# Addressing the QCE25 Review Process
-
-The folder "FT_Optimization" contains the open-source code for the submission "Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?" at the QCE 2025. Please note, that the file "RE_experiments.py" is not part of the considered submission. The file "FT_optimization_evaluation.ipynb" defines which optimization passes and benchmarks to use and generates the data with "generate_data" function inside of "FT_optimization_generate_data.py".
