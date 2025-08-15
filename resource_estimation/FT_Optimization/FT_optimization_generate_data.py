@@ -202,7 +202,7 @@ def generate_data(
 
             qiskit_circuit = tk_to_qiskit(qc)
             qiskit_circuit = transpile(
-                qiskit_circuit, basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES, optimization_level=0
+                qiskit_circuit, basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES, optimization_level=0, seed_transpiler=0
             )
 
             for i, transpiler_pass in enumerate(transpiler_passes):
