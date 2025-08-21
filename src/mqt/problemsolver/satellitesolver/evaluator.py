@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from time import time
 from typing import TypedDict
 
@@ -81,14 +80,9 @@ def eval_all_instances_Satellite_Solver(
     min_qubits: int = 3, max_qubits: int = 80, stepsize: int = 10, num_runs: int = 5
 ) -> None:
     res_csv = []
-    is_windows = sys.platform.startswith("win")
-    is_py313 = sys.version_info.major == 3 and sys.version_info.minor == 13
-    if is_windows and is_py313:
-        results = [evaluate_Satellite_Solver(i, num_runs) for i in range(min_qubits, max_qubits, stepsize)]
-    else:
-        results = Parallel(n_jobs=-1, verbose=3)(
-            delayed(evaluate_Satellite_Solver)(i, num_runs) for i in range(min_qubits, max_qubits, stepsize)
-        )
+    results = Parallel(n_jobs=-1, verbose=3)(
+        delayed(evaluate_Satellite_Solver)(i, num_runs) for i in range(min_qubits, max_qubits, stepsize)
+    )
     for res in results:
         assert res["success_rate_qaoa"] >= 0.5, f"QAOA success rate not 0.5 for {res}"
         assert res["success_rate_vqe"] >= 0.5, f"VQE success rate not 0.5 for {res}"

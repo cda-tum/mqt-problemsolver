@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-import sys
-import warnings
 
 import numpy as np
 import pytest
@@ -14,12 +12,6 @@ import pytest
 from mqt.problemsolver.satellitesolver import algorithms, utils
 from mqt.problemsolver.satellitesolver.evaluator import eval_all_instances_Satellite_Solver
 from mqt.problemsolver.satellitesolver.ImagingLocation import LocationRequest
-
-# Suppress Qiskit UserWarning only on Windows and Python 3.13
-is_windows = sys.platform.startswith("win")
-is_py313 = sys.version_info.major == 3 and sys.version_info.minor == 13
-if is_windows and is_py313:
-    warnings.filterwarnings("ignore", category=UserWarning)
 
 np.random.seed(42)  # Set seed for reproducibility
 
