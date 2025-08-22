@@ -133,7 +133,7 @@ explicit_package_bases = true
 pretty = true
 
 [[tool.mypy.overrides]]
-module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "joblib.*", "docplex.*", "qiskit_aer.*", "qsharp.*", "sklearn.*"]
+module = ["qiskit.*",  "matplotlib.*", "python_tsp.*", "networkx.*", "joblib.*", "docplex.*", "qiskit_aer.*", "qsharp.*", "sklearn.*", "pytket.*"]
 ignore_missing_imports = true
 
 

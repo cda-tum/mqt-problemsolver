@@ -19,6 +19,8 @@ This repository covers the implementations of multiple research papers in the do
 3. [Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level](#reducing-the-compilation-time-of-quantum-circuits-using-pre-compilation-on-the-gate-level)
 4. [Utilizing Resource Estimation for the Development of Quantum Computing Applications](#utilizing-resource-estimation-for-the-development-of-quantum-computing-applications)
 5. [Towards Equivalence Checking of Classical Circuits Using Quantum Computing](#towards-equivalence-checking-of-classical-circuits-using-quantum-computing)
+6. [Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions](#improving-hardware-requirements-for-fault-tolerant-quantum-computing-by-optimizing-error-budget-distributions)
+7. [Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?](#quantum-circuit-optimization-for-the-fault-tolerance-era-do-we-have-to-start-from-scratch)
 
 In the following, each implementation is briefly introduced.
 
@@ -149,6 +151,14 @@ To find an efficient distribution, we use resource estimation to evaluate differ
 
 The implementation of the approach can be found under `resource_estimation/error_budget_optimization`. An example usage of the implementation is shown in the `example_use.ipynb` notebook.
 
+# Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?
+
+Translating quantum circuits into a device's native gate set often increases gate count, amplifying noise in today's error-prone Noisy Intermediate-Scale Quantum (NISQ) devices. Although optimizations exist to reduce gate counts, scaling to larger qubit and circuit sizes will see hardware errors dominate, blocking industrial-scale use. Error correction can enable Fault-Tolerant Quantum Computing (FTQC) but demands massive qubit overheads, often tens of thousands for small problems.
+
+This motivates FTQC-oriented optimization techniques and raises the question: can NISQ techniques be adapted, or must new ones be developed? We address this question by evaluating Qiskit and TKET optimization passes on benchmark circuits from MQT Bench. As tools to directly design and evaluate fault-tolerant quantum circuit instances, we use resource estimation to assess FTQC requirements.
+
+The implementation of the approach can be found under `resource_estimation/ft_optimization`.
+
 # Usage
 
 MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemsolver/):
@@ -238,6 +248,28 @@ In case you are using our Equivalence-Checking approach, we would be thankful if
 
 which is also available on arXiv:
 [![a](https://img.shields.io/static/v1?label=arXiv&message=2408.14539&color=inactive&style=flat-square)](https://arxiv.org/abs/2408.14539)
+
+In case you are using our Error-Budget-Optimization approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@INPROCEEDINGS{forster2025error_budget_optimization,
+    title           = {{Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions}},
+    author          = {T.Forster and N. Quetschlich and M. Soeken and R. Wille},
+    year            = {2025},
+    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+}
+```
+
+In case you are using our FT-Optimization-Resource-Estimation approach, we would be thankful if you referred to it by citing the following publication:
+
+```bibtex
+@INPROCEEDINGS{forster2025ft_circuit_optimization,
+    title           = {{Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?}},
+    author          = {T.Forster and N. Quetschlich and R. Wille},
+    year            = {2025},
+    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
+}
+```
 
 ## Acknowledgements
 

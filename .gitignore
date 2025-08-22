@@ -1,6 +1,7 @@
 ./idea
 .DS_Store
 .vscode
+_version.py
 
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm+all,python,jupyternotebooks
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm+all,python,jupyternotebooks
