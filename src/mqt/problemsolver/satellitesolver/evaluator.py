@@ -87,7 +87,8 @@ def eval_all_instances_Satellite_Solver(
         assert res["success_rate_qaoa"] >= 0.5, f"QAOA success rate not 0.5 for {res}"
         assert res["success_rate_vqe"] >= 0.5, f"VQE success rate not 0.5 for {res}"
     res_csv.append(list(results[0].keys()))
-    res_csv.extend([str(v) for v in res.values()] for res in results)
+    for res in results:
+        res_csv.append(list(res.values()))  # noqa: PERF401
     np.savetxt(
         "res_satellite_solver.csv",
         res_csv,
@@ -103,7 +104,8 @@ def eval_all_instances_Satellite_Solver_Noisy(min_qubits: int = 3, max_qubits: i
     )
 
     res_csv.append(list(results[0].keys()))
-    res_csv.extend([str(v) for v in res.values()] for res in results)
+    for res in results:
+        res_csv.append(list(res.values()))  # noqa: PERF401
     np.savetxt(
         "res_satellite_solver_noisy.csv",
         res_csv,
