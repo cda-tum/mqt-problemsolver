@@ -5,9 +5,8 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 from pytket import Circuit, OpType
-from pytket.extensions.qiskit import tk_to_qiskit
+from pytket.extensions.qiskit import qiskit_to_tk, tk_to_qiskit
 from pytket.passes import AutoRebase, BasePass, RebaseCustom
-from pytket.qasm import circuit_from_qasm
 from qiskit import QuantumCircuit, transpile
 from qiskit.transpiler.exceptions import TranspilerError
 from qiskit.transpiler.passmanager import PassManager
@@ -138,10 +137,7 @@ def generate_data(
         None
     """
     basis_gates = SINGLE_QUBIT_AND_CX_QISKIT_STDGATES
-    if sdk_name == "qiskit":
-        circuit_folder = "mqtbenchqiskit"
-    elif sdk_name == "tket":
-        circuit_folder = "mqtbenchtket"
+    circuit_folder = "mqtbench"
 
     column_order = [
         "Benchmark",
@@ -225,8 +221,9 @@ def generate_data(
 
     elif sdk_name == "tket":
         for benchmark in benchmarks:
-            qasm_file = pathlib.Path(circuit_folder) / f"{benchmark}.qasm"
-            qc = circuit_from_qasm(qasm_file)
+            file_path = pathlib.Path(circuit_folder) / f"{benchmark}.qasm"
+            read_qiskit_qc = QuantumCircuit.from_qasm_file(file_path)
+            qc = qiskit_to_tk(read_qiskit_qc)
 
             auto_rebase_pass = AutoRebase(SINGLE_QUBIT_AND_CX_TKET_STDGATES)
             custom_rebase_pass = RebaseCustom(SINGLE_QUBIT_AND_CX_TKET_STDGATES, cx_to_cx, tk1_to_rzry)
@@ -235,6 +232,7 @@ def generate_data(
             num_qubits = qc.n_qubits
 
             qiskit_circuit = tk_to_qiskit(qc)
+
             qiskit_circuit = transpile(
                 qiskit_circuit, basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES, optimization_level=0, seed_transpiler=0
             )
