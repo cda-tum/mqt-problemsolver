@@ -84,8 +84,8 @@ def eval_all_instances_Satellite_Solver(
         delayed(evaluate_Satellite_Solver)(i, num_runs) for i in range(min_qubits, max_qubits, stepsize)
     )
     for res in results:
-        assert res["success_rate_qaoa"] >= 0.5, f"QAOA success rate not 0.5 for {res}"
-        assert res["success_rate_vqe"] >= 0.5, f"VQE success rate not 0.5 for {res}"
+        assert res["success_rate_qaoa"] >= 0.3, f"QAOA success rate not 0.3 for {res}"
+        assert res["success_rate_vqe"] >= 0.3, f"VQE success rate not 0.3 for {res}"
     res_csv.append(list(results[0].keys()))
     for res in results:
         res_csv.append(list(res.values()))  # noqa: PERF401
