@@ -8,7 +8,6 @@ from pytket import Circuit, OpType
 from pytket.extensions.qiskit import qiskit_to_tk, tk_to_qiskit
 from pytket.passes import AutoRebase, BasePass, RebaseCustom
 from qiskit import QuantumCircuit, transpile
-from qiskit.transpiler.exceptions import TranspilerError
 from qiskit.transpiler.passmanager import PassManager
 from qsharp.interop.qiskit import estimate
 
@@ -58,7 +57,9 @@ def estimate_resources(quantum_circuit: QuantumCircuit) -> tuple[int, int]:
     Returns:
         A tuple containing the estimated number of physical qubits and the estimated runtime.
     """
-    result = estimate(quantum_circuit, optimization_level=0)
+    result = estimate(
+        quantum_circuit, optimization_level=0, skip_transpilation=True
+    )  # skip_transpilation to avoid version compatibility issues
     return result["physicalCounts"]["physicalQubits"], result["physicalCounts"]["runtime"]
 
 
@@ -166,18 +167,8 @@ def generate_data(
             num_qubits = transpiled_circuit.num_qubits
             original_ops = transpiled_circuit.count_ops()
             gate_count_original = sum(original_ops.values())
-            try:
-                qubits, runtime = estimate_resources(transpiled_circuit)
-            except TranspilerError as e:
-                try:
-                    print("Removing measurements to avoid estimation errors:", e)
-                    transpiled_circuit.remove_final_measurements()
-                    qubits, runtime = estimate_resources(transpiled_circuit)
-                except BaseException as e:
-                    print(
-                        "Skipping circuit due to not having any magic states or measurement required for estimation:", e
-                    )
-                    continue
+
+            qubits, runtime = estimate_resources(transpiled_circuit)
 
             for transpiler_pass in transpiler_passes:
                 pass_manager = PassManager(transpiler_pass)
@@ -239,18 +230,8 @@ def generate_data(
             original_ops = qiskit_circuit.count_ops()
 
             gate_count_original = sum(original_ops.values())
-            try:
-                qubits, runtime = estimate_resources(qiskit_circuit)
-            except TranspilerError as e:
-                try:
-                    print("Removing measurements to avoid estimation errors:", e)
-                    qiskit_circuit.remove_final_measurements()
-                    qubits, runtime = estimate_resources(qiskit_circuit)
-                except BaseException as e:
-                    print(
-                        "Skipping circuit due to not having any magic states or measurement required for estimation:", e
-                    )
-                    continue
+
+            qubits, runtime = estimate_resources(qiskit_circuit)
 
             for i, transpiler_pass in enumerate(transpiler_passes):
                 optimized_circuit = Circuit.from_dict(qc.to_dict())
@@ -269,19 +250,19 @@ def generate_data(
                     gate_count_optimized = sum(optimized_ops.values())
                     gate_count_diff = (gate_count_optimized - gate_count_original) / gate_count_original
 
-                    try:
-                        optimized_qubits, optimized_runtime = estimate_resources(optimized_qiskit_circuit)
-                    except TranspilerError as e:
-                        try:
-                            print("Removing measurements to avoid estimation errors:", e)
-                            optimized_qiskit_circuit.remove_final_measurements()
-                            optimized_qubits, optimized_runtime = estimate_resources(optimized_qiskit_circuit)
-                        except BaseException as e:
-                            print(
-                                "Skipping circuit due to not having any magic states or measurement required for estimation:",
-                                e,
-                            )
-                            continue
+                    # try:
+                    optimized_qubits, optimized_runtime = estimate_resources(optimized_qiskit_circuit)
+                    # except TranspilerError as e:
+                    #     try:
+                    #         print("Removing measurements to avoid estimation errors:", e)
+                    #         optimized_qiskit_circuit.remove_final_measurements()
+                    #         optimized_qubits, optimized_runtime = estimate_resources(optimized_qiskit_circuit)
+                    #     except BaseException as e:
+                    #         print(
+                    #             "Skipping circuit due to not having any magic states or measurement required for estimation:",
+                    #             e,
+                    #         )
+                    #         continue
 
                     relative_qubits_delta = (optimized_qubits - qubits) / qubits
                     relative_runtime_delta = (optimized_runtime - runtime) / runtime
