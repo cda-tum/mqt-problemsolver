@@ -1,298 +1,153 @@
-[![CodeCov](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/coverage.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/coverage.yml)
-[![Deploy to PyPI](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml/badge.svg)](https://github.com/cda-tum/MQTProblemSolver/actions/workflows/deploy.yml)
+[![PyPI](https://img.shields.io/pypi/v/mqt.problemsolver?logo=pypi&style=flat-square)](https://pypi.org/project/mqt.problemsolver/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![codecov](https://img.shields.io/codecov/c/github/munich-quantum-toolkit/problemsolver?style=flat-square&logo=codecov)](https://codecov.io/gh/munich-quantum-toolkit/problemsolver)
 
 <p align="center">
   <a href="https://mqt.readthedocs.io">
-   <picture>
-     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/logo-mqt-dark.svg" width="60%">
-     <img src="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/logo-mqt-light.svg" width="60%" alt="MQT Logo">
-   </picture>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/logo-mqt-dark.svg" width="60%">
+      <img src="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/logo-mqt-light.svg" width="60%" alt="MQT Logo">
+    </picture>
   </a>
 </p>
 
 # MQT ProblemSolver
 
-This repository covers the implementations of multiple research papers in the domain of quantum computing:
-
-1. [Towards an Automated Framework for Realizing Quantum Computing Solutions](#towards-an-automated-framework-for-realizing-quantum-computing-solutions)
-2. [A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem](#a-hybrid-classical-quantum-computing-approach-to-the-satellite-mission-planning-problem)
-3. [Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level](#reducing-the-compilation-time-of-quantum-circuits-using-pre-compilation-on-the-gate-level)
-4. [Utilizing Resource Estimation for the Development of Quantum Computing Applications](#utilizing-resource-estimation-for-the-development-of-quantum-computing-applications)
-5. [Towards Equivalence Checking of Classical Circuits Using Quantum Computing](#towards-equivalence-checking-of-classical-circuits-using-quantum-computing)
-6. [Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions](#improving-hardware-requirements-for-fault-tolerant-quantum-computing-by-optimizing-error-budget-distributions)
-7. [Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?](#quantum-circuit-optimization-for-the-fault-tolerance-era-do-we-have-to-start-from-scratch)
-
-In the following, each implementation is briefly introduced.
-
-# Towards an Automated Framework for Realizing Quantum Computing Solutions
-
-MQT ProblemSolver provides a framework to utilize quantum computing as a technology for users with little to no
-quantum computing knowledge that is part of the Munich Quantum Toolkit (MQT) developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/).
-All necessary quantum parts are embedded by domain experts while the interfaces provided are similar to the ones
-classical solver provide:
+MQT ProblemSolver is an open-source Python package for quantum computing.
+TODO.
+It is developed as part of the [_Munich Quantum Toolkit (MQT)_](https://mqt.readthedocs.io).
 
 <p align="center">
-<img src="img/framework.png" height=300px>
+  <a href="https://mqt.readthedocs.io/projects/core">
+  <img width=30% src="https://img.shields.io/badge/documentation-blue?style=for-the-badge&logo=read%20the%20docs" alt="Documentation" />
+  </a>
 </p>
 
-When provided with a problem description, MQT ProblemSolver offers a selection of implemented quantum algorithms.
-The user just has to choose one and all further (quantum) calculation steps are encapsulated within MQT ProblemSolver.
-After the calculation finished, the respective solution is returned - again in the same format as classical
-solvers use.
+## Key Features
 
-In the current implementation, two case studies are conducted:
+- TODO.
+- TODO.
+- TODO.
 
-1. A SAT Problem: Constraint Satisfaction Problem
-2. A Graph-based Optimization Problem: Travelling Salesman Problem
+If you have any questions, feel free to create a [discussion](https://github.com/munich-quantum-toolkit/problemsolver/discussions) or an [issue](https://github.com/munich-quantum-toolkit/problemsolver/issues) on [GitHub](https://github.com/munich-quantum-toolkit/problemsolver).
 
-## A SAT Problem: Constraint Satisfaction Problem
+## Contributors and Supporters
 
-This exemplary implementation can be found in the [CSP_example.ipynb](notebooks/csp_example.ipynb) Jupyter notebook.
-Here, the solution to a Kakuro riddle with a 2x2 grid can be solved for arbitrary sums `s0` to `s3`:
+The _[Munich Quantum Toolkit (MQT)](https://mqt.readthedocs.io)_ is developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) and supported by the [Munich Quantum Software Company (MQSC)](https://munichquantum.software).
+Among others, it is part of the [Munich Quantum Software Stack (MQSS)](https://www.munich-quantum-valley.de/research/research-areas/mqss) ecosystem, which is being developed as part of the [Munich Quantum Valley (MQV)](https://www.munich-quantum-valley.de) initiative.
 
 <p align="center">
-<img src="img/kakuro.png" height=100px>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/mqt-logo-banner-dark.svg" width="90%">
+    <img src="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/mqt-logo-banner-light.svg" width="90%" alt="MQT Partner Logos">
+  </picture>
 </p>
 
-MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a solution exists.
-
-## A Graph-based Optimization Problem: Travelling Salesman Problem
-
-This exemplary implementation can be found in the [TSP_example.ipynb](notebooks/tsp_example.ipynb) Jupyter notebook.
-Here, the solution to a Travelling Salesman Problem with 4 cities can be solved for arbitrary distances `dist_1_2` to `dist_3_4`between the cities.
+Thank you to all the contributors who have helped make MQT ProblemSolver a reality!
 
 <p align="center">
-<img src="img/tsp.png" height=200px>
+  <a href="https://github.com/munich-quantum-toolkit/core/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=munich-quantum-toolkit/problemsolver" alt="Contributors to munich-quantum-toolkit/problemsolver" />
+  </a>
 </p>
 
-MQT ProblemSolver will return the shortest path visiting all cities as a list.
+The MQT will remain free, open-source, and permissively licensed—now and in the future.
+We are firmly committed to keeping it open and actively maintained for the quantum computing community.
 
-# A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem
+To support this endeavor, please consider:
 
-Additional to the two case studies, we provide a more complex example for the satellite mission planning problem.
-The goal is to maximize the accumulated values of all images taken by the satellite while it is often not possible
-to take all images since the satellite must rotate and adjust its optics.
-
-In the following example, there are five to-be-captured locations which their assigned value.
+- Starring and sharing our repositories: https://github.com/munich-quantum-toolkit
+- Contributing code, documentation, tests, or examples via issues and pull requests
+- Citing the MQT in your publications (see [Cite This](#cite-this))
+- Citing our research in your publications (see [References](https://mqt.readthedocs.io/projects/problemsolver/en/latest/references.html))
+- Using the MQT in research and teaching, and sharing feedback and use cases
+- Sponsoring us on GitHub: https://github.com/sponsors/munich-quantum-toolkit
 
 <p align="center">
-<img src="img/satellite_mission_planning_problem.png" height=200px>
+  <a href="https://github.com/sponsors/munich-quantum-toolkit">
+  <img width=20% src="https://img.shields.io/badge/Sponsor-white?style=for-the-badge&logo=githubsponsors&labelColor=black&color=blue" alt="Sponsor the MQT" />
+  </a>
 </p>
 
-# Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level
+## Getting Started
 
-Every quantum computing application must be encoded into a quantum circuit and then compiled for a specific device.
-This lengthy compilation process is a key bottleneck and intensifies for recurring problems---each of which requires
-a new compilation run thus far.
-
-<p align="center">
-<img src="img/workflow_old.png">
-</p>
-
-Pre-compilation is a promising approach to overcome this bottleneck.
-Beginning with a problem class and suitable quantum algorithm, a **predictive encoding** scheme is applied to encode a
-representative problem instance into a general-purpose quantum circuit for that problem class.
-Once the real problem instance is known, the previously constructed circuit only needs to be
-**adjusted**—with (nearly) no compilation necessary:
-
-<p align="center">
-<img src="img/workflow_new.png">
-</p>
-Following this approach, we provide a pre-compilation module that can be used to precompile QAOA circuits
-for the MaxCut problem.
-
-# Utilizing Resource Estimation for the Development of Quantum Computing Applications
-
-Resource estimation is a promising alternative to actually execute quantum circuits on real quantum hardware which is
-currently restricted by the number of qubits and the error rates. By estimating the resources needed for a quantum circuit,
-the development of quantum computing applications can be accelerated without the need to wait for the availability of
-large-enough quantum hardware.
-
-In `resource_estimation/RE_experiments.py`, we evaluate the resources to calculate the ground state energy of a
-Hamiltonian to chemical accuracy of 1 mHartree using the qubitization quantum simulation algorithm. The Hamiltonian
-describes the 64 electron and 56 orbital active space of one of the stable intermediates in the ruthenium-catalyzed
-carbon fixation cycle
-
-In this evaluation, we investigate
-
-- different qubit technologies,
-- the impact of the maximal number of T factories,
-- different design trade-offs, and
-- hypothesis on how quantum hardware might improve and how it affects the required resources.
-
-# Towards Equivalence Checking of Classical Circuits Using Quantum Computing
-
-Equivalence checking, i.e., verifying whether two circuits realize the same functionality or not, is a typical task in the semiconductor industry. Due to the fact, that the designs grow faster than the ability to efficiently verify them, all alternative directions to close the resulting verification gap should be considered. In this work, we consider the problem through the miter structure. Here, two circuits to be checked are applied with the same primary inputs. Then, for each pair of to-be-equal output bits, an exclusive-OR (XOR) gate is applied-evaluating to 1 if the two outputs generate different values (which only happens in the case of non-equivalence). By OR-ing the outputs of all these XOR gates, eventually an indicator results that shows whether both circuits are equivalent. Then, the goal is to determine an input assignment so that this indicator evaluates to 1 (providing a counter example that shows non-equivalence) or to prove that no such assignment exists (proving equivalence).
-
-<p align="center">
-<img src="img/miter_structure.png" height=250px>
-</p>
-
-In the `equivalence_checking` module, our approach to this problem by utilizing quantum computing is implemented. There are two different ways to run this code.
-
-- One to test, how well certain parameter combinations work. The parameters consist of the number of bits of the circuits to be verified, the threshold parameter delta (which is explained in detail in the paper), the fraction of input combinations that induce non-equivalence of the circuits (further called "counter examples"), the number of shots to run the quantum circuit for and the number of individual runs of the experiment. Multiple parameter combinations can be tested and exported as a .csv-file at a provided location.
-- A second one to actually input a miter expression (in form of a string) together with some parameters independent from the miter (shots and delta) and use our approach to find the counter examples (if the circuits are non-equivalent).
-
-These two implementations are provided by the functions `try_parameter_combinations()` and `find_counter_examples()`, respectively. Examples for their usages are shown in `notebooks/equivalence_checking/example.ipynb`.
-
-# Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions
-
-Applying error correction to execute quantum circuits fault-tolerantly induces massive overheads in the required physical resources, often in the orders of magnitude.
-This leads to thousands of qubits already for toy-sized quantum applications. Obviously, these need to be reduced, for which the so-called error budget can be a particular lever.
-Even though error correction is applied, a certain error rate still remains in the execution of the quantum circuit.
-Hence, the end user defines a maximum tolerated error rate, the error budget, for the quantum application to be considered by the compiler.
-Since an error-corrected quantum circuit consists of different parts, this error budget is distributed among these parts.
-The way how it is distributed can have a significant effect on the resulting required resources.
-To find an efficient distribution, we use resource estimation to evaluate different distributions as well as a machine learning model approach that automatically determines such efficient distributions for a given quantum circuit.
-
-<p align="center">
-<img src="img/error_budget_approach.svg" height=150px>
-</p>
-
-The implementation of the approach can be found under `resource_estimation/error_budget_optimization`. An example usage of the implementation is shown in the `example_use.ipynb` notebook.
-
-# Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?
-
-Translating quantum circuits into a device's native gate set often increases gate count, amplifying noise in today's error-prone Noisy Intermediate-Scale Quantum (NISQ) devices. Although optimizations exist to reduce gate counts, scaling to larger qubit and circuit sizes will see hardware errors dominate, blocking industrial-scale use. Error correction can enable Fault-Tolerant Quantum Computing (FTQC) but demands massive qubit overheads, often tens of thousands for small problems.
-
-This motivates FTQC-oriented optimization techniques and raises the question: can NISQ techniques be adapted, or must new ones be developed? We address this question by evaluating Qiskit and TKET optimization passes on benchmark circuits from MQT Bench. As tools to directly design and evaluate fault-tolerant quantum circuit instances, we use resource estimation to assess FTQC requirements.
-
-The implementation of the approach can be found under `resource_estimation/ft_optimization`.
-
-# Usage
-
-MQT ProblemSolver is available via [PyPI](https://pypi.org/project/mqt.problemsolver/):
+`mqt.problemsolver` is available via [PyPI](https://pypi.org/project/mqt.problemsolver/) for all major operating systems and supports Python 3.9 to 3.14.
 
 ```console
-(venv) $ pip install mqt.problemsolver
+(.venv) $ pip install mqt.problemsolver
 ```
 
-# References
+TODO.
 
-In case you are using MQT ProblemSolver in your work, we would be thankful if you referred to it by citing the following publication:
+**Detailed documentation and examples are available at [ReadTheDocs](https://mqt.readthedocs.io/projects/problemsolver).**
+
+## System Requirements
+
+TODO.
+
+## Cite This
+
+Please cite the work that best fits your use case.
+
+### The Munich Quantum Toolkit (the project)
+
+When discussing the overall MQT project or its ecosystem, cite the MQT Handbook:
 
 ```bibtex
-@INPROCEEDINGS{quetschlich2023mqtproblemsolver,
-    title           = {{Towards an Automated Framework for Realizing Quantum Computing Solutions}},
-    author          = {N. Quetschlich and L. Burgholzer and R. Wille},
-    eprint          = {2210.14928},
-    archivePrefix   = {arXiv},
-    year            = {2023},
-    booktitle       = {International Symposium on Multiple-Valued Logic (ISMVL)},
+@inproceedings{mqt,
+  title        = {The {{MQT}} Handbook: {{A}} Summary of Design Automation Tools and Software for Quantum Computing},
+  shorttitle   = {{The MQT Handbook}},
+  author       = {Wille, Robert and Berent, Lucas and Forster, Tobias and Kunasaikaran, Jagatheesan and Mato, Kevin and Peham, Tom and Quetschlich, Nils and Rovara, Damian and Sander, Aaron and Schmid, Ludwig and Schoenberger, Daniel and Stade, Yannick and Burgholzer, Lukas},
+  year         = 2024,
+  booktitle    = {IEEE International Conference on Quantum Software (QSW)},
+  doi          = {10.1109/QSW62656.2024.00013},
+  eprint       = {2405.17543},
+  eprinttype   = {arxiv},
+  addendum     = {A live version of this document is available at \url{https://mqt.readthedocs.io}}
 }
 ```
 
-which is also available on arXiv:
-[![a](https://img.shields.io/static/v1?label=arXiv&message=2210.14928&color=inactive&style=flat-square)](https://arxiv.org/abs/2210.14928)
+### Peer-Reviewed Research
 
-In case you are using our Satellite Mission Planning Problem approach, we would be thankful if you referred to it by citing the following publication:
+When citing the underlying methods and research, please reference the most relevant peer-reviewed publications from the list below:
 
-```bibtex
-@INPROCEEDINGS{quetschlich2023satellite,
-    title           = {{A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem}},
-    author          = {N. Quetschlich and V. Koch and L. Burgholzer and R. Wille},
-    eprint          = {2308.00029},
-    archivePrefix   = {arXiv},
-    year            = {2023},
-    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-}
-```
+[[1]](https://arxiv.org/pdf/2210.14928.pdf)
+N. Quetschlich and L. Burgholzer and R. Wille. Towards an Automated Framework for Realizing Quantum Computing Solutions.
+_International Symposium on Multiple-Valued Logic (ISMVL)_, 2023.
 
-which is also available on arXiv:
-[![a](https://img.shields.io/static/v1?label=arXiv&message=2308.00029&color=inactive&style=flat-square)](https://arxiv.org/abs/2308.00029)
+[[2]](https://arxiv.org/pdf/2308.00029.pdf)
+N. Quetschlich, V. Koch, L. Burgholzer, and R. Wille. A Hybrid Classical Quantum Computing Approach to the Satellite Mission Planning Problem.
+_IEEE International Conference on Quantum Computing and Engineering (QCE)_, 2023.
 
-In case you are using our Pre-Compilation approach, we would be thankful if you referred to it by citing the following publication:
+[[3]](https://arxiv.org/pdf/2305.04941.pdf)
+N. Quetschlich, L. Burgholzer, and R. Wille. Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level.
+_IEEE International Conference on Quantum Computing and Engineering (QCE)_, 2023.
 
-```bibtex
-@INPROCEEDINGS{quetschlich2023precompilation,
-    title           = {{Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level}},
-    author          = {N. Quetschlich and L. Burgholzer and R. Wille},
-    eprint          = {2305.04941},
-    archivePrefix   = {arXiv},
-    year            = {2023},
-    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-}
-```
+[[4]](https://arxiv.org/pdf/2402.12434.pdf)
+N. Quetschlich, M. Soeken, P. Murali, and R. Wille. Reducing the Compilation Time of Quantum Circuits Using Pre-Compilation on the Gate Level.
+_IEEE International Conference on Quantum Computing and Engineering (QCE)_, 2024.
 
-which is also available on arXiv:
-[![a](https://img.shields.io/static/v1?label=arXiv&message=2305.04941&color=inactive&style=flat-square)](https://arxiv.org/abs/2305.04941)
+[[5]](https://arxiv.org/pdf/2408.14539.pdf)
+N. Quetschlich, T. Forster, A. Osterwind, D. Helms, and R. Wille. Towards Equivalence Checking of Classical Circuits Using Quantum Computing.
+_IEEE International Conference on Quantum Computing and Engineering (QCE)_, 2024.
 
-In case you are using our Resources Estimation approach, we would be thankful if you referred to it by citing the following publication:
+[6]
+T. Forster, N. Quetschlich, M. Soeken, and R. Wille. Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions.
+_IEEE International Conference on Quantum Computing and Engineering (QCE)_, 2025.
 
-```bibtex
-@misc{quetschlich2024resource_estimation,
-    title           = {{Utilizing Resource Estimation for the Development of Quantum Computing Applications}},
-    author          = {N. Quetschlich and M. Soeken and P. Murali and R. Wille},
-    eprint          = {2402.12434},
-    archivePrefix   = {arXiv},
-    year            = {2024},
-    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-}
-```
+[7]
+T. Forster, N. Quetschlich, and R. Wille. Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?
+_IEEE International Conference on Quantum Computing and Engineering (QCE)_, 2025.
 
-which is also available on arXiv:
-[![a](https://img.shields.io/static/v1?label=arXiv&message=2402.12434&color=inactive&style=flat-square)](https://arxiv.org/abs/2402.12434)
-
-In case you are using our Equivalence-Checking approach, we would be thankful if you referred to it by citing the following publication:
-
-```bibtex
-@INPROCEEDINGS{quetschlich2024equivalence_checking,
-    title           = {{Towards Equivalence Checking of Classical Circuits Using Quantum Computing}},
-    author          = {N. Quetschlich and T. Forster and A. Osterwind and D. Helms and R. Wille},
-    eprint          = {2408.14539},
-    archivePrefix   = {arXiv},
-    year            = {2024},
-    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-}
-```
-
-which is also available on arXiv:
-[![a](https://img.shields.io/static/v1?label=arXiv&message=2408.14539&color=inactive&style=flat-square)](https://arxiv.org/abs/2408.14539)
-
-In case you are using our Error-Budget-Optimization approach, we would be thankful if you referred to it by citing the following publication:
-
-```bibtex
-@INPROCEEDINGS{forster2025error_budget_optimization,
-    title           = {{Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions}},
-    author          = {T.Forster and N. Quetschlich and M. Soeken and R. Wille},
-    year            = {2025},
-    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-}
-```
-
-In case you are using our FT-Optimization-Resource-Estimation approach, we would be thankful if you referred to it by citing the following publication:
-
-```bibtex
-@INPROCEEDINGS{forster2025ft_circuit_optimization,
-    title           = {{Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?}},
-    author          = {T.Forster and N. Quetschlich and R. Wille},
-    year            = {2025},
-    booktitle       = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
-}
-```
+---
 
 ## Acknowledgements
 
-This project received funding from the European Research Council (ERC) under the European Union's Horizon 2020 research
-and innovation program (DA QC, grant agreement No. 101001318 and MILLENION, grant agreement No. 101114305), was part
-of the Munich Quantum Valley, which is supported by the Bavarian state government with funds from the Hightech Agenda
-Bayern Plus, and has been supported by the BMWK on the basis of a decision by the German Bundestag through project
-QuaST, as well as by the BMK, BMDW, the State of Upper Austria in the frame of the COMET program, and the QuantumReady
-project within Quantum Austria (managed by the FFG).
+The Munich Quantum Toolkit has been supported by the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement No. 101001318), the Bavarian State Ministry for Science and Arts through the Distinguished Professorship Program, as well as the Munich Quantum Valley, which is supported by the Bavarian state government with funds from the Hightech Agenda Bayern Plus.
 
 <p align="center">
-<picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/tum_dark.svg" width="28%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/tum_light.svg" width="28%" alt="TUM Logo">
-</picture>
-<picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/logo-bavaria.svg" width="16%" alt="Coat of Arms of Bavaria">
-</picture>
-<picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/erc_dark.svg" width="24%">
-<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/erc_light.svg" width="24%" alt="ERC Logo">
-</picture>
-<picture>
-<img src="https://raw.githubusercontent.com/cda-tum/mqt/main/docs/_static/logo-mqv.svg" width="28%" alt="MQV Logo">
-</picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/mqt-funding-footer-dark.svg" width="90%">
+    <img src="https://raw.githubusercontent.com/munich-quantum-toolkit/.github/refs/heads/main/docs/_static/mqt-funding-footer-light.svg" width="90%" alt="MQT Funding Footer">
+  </picture>
 </p>
