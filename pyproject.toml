@@ -146,12 +146,12 @@ unsafe-fixes = true
 [tool.ruff.lint]
 extend-select = [
     "A",           # flake8-builtins
-#    "ANN",         # flake8-annotations
+    "ANN",         # flake8-annotations
     "ARG",         # flake8-unused-arguments
     "ASYNC",       # flake8-async
     "B",  "B904",  # flake8-bugbear
     "C4",          # flake8-comprehensions
-#    "D",           # pydocstyle
+    "D",           # pydocstyle
     "EM",          # flake8-errmsg
     "EXE",         # flake8-executable
     "FA",          # flake8-future-annotations
@@ -159,8 +159,8 @@ extend-select = [
     "I",           # isort
     "ICN",         # flake8-import-conventions
     "ISC",         # flake8-implicit-str-concat
-  #  "N",           # flake8-naming
-  #  "NPY",         # numpy
+    "N",           # flake8-naming
+    "NPY",         # numpy
     "PERF",        # perflint
     "PGH",         # pygrep-hooks
     "PIE",         # flake8-pie
@@ -186,6 +186,12 @@ ignore = [
     "E501",    # Line too long (Black is enough)
     "PLR",     # Design related pylint codes
     "S101",    # Use of assert detected
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D107",
 ]
 flake8-unused-arguments.ignore-variadic-names = true
 isort.required-imports = ["from __future__ import annotations"]

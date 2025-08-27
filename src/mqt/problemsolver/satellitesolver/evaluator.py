@@ -9,8 +9,6 @@ from joblib import Parallel, delayed
 from mqt.problemsolver.satellitesolver import utils
 from mqt.problemsolver.satellitesolver.algorithms import solve_using_qaoa, solve_using_vqe
 
-np.random.seed(42)
-
 
 class SatelliteResult(TypedDict):
     num_qubits: int
@@ -20,7 +18,7 @@ class SatelliteResult(TypedDict):
     success_rate_vqe: float
 
 
-def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
+def evaluate_satellite_solver_noisy(num_locations: int = 5) -> SatelliteResult:
     ac_reqs = utils.init_random_location_requests(num_locations)
     qubo = utils.create_satellite_qubo(ac_reqs)
 
@@ -45,7 +43,7 @@ def evaluate_Satellite_Solver_Noisy(num_locations: int = 5) -> SatelliteResult:
     )
 
 
-def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 5) -> SatelliteResult:
+def evaluate_satellite_solver(num_locations: int = 5, num_runs: int = 5) -> SatelliteResult:
     ac_reqs = utils.init_random_location_requests(num_locations)
     qubo = utils.create_satellite_qubo(ac_reqs)
 
@@ -76,12 +74,12 @@ def evaluate_Satellite_Solver(num_locations: int = 5, num_runs: int = 5) -> Sate
     )
 
 
-def eval_all_instances_Satellite_Solver(
+def eval_all_instances_satellite_solver(
     min_qubits: int = 3, max_qubits: int = 80, stepsize: int = 10, num_runs: int = 5
 ) -> None:
     res_csv = []
     results = Parallel(n_jobs=-1, verbose=3)(
-        delayed(evaluate_Satellite_Solver)(i, num_runs) for i in range(min_qubits, max_qubits, stepsize)
+        delayed(evaluate_satellite_solver)(i, num_runs) for i in range(min_qubits, max_qubits, stepsize)
     )
     for res in results:
         assert res["success_rate_qaoa"] >= 0.3, f"QAOA success rate not 0.3 for {res}"
@@ -97,10 +95,10 @@ def eval_all_instances_Satellite_Solver(
     )
 
 
-def eval_all_instances_Satellite_Solver_Noisy(min_qubits: int = 3, max_qubits: int = 8) -> None:
+def eval_all_instances_satellite_solver_noisy(min_qubits: int = 3, max_qubits: int = 8) -> None:
     res_csv = []
     results = Parallel(n_jobs=-1, verbose=3)(
-        delayed(evaluate_Satellite_Solver_Noisy)(i) for i in range(min_qubits, max_qubits)
+        delayed(evaluate_satellite_solver_noisy)(i) for i in range(min_qubits, max_qubits)
     )
 
     res_csv.append(list(results[0].keys()))

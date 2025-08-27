@@ -227,7 +227,8 @@ def verify_counter_examples(result_list: list[str], miter: str) -> list[str]:
         List of counter examples
     miter : str
         Miter condition string
-    Returns
+
+    Returns:
     -------
     list[str]
         List of actual counter examples
