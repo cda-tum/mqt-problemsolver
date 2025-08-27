@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from qiskit import QuantumCircuit
 
-from mqt.problemsolver.partialcompiler.qaoa import QAOA
+from mqt.problemsolver.partial_compiler.qaoa import QAOA
 
 
 def test_qaoa_init() -> None:

@@ -7,7 +7,7 @@ import numpy as np
 from numpy.linalg import eigvalsh
 from qiskit.quantum_info import Pauli, SparsePauliOp
 
-from mqt.problemsolver.satellitesolver.imaging_location import (
+from mqt.problemsolver.satellite_solver.imaging_location import (
     R_E,
     R_S,
     ROTATION_SPEED_SATELLITE,

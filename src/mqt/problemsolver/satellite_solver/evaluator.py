@@ -6,8 +6,8 @@ from typing import TypedDict
 import numpy as np
 from joblib import Parallel, delayed
 
-from mqt.problemsolver.satellitesolver import utils
-from mqt.problemsolver.satellitesolver.algorithms import solve_using_qaoa, solve_using_vqe
+from mqt.problemsolver.satellite_solver import utils
+from mqt.problemsolver.satellite_solver.algorithms import solve_using_qaoa, solve_using_vqe
 
 
 class SatelliteResult(TypedDict):

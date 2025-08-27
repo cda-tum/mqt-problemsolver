@@ -13,7 +13,7 @@ from qiskit.circuit.library import QAOAAnsatz, efficient_su2
 from qiskit.providers.fake_provider import GenericBackendV2
 from scipy.optimize import minimize
 
-from mqt.problemsolver.satellitesolver.utils import cost_op_from_qubo
+from mqt.problemsolver.satellite_solver.utils import cost_op_from_qubo
 
 
 def solve_using_qaoa(qubo: NDArray[np.float64], noisy_flag: bool = True, layers: int = 10, num_init: int = 5) -> float:

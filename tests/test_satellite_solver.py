@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 
-from mqt.problemsolver.satellitesolver import algorithms, utils
-from mqt.problemsolver.satellitesolver.evaluator import eval_all_instances_satellite_solver
-from mqt.problemsolver.satellitesolver.imaging_location import LocationRequest
+from mqt.problemsolver.satellite_solver import algorithms, utils
+from mqt.problemsolver.satellite_solver.evaluator import eval_all_instances_satellite_solver
+from mqt.problemsolver.satellite_solver.imaging_location import LocationRequest
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray

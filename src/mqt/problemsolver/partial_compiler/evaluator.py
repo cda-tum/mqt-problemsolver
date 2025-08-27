@@ -6,7 +6,7 @@ from typing import TypedDict
 import numpy as np
 from joblib import Parallel, delayed
 
-from mqt.problemsolver.partialcompiler.qaoa import QAOA
+from mqt.problemsolver.partial_compiler.qaoa import QAOA
 
 
 class Result(TypedDict):
