@@ -68,9 +68,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cda-tum/mqtproblemsolver"
-"Bug Tracker" = "https://github.com/cda-tum/mqtproblemsolver/issues"
-Discussions = "https://github.com/cda-tum/mqtproblemsolver/discussions"
+Homepage = "https://github.com/munich-quantum-toolkit/problemsolver"
+"Bug Tracker" = "https://github.com/munich-quantum-toolkit/problemsolver/issues"
+Discussions = "https://github.com/munich-quantum-toolkit/problemsolver/discussions"
 Research = "https://www.cda.cit.tum.de/research/quantum/"
 
 [tool.hatch.build.targets.wheel]
