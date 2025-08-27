@@ -24,9 +24,11 @@ It is developed as part of the [_Munich Quantum Toolkit (MQT)_](https://mqt.read
 
 ## Key Features
 
-- TODO.
-- TODO.
-- TODO.
+- Progress toward an automated framework for solving optimization and constraint satisfaction problems with minimal quantum expertise
+- Hybrid classical–quantum approaches for domain-specific applications such as satellite mission planning
+- Methods for reducing compilation time through pre-compilation and optimizing quantum circuits
+- Equivalence checking of classical circuits with quantum computing
+- Utilizing resource estimation for evaluating and optimizing hardware requirements regarding fault-tolerant quantum computing
 
 If you have any questions, feel free to create a [discussion](https://github.com/munich-quantum-toolkit/problemsolver/discussions) or an [issue](https://github.com/munich-quantum-toolkit/problemsolver/issues) on [GitHub](https://github.com/munich-quantum-toolkit/problemsolver).
 
