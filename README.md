@@ -84,7 +84,7 @@ TODO.
 
 ## System Requirements
 
-TODO.
+Building (and running) is continuously tested under Linux, macOS, and Windows using the [latest available system versions for GitHub Actions](https://github.com/actions/runner-images).
 
 ## Cite This
 
