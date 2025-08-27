@@ -72,18 +72,17 @@ To support this endeavor, please consider:
 
 ## Getting Started
 
-`mqt.problemsolver` is available via [PyPI](https://pypi.org/project/mqt.problemsolver/) for all major operating systems and supports Python 3.9 to 3.14.
+`mqt.problemsolver` is available via [PyPI](https://pypi.org/project/mqt.problemsolver/).
 
 ```console
 (.venv) $ pip install mqt.problemsolver
 ```
 
-TODO.
-
 **Detailed documentation and examples are available at [ReadTheDocs](https://mqt.readthedocs.io/projects/problemsolver).**
 
 ## System Requirements
 
+MQT ProblemSolver can be installed on all major operating systems with all supported Python versions.
 Building (and running) is continuously tested under Linux, macOS, and Windows using the [latest available system versions for GitHub Actions](https://github.com/actions/runner-images).
 
 ## Cite This
