@@ -13,8 +13,7 @@
 
 # MQT ProblemSolver
 
-MQT ProblemSolver is an open-source Python package for quantum computing.
-TODO.
+MQT ProblemSolver provides a framework to utilize quantum computing as a technology for users with little to no quantum computing knowledge
 It is developed as part of the [_Munich Quantum Toolkit (MQT)_](https://mqt.readthedocs.io).
 
 <p align="center">
@@ -88,6 +87,21 @@ TODO.
 ## Cite This
 
 Please cite the work that best fits your use case.
+
+### MQT ProblemSolver (the tool)
+
+When citing the software itself or results produced with it, cite the MQT ProblemSolver paper:
+
+```bibtex
+@inproceedings{quetschlich2023mqtproblemsolver,
+  title        = {{Towards an Automated Framework for Realizing Quantum Computing Solutions}},
+  author       = {Quetschlich, Nils and Burgholzer, Lukas and Wille, Robert},
+  year         = 2023,
+  booktitle    = {International Symposium on Multiple-Valued Logic (ISMVL)},
+  eprint       = {2210.14928},
+  eprinttype   = {arXiv}
+}
+```
 
 ### The Munich Quantum Toolkit (the project)
 
