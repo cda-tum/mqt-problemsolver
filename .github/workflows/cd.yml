@@ -12,11 +12,13 @@ permissions:
   id-token: write
 
 jobs:
-  python-packaging:
+  build-sdist:
     name: 🐍 Packaging
-    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-packaging.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
-    with:
-      pure-python: true
+    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-packaging-sdist.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
+
+  build-wheel:
+    name: 🐍 Packaging
+    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-packaging-wheel-build.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
 
   deploy:
     if: github.event_name == 'release' && github.event.action == 'published'
@@ -29,7 +31,7 @@ jobs:
       id-token: write
       attestations: write
       contents: read
-    needs: [python-packaging]
+    needs: [build-sdist, build-wheel]
     steps:
       - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
