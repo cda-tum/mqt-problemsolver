@@ -16,15 +16,15 @@ body:
         **Thanks for taking the time to report an issue!**
 
         ⚠ Before submitting:
-        1. Search [existing issues](https://github.com/munich-quantum-toolkit/core/search?q=is%3Aissue&type=issues) to avoid duplicates
-        2. For questions or discussions, please use our [discussions forum](https://github.com/munich-quantum-toolkit/core/discussions)
+        1. Search [existing issues](https://github.com/munich-quantum-toolkit/problemsolver/search?q=is%3Aissue&type=issues) to avoid duplicates
+        2. For questions or discussions, please use our [discussions forum](https://github.com/munich-quantum-toolkit/problemsolver/discussions)
   - type: textarea
     attributes:
       label: System Information
       description: Please provide details about your environment
       placeholder: |
         - Operating System (including version):
-        - MQT Core version:
+        - MQT ProblemSolver version:
         - Python/C++ compiler version (if applicable):
         - Any relevant dependencies and their versions:
     validations:

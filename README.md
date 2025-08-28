@@ -17,7 +17,7 @@ MQT ProblemSolver provides a framework to utilize quantum computing as a technol
 It is developed as part of the [_Munich Quantum Toolkit (MQT)_](https://mqt.readthedocs.io).
 
 <p align="center">
-  <a href="https://mqt.readthedocs.io/projects/core">
+  <a href="https://mqt.readthedocs.io/projects/problemsolver">
   <img width=30% src="https://img.shields.io/badge/documentation-blue?style=for-the-badge&logo=read%20the%20docs" alt="Documentation" />
   </a>
 </p>
@@ -47,7 +47,7 @@ Among others, it is part of the [Munich Quantum Software Stack (MQSS)](https://w
 Thank you to all the contributors who have helped make MQT ProblemSolver a reality!
 
 <p align="center">
-  <a href="https://github.com/munich-quantum-toolkit/core/graphs/contributors">
+  <a href="https://github.com/munich-quantum-toolkit/problemsolver/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=munich-quantum-toolkit/problemsolver" alt="Contributors to munich-quantum-toolkit/problemsolver" />
   </a>
 </p>

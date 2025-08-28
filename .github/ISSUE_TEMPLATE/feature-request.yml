@@ -16,7 +16,7 @@ body:
         **Thanks for helping improve this project by suggesting a feature!**
 
         ⚠ Before submitting:
-        - Search [existing feature requests](https://github.com/munich-quantum-toolkit/core/search?q=is%3Aissue&type=issues) to avoid duplicates
+        - Search [existing feature requests](https://github.com/munich-quantum-toolkit/problemsolver/search?q=is%3Aissue&type=issues) to avoid duplicates
         - One feature per issue helps us track and implement ideas effectively
 
   - type: textarea

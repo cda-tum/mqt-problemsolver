@@ -138,7 +138,7 @@ copybutton_prompt_text = r"(?:\(\.?venv\) )?(?:\[.*\] )?\$ "
 copybutton_prompt_is_regexp = True
 copybutton_line_continuation_character = "\\"
 
-modindex_common_prefix = ["mqt.core."]
+modindex_common_prefix = ["mqt.problemsolver."]
 
 autoapi_dirs = ["../src/mqt"]
 autoapi_python_use_implicit_namespaces = True
@@ -174,20 +174,20 @@ html_css_files = [
 html_theme_options = {
     "light_logo": "mqt_dark.png",
     "dark_logo": "mqt_light.png",
-    "source_repository": "https://github.com/munich-quantum-toolkit/core/",
+    "source_repository": "https://github.com/munich-quantum-toolkit/problemsolver/",
     "source_branch": "main",
     "source_directory": "docs/",
     "navigation_with_keys": True,
     "footer_icons": [
         {
             "name": "GitHub",
-            "url": "https://github.com/munich-quantum-toolkit/core/",
+            "url": "https://github.com/munich-quantum-toolkit/problemsolver/",
             "html": "",
             "class": "fa-brands fa-solid fa-github fa-2x",
         },
         {
             "name": "PyPI",
-            "url": "https://pypi.org/project/mqt-core/",
+            "url": "https://pypi.org/project/mqt-problemsolver/",
             "html": "",
             "class": "fa-brands fa-solid fa-python fa-2x",
         },
