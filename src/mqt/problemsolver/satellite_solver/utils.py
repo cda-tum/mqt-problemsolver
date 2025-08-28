@@ -2,27 +2,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-if TYPE_CHECKING:
-    from numpy.typing import NDArray
-
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import eigvalsh
 from qiskit.quantum_info import Pauli, SparsePauliOp
 
-from mqt.problemsolver.satellitesolver.ImagingLocation import (
+from mqt.problemsolver.satellite_solver.imaging_location import (
     R_E,
     R_S,
     ROTATION_SPEED_SATELLITE,
     LocationRequest,
 )
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
-def init_random_location_requests(n: int) -> list[LocationRequest]:
-    """Returns list of n random acquisition requests"""
-    np.random.seed(10)
+
+def init_random_location_requests(n: int, rng: np.random.Generator | None = None) -> list[LocationRequest]:
+    """Returns list of n random acquisition requests."""
+    if rng is None:
+        rng = np.random.default_rng(10)
+
     acquisition_requests = [
-        LocationRequest(position=create_acquisition_position(), imaging_attempt_score=np.random.randint(1, 3))
+        LocationRequest(position=create_acquisition_position(rng=rng), imaging_attempt_score=float(rng.integers(1, 3)))
         for _ in range(n)
     ]
 
@@ -43,12 +45,18 @@ def get_success_ratio(ac_reqs: list[LocationRequest], qubo: NDArray[np.float64],
     )
 
 
-def create_acquisition_position(longitude: float | None = None, latitude: float | None = None) -> NDArray[np.float64]:
+def create_acquisition_position(
+    longitude: float | None = None,
+    latitude: float | None = None,
+    rng: np.random.Generator | None = None,
+) -> NDArray[np.float64]:
     # Returns random position of acquisition close to the equator as vector
+    if rng is None:
+        rng = np.random.default_rng()
     if longitude is None:
-        longitude = 2 * np.pi * np.random.rand()
+        longitude = 2 * np.pi * rng.random()
     if latitude is None:
-        latitude = np.random.uniform(np.pi / 2 - 15 / 360 * 2 * np.pi, np.pi / 2 + 15 / 360 * 2 * np.pi)
+        latitude = rng.uniform(np.pi / 2 - 15 / 360 * 2 * np.pi, np.pi / 2 + 15 / 360 * 2 * np.pi)
 
     res = R_E * np.array([
         np.cos(longitude) * np.sin(latitude),
@@ -73,7 +81,7 @@ def calc_needed_time_between_acquisition_attempts(
 
 
 def transition_possible(acq_1: LocationRequest, acq_2: LocationRequest) -> bool:
-    """Returns True if transition between acq_1 and acq_2 is possible, False otherwise"""
+    """Returns True if transition between acq_1 and acq_2 is possible, False otherwise."""
     t_maneuver = cast("float", calc_needed_time_between_acquisition_attempts(acq_1, acq_2))
     t1 = acq_1.imaging_attempt
     t2 = acq_2.imaging_attempt
@@ -144,61 +152,56 @@ def check_solution(ac_reqs: list[LocationRequest], solution_vector: list[int]) -
 
 
 def create_satellite_qubo(all_acqs: list[LocationRequest], penalty: int = 8) -> NDArray[np.float64]:
-    """Creates a QUBO matrix directly for the satellite location request problem
+    """Creates a QUBO matrix directly for the satellite location request problem.
 
-    Parameters
-    ----------
-    all_acqs : list[LocationRequest]
-        List of all acquisition requests.
-    penalty : int, optional
-        Penalty for conflicting requests, by default 8
+    Args:
+        all_acqs: List of all acquisition requests.
+        penalty: Penalty for conflicting requests. Defaults to 8.
 
-    Returns
-    -------
-    QUBO: QUBO
+    Returns:
         A QUBO object representing the problem.
     """
     n = len(all_acqs)
     values = [req.imaging_attempt_score for req in all_acqs]
 
     # Initialize QUBO matrix
-    Q = np.zeros((n, n), dtype=float)
+    q = np.zeros((n, n), dtype=float)
 
     # Objective (diagonal) terms
     for i, v in enumerate(values):
-        Q[i, i] = -v
+        q[i, i] = -v
 
     # Penalty for conflicts (off-diagonals)
     for i in range(n - 1):
         for j in range(i + 1, n):
             if not transition_possible(all_acqs[i], all_acqs[j]):
-                Q[i, j] = penalty
-                Q[j, i] = penalty  # ensure symmetry
+                q[i, j] = penalty
+                q[j, i] = penalty  # ensure symmetry
 
-    return Q
+    return q
 
 
-def cost_op_from_qubo(Q: NDArray[np.float64]) -> tuple[SparsePauliOp, float]:
+def cost_op_from_qubo(q: NDArray[np.float64]) -> tuple[SparsePauliOp, float]:
     """Convert a QUBO matrix to an Ising Hamiltonian.
 
     Args:
-        Q: QUBO matrix (symmetric, square numpy array).
+        q: QUBO matrix (symmetric, square numpy array).
 
     Returns:
         A tuple (qubit_op, offset) representing the Ising Hamiltonian and constant offset.
     """
-    if not isinstance(Q, np.ndarray) or Q.ndim != 2 or Q.shape[0] != Q.shape[1]:
+    if not isinstance(q, np.ndarray) or q.ndim != 2 or q.shape[0] != q.shape[1]:
         msg = "QUBO matrix must be a square numpy array."
         raise ValueError(msg)
 
-    num_vars = Q.shape[0]
+    num_vars = q.shape[0]
     zero = np.zeros(num_vars, dtype=bool)
     pauli_list = []
     offset = 0.0
 
     for i in range(num_vars):
         # Diagonal: linear terms
-        coef = Q[i, i]
+        coef = q[i, i]
         weight = coef / 2
         z_p = zero.copy()
         z_p[i] = True
@@ -206,7 +209,7 @@ def cost_op_from_qubo(Q: NDArray[np.float64]) -> tuple[SparsePauliOp, float]:
         offset += weight
 
         for j in range(i + 1, num_vars):
-            coef = Q[i, j] + Q[j, i]  # ensure symmetry
+            coef = q[i, j] + q[j, i]  # ensure symmetry
             if coef == 0:
                 continue
 
@@ -235,18 +238,17 @@ def cost_op_from_qubo(Q: NDArray[np.float64]) -> tuple[SparsePauliOp, float]:
 
 
 def solve_classically(qubo: NDArray[np.float64]) -> float:
-    """
-    Solve the Hamiltonian problem classically using eigenvalue decomposition.
+    """Solve the Hamiltonian problem classically using eigenvalue decomposition.
 
     Args:
-        cost_op: The Hamiltonian matrix derived from the QUBO.
+        qubo: The Hamiltonian matrix derived from the QUBO.
 
     Returns:
         The minimum eigenvalue of the Hamiltonian matrix.
     """
-    H, offset = cost_op_from_qubo(qubo)
-    H_mat = H.to_matrix()
-    eigenvalues = eigvalsh(H_mat)
+    h, offset = cost_op_from_qubo(qubo)
+    h_mat = h.to_matrix()
+    eigenvalues = eigvalsh(h_mat)
 
     # Find the minimum eigenvalue
     return np.min(eigenvalues) + offset

@@ -49,8 +49,7 @@ QISKIT_STD_GATES = [
 
 
 def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> Iterator[QuantumCircuit]:
-    """
-    Generates a list of benchmarks with their respective sizes.
+    """Generates a list of benchmarks with their respective sizes.
 
     Args:
         benchmarks_and_sizes: A list containing tuples each containing the benchmark name and a list of sizes.
@@ -64,9 +63,12 @@ def generate_benchmarks(benchmarks_and_sizes: list[tuple[str, list[int]]]) -> It
 
 
 def find_optimized_budgets(
-    total_budget: float, num_iterations: int, counts: LogicalCounts
+    total_budget: float,
+    num_iterations: int,
+    counts: LogicalCounts,
 ) -> tuple[list[float], int, int]:
-    """
+    """Finds an optimized distribution of error budgets.
+
     Randomly distributes the total error budget among logical, T-state, and rotation errors,
     and estimates the physical resource requirements for each distribution. Tracks the distribution
     that yields the lowest product of runtime and physical qubits.
@@ -82,7 +84,6 @@ def find_optimized_budgets(
             - The best metric found (runtime * physical qubits).
             - The default metric (runtime * physical qubits with default partition).
     """
-
     default_parameters = EstimatorParams()
     default_parameters.error_budget = total_budget
 
@@ -178,8 +179,7 @@ def generate_data(
     benchmarks_and_sizes: list[tuple[str, list[int]]] | None = None,
     logical_counts: list[OrderedDict[str, int]] | None = None,
 ) -> list[OrderedDict[str, float | int]]:
-    """
-    Generates a dataset consisting of logical counts of quantum circuits and respective optimized error budgets.
+    """Generates a dataset consisting of logical counts of quantum circuits and respective optimized error budgets.
 
     This function searches for QASM files in the given directory, loads each circuit,
     estimates its logical counts, and computes optimized error budget partitions using random sampling.
@@ -191,6 +191,7 @@ def generate_data(
         number_of_randomly_generated_distributions: The number of random distributions to try.
         path: Path to a directory with .qasm files or a .zip file containing them.
         benchmarks_and_sizes: A list of benchmark specifications to generate circuits on the fly.
+        logical_counts: A list of logical counts dictionaries to process directly.
 
     Returns:
         A list of lists, where each inner list contains circuit-specific counts and the corresponding

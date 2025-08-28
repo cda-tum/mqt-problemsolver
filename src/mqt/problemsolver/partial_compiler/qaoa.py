@@ -20,7 +20,7 @@ class QAOA:
         sample_probability: float = 0.5,
         considered_following_qubits: int = 3,
         satellite_use_case: bool = False,
-    ):
+    ) -> None:
         self.num_qubits = num_qubits
         self.repetitions = repetitions
 
@@ -42,9 +42,15 @@ class QAOA:
         self,
         considered_following_qubits: int,
     ) -> tuple[QuantumCircuit, QuantumCircuit, list[bool | str], list[tuple[int, int]]]:
-        """Returns the uncompiled circuits (both with only the actual needed two-qubit gates and with all possible
-        two-qubit gates) and the list of gates to be removed."""
+        """Get the uncompiled circuits.
 
+        Returns:
+            A tuple of:
+            - A circuit with only the needed two-qubit gates
+            - A circuit with all possible two-qubit gates
+            - A list of gates that will be removed
+            - A list of corresponding qubit pairs
+        """
         qc = QuantumCircuit(self.num_qubits)  # QC with all gates
         qc_baseline = QuantumCircuit(self.num_qubits)  # QC with only the sampled gates
         qc.h(range(self.num_qubits))
@@ -103,7 +109,7 @@ class QAOA:
         return qc, qc_baseline, remove_gates, remove_pairs
 
     def compile_qc(self, baseline: bool = False, opt_level: int = 3) -> QuantumCircuit:
-        """Compiles the circuit"""
+        """Compiles the circuit."""
         circ = self.qc_baseline if baseline else self.qc
         assert self.backend is not None
         qc_comp = transpile(circ, backend=self.backend, optimization_level=opt_level, seed_transpiler=42)
@@ -112,7 +118,7 @@ class QAOA:
         return qc_comp
 
     def get_to_be_removed_gate_indices(self) -> list[int]:
-        """Returns the indices of the gates to be removed"""
+        """Returns the indices of the gates to be removed."""
         indices_to_be_removed_parameterized_gates = []
         for i, gate in enumerate(self.qc_compiled.data):
             if (
@@ -125,7 +131,7 @@ class QAOA:
         return indices_to_be_removed_parameterized_gates
 
     def remove_unnecessary_gates(self, qc: QuantumCircuit, optimize_swaps: bool = True) -> QuantumCircuit:
-        """Removes the gates to be checked from the circuit at online time"""
+        """Removes the gates to be checked from the circuit at online time."""
         indices = set()
 
         # Iterate over all gates to be removed
@@ -147,8 +153,7 @@ class QAOA:
         return qc
 
     def create_model_from_pair_list(self) -> NDArray[np.float64]:
-        """
-        Constructs the QUBO matrix Q for the optimization problem.
+        """Constructs the QUBO matrix Q for the optimization problem.
 
         The matrix Q is of size num_qubits x num_qubits and encodes the following:
           - Objective: Minimize the linear term -∑ x_i, where Q[i, i] = -1.
@@ -159,21 +164,20 @@ class QAOA:
             Q: The QUBO matrix representing the optimization problem.
         """
         n = self.num_qubits
-        Q = np.zeros((n, n))
+        q = np.zeros((n, n))
         # linear objective: minimize -∑ x_i
         for i in range(n):
-            Q[i, i] = -1.0
+            q[i, i] = -1.0
 
         # conflict penalties
         for i, j in self.remove_pairs:
-            Q[i, j] += self.penalty
-            Q[j, i] += self.penalty
+            q[i, j] += self.penalty
+            q[j, i] += self.penalty
 
-        return Q
+        return q
 
     def apply_factors_to_qc(self, qc: QuantumCircuit) -> QuantumCircuit:
-        """
-        Updates the parameterized QAOA-style circuit `qc` with actual Ising coefficients.
+        """Updates the parameterized QAOA-style circuit `qc` with actual Ising coefficients.
 
         This function assigns values to the circuit parameters based on the Ising model
         derived from the QUBO matrix. Parameters are named "qubit_<i>" for single-qubit
@@ -186,13 +190,13 @@ class QAOA:
             QuantumCircuit object with updated parameter values based on the Ising model.
         """
         # 1) build QUBO
-        Q = self.create_model_from_pair_list()
+        q = self.create_model_from_pair_list()
 
         # 2) map to Ising: H = x^T Q x  with  x = (1-Z)/2
         #    ⇒ h_i = -½ ∑_j Q[i,j] ,    J_{ij} = ½ Q[i,j]  (i≠j)
-        h = -np.sum(Q, axis=1) / 2.0
-        J = Q.copy() / 2.0
-        np.fill_diagonal(J, 0.0)
+        h = -np.sum(q, axis=1) / 2.0
+        j_mat = q.copy() / 2.0
+        np.fill_diagonal(j_mat, 0.0)
 
         # 3) assign each qc parameter to 2y·h or 2y·J  (the factor of 2 comes
         #    from the fact that Rz(θ) = exp(-i θ/2 Z))
@@ -209,11 +213,11 @@ class QAOA:
                 if len(parts) == 3:
                     # per-edge interaction
                     i, j = map(int, parts[1:])
-                    qc.assign_parameters({param: 2 * J[i, j] * param}, inplace=True)
+                    qc.assign_parameters({param: 2 * j_mat[i, j] * param}, inplace=True)
                 else:
                     # "global" a-parameter: sum all J's
-                    total_J = J[np.triu_indices(self.num_qubits, 1)].sum()
-                    qc.assign_parameters({param: 2 * total_J * param}, inplace=True)
+                    total_j = j_mat[np.triu_indices(self.num_qubits, 1)].sum()
+                    qc.assign_parameters({param: 2 * total_j * param}, inplace=True)
 
         return qc
 

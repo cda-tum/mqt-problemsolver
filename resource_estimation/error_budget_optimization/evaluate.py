@@ -10,25 +10,23 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 
-def evaluate(X: NDArray, Y: NDArray, total_budget: float) -> list[float]:
-    """
-    Evaluates the impact of different error budget partitions on quantum resource estimates.
+def evaluate(x: NDArray[float], y: NDArray[float], total_budget: float) -> list[float]:
+    """Evaluates the impact of different error budget partitions on quantum resource estimates.
 
     Args:
-        X: A 2D array where each row contains quantum circuit logical counts
-           (numQubits, tCount, rotationCount, etc.).
-        Y: A 2D array where each row contains error budgets for logical, t_states, and rotations.
+        x: A 2D array where each row contains quantum circuit logical counts (numQubits, tCount, rotationCount, etc.).
+        y: A 2D array where each row contains error budgets for logical, t_states, and rotations.
         total_budget: The total error budget to be distributed among components.
 
     Returns:
         List of relative differences in the product of qubits and runtime compared to
         the default budget distribution.
     """
-    if len(X) != len(Y):
+    if len(x) != len(y):
         msg = "Input arrays X and Y must have the same number of rows"
         raise ValueError(msg)
 
-    if X.shape[1] < 7:
+    if x.shape[1] < 7:
         msg = "X array must have at least 7 columns for the logical counts"
         raise ValueError(msg)
 
@@ -44,9 +42,9 @@ def evaluate(X: NDArray, Y: NDArray, total_budget: float) -> list[float]:
 
     product_diffs = []
 
-    for i, params in enumerate(Y):
+    for i, params in enumerate(y):
         # Create logical counts dictionary
-        counts_dict = {name: int(X[i, j]) for j, name in enumerate(logical_count_names)}
+        counts_dict = {name: int(x[i, j]) for j, name in enumerate(logical_count_names)}
         logical_counts = LogicalCounts(counts_dict)
 
         # Normalize parameters to the total budget
@@ -87,8 +85,7 @@ def evaluate(X: NDArray, Y: NDArray, total_budget: float) -> list[float]:
 def plot_results(
     product_diffs: list[float], product_diffs_optimal: list[float], legend: bool = False, bin_width: int = 4
 ) -> None:
-    """
-    Plots histograms comparing predicted and optimal space-time differences.
+    """Plots histograms comparing predicted and optimal space-time differences.
 
     This function visualizes the distribution of space-time differences (in percent)
     for predicted and optimal product distributions. It overlays two histograms for

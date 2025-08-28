@@ -20,31 +20,30 @@ class TSP:
     def print_problem(self, solution: list[int] | None = None) -> None:
         """Method to visualize the problem.
 
-        Keyword arguments:
-        solution -- If provided, the solution is visualized. Otherwise, the problem without solution is shown.
-
+        Args:
+            solution: If provided, the solution is visualized. Otherwise, the problem without solution is shown.
         """
-        G = nx.DiGraph(directed=True)
-        G.add_node(1)
-        G.add_node(2)
-        G.add_node(3)
-        G.add_node(4)
+        graph = nx.DiGraph(directed=True)
+        graph.add_node(1)
+        graph.add_node(2)
+        graph.add_node(3)
+        graph.add_node(4)
 
-        G.add_edge(1, 2)
-        G.add_edge(1, 3)
-        G.add_edge(1, 4)
+        graph.add_edge(1, 2)
+        graph.add_edge(1, 3)
+        graph.add_edge(1, 4)
 
-        G.add_edge(2, 1)
-        G.add_edge(2, 3)
-        G.add_edge(2, 4)
+        graph.add_edge(2, 1)
+        graph.add_edge(2, 3)
+        graph.add_edge(2, 4)
 
-        G.add_edge(3, 1)
-        G.add_edge(3, 2)
-        G.add_edge(3, 4)
+        graph.add_edge(3, 1)
+        graph.add_edge(3, 2)
+        graph.add_edge(3, 4)
 
-        G.add_edge(4, 1)
-        G.add_edge(4, 2)
-        G.add_edge(4, 3)
+        graph.add_edge(4, 1)
+        graph.add_edge(4, 2)
+        graph.add_edge(4, 3)
 
         dist_1_2 = self.dist_1_2 if hasattr(self, "dist_1_2") else "dist_1_2"
 
@@ -70,7 +69,7 @@ class TSP:
         pos = {1: [0, 1], 2: [0, 0], 3: [1, 1], 4: [1, 0]}
 
         nx.draw(
-            G,
+            graph,
             with_labels=True,
             node_color="skyblue",
             edge_cmap=plt.cm.Blues,
@@ -95,7 +94,7 @@ class TSP:
                 font_size=20,
             )
 
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, label_pos=0.3, font_size=20)
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, label_pos=0.3, font_size=20)
 
     def solve(
         self,
@@ -111,14 +110,19 @@ class TSP:
     ) -> list[int] | bool:
         """Method to solve the problem.
 
-        Keyword arguments:
-        dist_*_* -- Defining the adjacency matrix by the distances between the vertices.
-        objective_function -- Optimization goal.
-        quantum_algorithm -- Selected quantum algorithm to solve problem.
-        num_qubits_qft -- Number of qubits used for QFT if "QPE" is selected as the algorithm.
+        Args:
+            dist_1_2: Distance between vertices 1 and 2.
+            dist_1_3: Distance between vertices 1 and 3.
+            dist_1_4: Distance between vertices 1 and 4.
+            dist_2_3: Distance between vertices 2 and 3.
+            dist_2_4: Distance between vertices 2 and 4.
+            dist_3_4: Distance between vertices 3 and 4.
+            objective_function: Optimization goal.
+            quantum_algorithm: Selected quantum algorithm to solve problem.
+            num_qubits_qft: Number of qubits used for QFT if "QPE" is selected as the algorithm.
 
-        Return values:
-        solution -- Solution to the problem if it exists.
+        Returns:
+            Solution to the problem if it exists.
         """
         if quantum_algorithm == "QPE" and objective_function == "shortest_path":
             self.dist_1_2 = dist_1_2
@@ -131,12 +135,12 @@ class TSP:
             self.distances_sum = sum([dist_1_2, dist_1_3, dist_1_4, dist_2_3, dist_2_4, dist_3_4])
 
             self.num_qubits_qft = num_qubits_qft
-            return self.solve_using_QPE()
+            return self.solve_using_qpe()
 
         print("ERROR: Combination of objective function quantum algorithm is not implemented.")
         return False
 
-    def solve_using_QPE(self) -> list[int]:
+    def solve_using_qpe(self) -> list[int]:
         eigen_values = ["11000110", "10001101", "10000111"]
         all_perms = []
         all_costs = []
@@ -145,7 +149,7 @@ class TSP:
             eigenstate_register = QuantumRegister(8, "eigen")
             qft_register_classical = ClassicalRegister(self.num_qubits_qft, "qft_classical")
 
-            qc = self.create_TSP_qc(qft_register, eigenstate_register, qft_register_classical, eigenstate)
+            qc = self.create_tsp_qc(qft_register, eigenstate_register, qft_register_classical, eigenstate)
 
             most_frequent = self.simulate(qc)
 
@@ -160,7 +164,7 @@ class TSP:
 
         return all_perms[np.argmin(all_costs)]
 
-    def create_TSP_qc(
+    def create_tsp_qc(
         self,
         qft_register: QuantumRegister,
         eigenstate_register: QuantumRegister,
@@ -176,7 +180,7 @@ class TSP:
 
         for i in range(self.num_qubits_qft):
             qc.append(
-                self.final_U(times=i, eigenstate_register=eigenstate_register),
+                self.final_u(times=i, eigenstate_register=eigenstate_register),
                 [qft_register[self.num_qubits_qft - 1 - i], *eigenstate_register[:]],
             )
 
@@ -259,7 +263,7 @@ class TSP:
         # gate = UnitaryGate(matrix)
         # qc.append(gate, qubits)
 
-    def U(
+    def u(
         self,
         qc: QuantumCircuit,
         control_qreg: QuantumRegister,
@@ -282,11 +286,11 @@ class TSP:
         )
         self.controlled_unitary(qc, [control_qreg[0], *eigenstate_register[6:8]], [*phases[9:12], 0])
 
-    def final_U(self, times: int, eigenstate_register: QuantumRegister) -> Gate:
+    def final_u(self, times: int, eigenstate_register: QuantumRegister) -> Gate:
         control_qreg = QuantumRegister(1, "control")
         qc = QuantumCircuit(control_qreg, eigenstate_register)
         for _ in range(2**times):
-            self.U(qc, control_qreg, eigenstate_register)
+            self.u(qc, control_qreg, eigenstate_register)
         return qc.to_gate(label="U_" + (str(2**times)))
 
     def encode_eigenstate(
@@ -317,14 +321,14 @@ class TSP:
         return [a, b, c, d]
 
     def extract_selected_graph(self, solution: list[int]) -> nx.Graph:
-        G = nx.Graph()
+        graph = nx.Graph()
         for i in range(len(solution)):
             if i == len(solution) - 1:
-                G.add_edge(solution[i], solution[0], color="r", weight=2)
+                graph.add_edge(solution[i], solution[0], color="r", weight=2)
             else:
-                G.add_edge(solution[i], solution[i + 1], color="r", weight=2)
+                graph.add_edge(solution[i], solution[i + 1], color="r", weight=2)
 
-        return G
+        return graph
 
     def get_available_quantum_algorithms(self) -> list[str]:
         """Method to get all available quantum algorithms in a list."""

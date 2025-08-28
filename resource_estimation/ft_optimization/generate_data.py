@@ -48,8 +48,7 @@ SINGLE_QUBIT_AND_CX_TKET_STDGATES = {
 
 
 def estimate_resources(quantum_circuit: QuantumCircuit) -> tuple[int, int]:
-    """
-    Estimates the resource requirements of a quantum circuit.
+    """Estimates the resource requirements of a quantum circuit.
 
     Args:
         quantum_circuit: The quantum circuit to estimate.
@@ -62,8 +61,7 @@ def estimate_resources(quantum_circuit: QuantumCircuit) -> tuple[int, int]:
 
 
 def tk1_to_rzry(a: float, b: float, c: float) -> Circuit:
-    """
-    Converts a TK1 rotation gate into a sequence of RZ and RY rotations.
+    """Converts a TK1 rotation gate into a sequence of RZ and RY rotations.
 
     Args:
         a: The angle for the RZ rotation.
@@ -118,8 +116,7 @@ def generate_data(
     transpiler_passes_names: list[str],
     sdk_name: str,
 ) -> None:
-    """
-    Generates and stores resource estimation data for quantum circuits after applying transpiler passes.
+    """Generates and stores resource estimation data for quantum circuits after applying transpiler passes.
 
     This function reads quantum circuit benchmarks, applies specified transpiler passes using either Qiskit or TKET SDK,
     estimates resources before and after optimization, and saves the results to an Excel file. Only cases where the

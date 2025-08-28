@@ -57,7 +57,6 @@ def test_find_counter_examples(
     num_bits: int, num_counter_examples: int, get_counter_examples: bool, expected_num_iters: int | None
 ) -> None:
     """Test the function find_counter_examples."""
-
     res_string, predetermined_counter_examples = equivalence_checking.create_condition_string(
         num_bits=num_bits, num_counter_examples=num_counter_examples
     )

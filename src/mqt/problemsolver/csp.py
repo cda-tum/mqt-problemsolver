@@ -12,9 +12,7 @@ if TYPE_CHECKING:
 
 
 class Constraint(TypedDict, total=False):
-    """
-    Class to store the properties of a single constraint.
-    """
+    """Class to store the properties of a single constraint."""
 
     constraint_type: str
     operand_one: str
@@ -30,12 +28,12 @@ class CSP:
     ) -> tuple[int, int, int, int] | bool:
         """Method to solve the problem.
 
-        Keyword arguments:
-        constraints -- List of to be satisfied constraints.
-        quantum_algorithm -- Selected quantum algorithm to solve problem.
+        Args:
+            constraints: List of to be satisfied constraints.
+            quantum_algorithm: Selected quantum algorithm to solve problem.
 
-        Return values:
-        solution -- Solution to the problem if it exists.
+        Returns:
+            Solution to the problem if it exists.
         """
         if quantum_algorithm == "Grover":
             qc, anc, flag, nqubits, nancilla, (a, b, c, d) = self.init_qc()
@@ -66,11 +64,16 @@ class CSP:
     ) -> None:
         """Method to visualize the problem.
 
-        Keyword arguments:
-        sum_* -- Sums to be satisfied.
-        a to d -- Variable values satisfying the respective sums.
+        Args:
+            sum_s0: Sum to be satisfied.
+            sum_s1: Sum to be satisfied.
+            sum_s2: Sum to be satisfied.
+            sum_s3: Sum to be satisfied.
+            a: Variable value satisfying the respective sums.
+            b: Variable value satisfying the respective sums.
+            c: Variable value satisfying the respective sums.
+            d: Variable value satisfying the respective sums.
         """
-
         print("     | ", sum_s0, " | ", sum_s1, " | ")
         print("------------------")
         print(" ", sum_s2, " | ", a, " | ", b, " |")
