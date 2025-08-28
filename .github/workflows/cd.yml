@@ -14,7 +14,7 @@ permissions:
 jobs:
   python-packaging:
     name: 🐍 Packaging
-    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-packaging.yml@6ed99dff1be99ff1265b240b9b6a01c6df9a0017 # v1.11
+    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-packaging.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
     with:
       pure-python: true
 

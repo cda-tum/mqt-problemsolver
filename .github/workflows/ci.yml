@@ -19,25 +19,25 @@ permissions:
 jobs:
   change-detection:
     name: 🔍 Change
-    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-change-detection.yml@6ed99dff1be99ff1265b240b9b6a01c6df9a0017 # v1.11
+    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-change-detection.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
 
   python-linter:
     name: 🐍 Lint
     needs: change-detection
     if: fromJSON(needs.change-detection.outputs.run-python-tests)
-    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-linter.yml@6ed99dff1be99ff1265b240b9b6a01c6df9a0017 # v1.11
+    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-linter.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
 
   python-tests:
     name: 🐍 Test
     needs: change-detection
     if: fromJSON(needs.change-detection.outputs.run-python-tests)
-    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-ci.yml@6ed99dff1be99ff1265b240b9b6a01c6df9a0017 # v1.11
+    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-python-ci.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
 
   code-ql:
     name: 📝 CodeQL
     needs: change-detection
     if: fromJSON(needs.change-detection.outputs.run-code-ql)
-    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-code-ql-python.yml@6ed99dff1be99ff1265b240b9b6a01c6df9a0017 # v1.11
+    uses: munich-quantum-toolkit/workflows/.github/workflows/reusable-code-ql-python.yml@7530ed35fb2280a7fed47699e7c9d145c0691700 # v1.16
 
   required-checks-pass: # This job does nothing and is only used for branch protection
     name: 🚦 Check
