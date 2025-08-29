@@ -1,3 +1,11 @@
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+mystnb:
+  number_source_lines: true
+---
+
 # MQT ProblemSolver
 
 MQT ProblemSolver provides a framework to utilize quantum computing as a technology for users with little to no quantum computing knowledge
@@ -26,7 +34,7 @@ In the current implementation, two case studies are conducted:
 
 ### A SAT Problem: Constraint Satisfaction Problem
 
-This exemplary implementation can be found in the [`csp_example.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/notebooks/csp_example.ipynb) Jupyter notebook.
+This exemplary implementation can be found in the [`csp_example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/csp_example.ipynb) Jupyter notebook.
 Here, the solution to a Kakuro riddle with a 2x2 grid can be solved for arbitrary sums `s0` to `s3`:
 
 <p align="center">
@@ -37,7 +45,7 @@ MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a soluti
 
 ### A Graph-based Optimization Problem: Travelling Salesman Problem
 
-This exemplary implementation can be found in the [`tsp_example.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/notebooks/tsp_example.ipynb) Jupyter notebook.
+This exemplary implementation can be found in the [`tsp_example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/tsp_example.ipynb) Jupyter notebook.
 Here, the solution to a Travelling Salesman Problem with 4 cities can be solved for arbitrary distances `dist_1_2` to `dist_3_4`between the cities.
 
 <p align="center">
@@ -84,7 +92,7 @@ For more details, see {cite:p}`quetschlich2023precompilation`.
 Resource estimation is a promising alternative to actually execute quantum circuits on real quantum hardware which is currently restricted by the number of qubits and the error rates. By estimating the resources needed for a quantum circuit,
 the development of quantum computing applications can be accelerated without the need to wait for the availability of large-enough quantum hardware.
 
-In `resource_estimation/RE_experiments.py`, we evaluate the resources to calculate the ground state energy of a Hamiltonian to chemical accuracy of 1 mHartree using the qubitization quantum simulation algorithm.
+In [`experiments.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/experiments.ipynb), we evaluate the resources to calculate the ground state energy of a Hamiltonian to chemical accuracy of 1 mHartree using the qubitization quantum simulation algorithm.
 The Hamiltonian describes the 64 electron and 56 orbital active space of one of the stable intermediates in the ruthenium-catalyzed carbon fixation cycle.
 
 In this evaluation, we investigate
@@ -118,14 +126,15 @@ In the `equivalence_checking` module, our approach to this problem by utilizing 
 - A second one to actually input a miter expression (in form of a string) together with some parameters independent from the miter (shots and delta) and use our approach to find the counter examples (if the circuits are non-equivalent).
 
 These two implementations are provided by the functions `try_parameter_combinations()` and `find_counter_examples()`, respectively.
-Examples for their usages are shown in the [`equivalence_checking_example.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/notebooks/equivalence_checking/equivalence_checking_example.ipynb) Jupyter notebook.
+Examples for their usages are shown in the [`equivalence_checking_example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/equivalence_checking/equivalence_checking_example.ipynb) Jupyter notebook.
 
 For more details, see {cite:p}`quetschlich2024equivalence_checking`.
 
 ## Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions
 
 Applying error correction to execute quantum circuits fault-tolerantly induces massive overheads in the required physical resources, often in the orders of magnitude.
-This leads to thousands of qubits already for toy-sized quantum applications. Obviously, these need to be reduced, for which the so-called error budget can be a particular lever.
+This leads to thousands of qubits already for toy-sized quantum applications.
+Obviously, these need to be reduced, for which the so-called error budget can be a particular lever.
 Even though error correction is applied, a certain error rate still remains in the execution of the quantum circuit.
 Hence, the end user defines a maximum tolerated error rate, the error budget, for the quantum application to be considered by the compiler.
 Since an error-corrected quantum circuit consists of different parts, this error budget is distributed among these parts.
@@ -136,18 +145,44 @@ To find an efficient distribution, we use resource estimation to evaluate differ
 <img src="_static/error_budget_approach.svg" height=150px>
 </p>
 
-The implementation of the approach can be found under `resource_estimation/error_budget_optimization`.
-An example usage of the implementation is shown in the [`example_use.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/resource_estimation/error_budget_optimization/example_use.ipynb) Jupyter notebook.
+For an examplary usage of the implementation, see below.
+
+```{code-cell} ipython3
+from mqt.problemsolver.resource_estimation.error_budget_optimization import (
+    evaluate,
+    generate_data,
+    plot_results,
+    train,
+)
+
+total_error_budget = 0.1
+benchmarks_and_sizes = [("ae", [3, 4, 5, 6, 7, 8, 9, 10])]
+data = generate_data(
+    total_error_budget=total_error_budget,
+    number_of_randomly_generated_distributions=1000,
+    benchmarks_and_sizes=benchmarks_and_sizes,
+)
+model, x_test, y_test = train(data)
+y_pred = model.predict(x_test)
+product_diffs = evaluate(x_test, y_pred, total_error_budget)
+product_diffs_dataset = evaluate(x_test, y_test, total_error_budget)
+plot_results(product_diffs, product_diffs_dataset, legend=True, bin_width=4)
+```
+
+A more elaborate example of the implementation is shown in the [`example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/error_budget_optimization/example.ipynb) Jupyter notebook.
 
 For more details, see {cite:p}`forster2025error_budget_optimization`.
 
 ## Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?
 
-Translating quantum circuits into a device's native gate set often increases gate count, amplifying noise in today's error-prone Noisy Intermediate-Scale Quantum (NISQ) devices. Although optimizations exist to reduce gate counts, scaling to larger qubit and circuit sizes will see hardware errors dominate, blocking industrial-scale use. Error correction can enable Fault-Tolerant Quantum Computing (FTQC) but demands massive qubit overheads, often tens of thousands for small problems.
+Translating quantum circuits into a device's native gate set often increases gate count, amplifying noise in today's error-prone Noisy Intermediate-Scale Quantum (NISQ) devices.
+Although optimizations exist to reduce gate counts, scaling to larger qubit and circuit sizes will see hardware errors dominate, blocking industrial-scale use. Error correction can enable Fault-Tolerant Quantum Computing (FTQC) but demands massive qubit overheads, often tens of thousands for small problems.
 
-This motivates FTQC-oriented optimization techniques and raises the question: can NISQ techniques be adapted, or must new ones be developed? We address this question by evaluating Qiskit and TKET optimization passes on benchmark circuits from MQT Bench. As tools to directly design and evaluate fault-tolerant quantum circuit instances, we use resource estimation to assess FTQC requirements.
+This motivates FTQC-oriented optimization techniques and raises the question: can NISQ techniques be adapted, or must new ones be developed?
+We address this question by evaluating Qiskit and TKET optimization passes on benchmark circuits from MQT Bench.
+As tools to directly design and evaluate fault-tolerant quantum circuit instances, we use resource estimation to assess FTQC requirements.
 
-The implementation of the approach can be found under `resource_estimation/ft_optimization`.
+An example usage of the implementation is shown in the [`example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/fault_tolerant_optimization/example.ipynb) Jupyter notebook.
 
 For more details, see {cite:p}`forster2025ft_circuit_optimization`.
 

@@ -59,16 +59,18 @@ def compute_expectation(counts: dict[str, int], qubo: NDArray[np.float64]) -> fl
         x = bitstring_to_vector(bitstring)
         energy = x @ qubo @ x  # Compute x^T Q x
         weight = count / total_counts
-        expectation += weight * energy
+        expectation += weight * float(energy)
 
     return expectation
 
 
-def cost_func(params: list[float], circuit: QuantumCircuit, backend: BackendV2, qubo: NDArray[np.float64]) -> float:
+def cost_func(
+    params: NDArray[np.float64], circuit: QuantumCircuit, backend: BackendV2, qubo: NDArray[np.float64]
+) -> float:
     """Computes the cost function for QAOA optimization.
 
     Args:
-        params: A list of floats representing the parameters for the QAOA circuit
+        params: An array of floats representing the parameters for the QAOA circuit
         circuit: The QuantumCircuit representing the QAOA circuit to be evaluated.
         backend: The backend to run the circuit on.
         qubo: The QUBO matrix representing the problem.
@@ -105,7 +107,7 @@ def optimize_with_multiple_init_parameters(
         A list of floats representing the optimized parameters that minimize the cost function.
     """
     best_cost = float("inf")
-    best_params = []
+    best_params: list[float] = []
 
     rng = np.random.default_rng(42)
     for _ in range(num_init):
@@ -121,7 +123,7 @@ def optimize_with_multiple_init_parameters(
 
         if res.fun < best_cost:
             best_cost = res.fun
-            best_params = res.x
+            best_params = res.x.tolist()
     # Assign the best parameters to the circuit
     param_dict = {param: best_params[i] for i, param in enumerate(circuit.parameters)}
     circuit = circuit.assign_parameters(param_dict)
@@ -143,12 +145,11 @@ def evaluate_result(
         qubo: The QUBO matrix representing the problem.
 
     Returns:
-        A tuple containing:
         - The found state as a bitstring.
         - The count of that state.
         - The energy computed from the QUBO matrix.
     """
-    _optimized_params, circuit = optimize_with_multiple_init_parameters(num_init, circuit, backend, qubo)
+    _, circuit = optimize_with_multiple_init_parameters(num_init, circuit, backend, qubo)
 
     job = backend.run(circuit, shots=10000)
     result = job.result()
@@ -160,7 +161,7 @@ def evaluate_result(
 
     print("Found Energy:", energy)
 
-    return found_state, counts[found_state], energy
+    return found_state, counts[found_state], float(energy)
 
 
 class QAOA:
@@ -177,7 +178,8 @@ class QAOA:
         """Returns the quantum circuit of the QAOA algorithm and the resulting solution.
 
         Returns:
-            tuple: A tuple containing the QAOA circuit (QuantumCircuit) and the computed energy (float) of the solution.
+            - The QAOA circuit (QuantumCircuit) of the solution.
+            - The computed energy (float) of the solution.
         """
         circuit = self._qaoa_circuit_from_cost_op()
         circuit.measure_all()
@@ -208,7 +210,8 @@ class VQE:
         """Returns the quantum circuit of the VQE algorithm and the resulting solution.
 
         Returns:
-            tuple: A tuple containing the VQE circuit (QuantumCircuit) and the computed energy (float) of the solution.
+            - The VQE circuit (QuantumCircuit) of the solution.
+            - The computed energy (float) of the solution.
         """
         circuit = self.ansatz
         circuit.measure_all()

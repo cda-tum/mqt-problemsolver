@@ -221,16 +221,11 @@ def try_parameter_combinations(
 def verify_counter_examples(result_list: list[str], miter: str) -> list[str]:
     """Verifies the counter examples found by Grover's algorithm.
 
-    Parameters
-    ----------
-    result_list : list[str]
-        List of counter examples
-    miter : str
-        Miter condition string
+    Args:
+        result_list: List of counter examples
+        miter: Miter condition string
 
     Returns:
-    -------
-    list[str]
         List of actual counter examples
     """
     # Map 'a' to 'z' to bits
@@ -240,7 +235,7 @@ def verify_counter_examples(result_list: list[str], miter: str) -> list[str]:
     # pick first found element
     first_result = result_list[0]
 
-    variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result))}
+    variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result), strict=False)}
     res = eval(python_expr, {"__builtins__": None}, variables)
     if not res:
         real_counter_examples = [format(i, f"0{len(result_list[0])}b") for i in range(2 ** len(result_list[0]))]

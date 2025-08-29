@@ -36,11 +36,7 @@ def get_success_ratio(ac_reqs: list[LocationRequest], qubo: NDArray[np.float64],
     # sum over all LocationRequests and sum over their imaging_attempt_score if the respective indicator in sol[index] is 1
     solution_vector = solution_vector[::-1]
     return (
-        sum(
-            -ac_req.imaging_attempt_score
-            for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
-            if solution_vector[index] == 1
-        )
+        sum(-ac_req.imaging_attempt_score for index, ac_req in enumerate(ac_reqs) if solution_vector[index] == 1)
         / exact_result
     )
 
@@ -63,7 +59,7 @@ def create_acquisition_position(
         np.sin(longitude) * np.sin(latitude),
         np.cos(latitude),
     ])
-    return cast("NDArray[np.float64]", res)
+    return res.astype(np.float64)
 
 
 def calc_needed_time_between_acquisition_attempts(
@@ -190,7 +186,7 @@ def cost_op_from_qubo(q: NDArray[np.float64]) -> tuple[SparsePauliOp, float]:
     Returns:
         A tuple (qubit_op, offset) representing the Ising Hamiltonian and constant offset.
     """
-    if not isinstance(q, np.ndarray) or q.ndim != 2 or q.shape[0] != q.shape[1]:
+    if q.ndim != 2 or q.shape[0] != q.shape[1]:
         msg = "QUBO matrix must be a square numpy array."
         raise ValueError(msg)
 
@@ -251,7 +247,7 @@ def solve_classically(qubo: NDArray[np.float64]) -> float:
     eigenvalues = eigvalsh(h_mat)
 
     # Find the minimum eigenvalue
-    return np.min(eigenvalues) + offset
+    return float(np.min(eigenvalues) + offset)
 
 
 def get_longitude(vector: NDArray[np.float64]) -> float:
