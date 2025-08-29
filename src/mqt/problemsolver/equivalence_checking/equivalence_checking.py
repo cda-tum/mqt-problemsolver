@@ -240,7 +240,7 @@ def verify_counter_examples(result_list: list[str], miter: str) -> list[str]:
     # pick first found element
     first_result = result_list[0]
 
-    variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result))}
+    variables = {name: bool(int(value)) for name, value in zip(var_names, reversed(first_result), strict=False)}
     res = eval(python_expr, {"__builtins__": None}, variables)
     if not res:
         real_counter_examples = [format(i, f"0{len(result_list[0])}b") for i in range(2 ** len(result_list[0]))]

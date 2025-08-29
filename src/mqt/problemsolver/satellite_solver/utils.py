@@ -38,7 +38,7 @@ def get_success_ratio(ac_reqs: list[LocationRequest], qubo: NDArray[np.float64],
     return (
         sum(
             -ac_req.imaging_attempt_score
-            for ac_req, index in zip(ac_reqs, range(len(ac_reqs)))
+            for ac_req, index in zip(ac_reqs, range(len(ac_reqs)), strict=False)
             if solution_vector[index] == 1
         )
         / exact_result
