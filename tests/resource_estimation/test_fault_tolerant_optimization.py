@@ -2,12 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pytket.passes import (
-    RemoveRedundancies,
-)
-from qiskit.transpiler.passes.optimization import (
-    Optimize1qGatesDecomposition,
-)
+from pytket.passes import RemoveRedundancies
+from qiskit.transpiler.passes.optimization import Optimize1qGatesDecomposition
 
 from mqt.problemsolver.resource_estimation.fault_tolerant_optimization import (
     SINGLE_QUBIT_AND_CX_QISKIT_STDGATES,

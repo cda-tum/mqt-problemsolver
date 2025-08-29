@@ -1,3 +1,11 @@
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+mystnb:
+  number_source_lines: true
+---
+
 # MQT ProblemSolver
 
 MQT ProblemSolver provides a framework to utilize quantum computing as a technology for users with little to no quantum computing knowledge
@@ -84,7 +92,7 @@ For more details, see {cite:p}`quetschlich2023precompilation`.
 Resource estimation is a promising alternative to actually execute quantum circuits on real quantum hardware which is currently restricted by the number of qubits and the error rates. By estimating the resources needed for a quantum circuit,
 the development of quantum computing applications can be accelerated without the need to wait for the availability of large-enough quantum hardware.
 
-In `resource_estimation/RE_experiments.py`, we evaluate the resources to calculate the ground state energy of a Hamiltonian to chemical accuracy of 1 mHartree using the qubitization quantum simulation algorithm.
+In [`experiments.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/experiments.ipynb), we evaluate the resources to calculate the ground state energy of a Hamiltonian to chemical accuracy of 1 mHartree using the qubitization quantum simulation algorithm.
 The Hamiltonian describes the 64 electron and 56 orbital active space of one of the stable intermediates in the ruthenium-catalyzed carbon fixation cycle.
 
 In this evaluation, we investigate
@@ -137,7 +145,31 @@ To find an efficient distribution, we use resource estimation to evaluate differ
 <img src="_static/error_budget_approach.svg" height=150px>
 </p>
 
-An example usage of the implementation is shown in the [`example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/error_budget_optimization/example.ipynb) Jupyter notebook.
+For an examplary usage of the implementation, see below.
+
+```{code-cell} ipython3
+from mqt.problemsolver.resource_estimation.error_budget_optimization import (
+    evaluate,
+    generate_data,
+    plot_results,
+    train,
+)
+
+total_error_budget = 0.1
+benchmarks_and_sizes = [("ae", [3, 4, 5, 6, 7, 8, 9, 10])]
+data = generate_data(
+    total_error_budget=total_error_budget,
+    number_of_randomly_generated_distributions=10_000,
+    benchmarks_and_sizes=benchmarks_and_sizes,
+)
+model, x_test, y_test = train(data)
+y_pred = model.predict(x_test)
+product_diffs = evaluate(x_test, y_pred, total_error_budget)
+product_diffs_dataset = evaluate(x_test, y_test, total_error_budget)
+plot_results(product_diffs, product_diffs_dataset, legend=True, bin_width=4)
+```
+
+A more elaborate example of the implementation is shown in the [`example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/error_budget_optimization/example.ipynb) Jupyter notebook.
 
 For more details, see {cite:p}`forster2025error_budget_optimization`.
 
