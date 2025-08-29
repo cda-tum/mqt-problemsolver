@@ -111,8 +111,7 @@ def _cx_to_cx() -> Circuit:
 
 def generate_data_qiskit(
     csv_filename: pathlib.Path,
-    benchmarks: list[str],
-    benchmarks_dir: pathlib.Path,
+    benchmarks: list[pathlib.Path],
     transpiler_passes: list[TransformationPass],
 ) -> None:
     """Generates and stores resource estimation data for quantum circuits after applying transpiler passes.
@@ -123,8 +122,7 @@ def generate_data_qiskit(
 
     Args:
         csv_filename: Path to the Excel file where results will be stored.
-        benchmarks: List of benchmark circuit names to process.
-        benchmarks_dir: Directory containing the benchmark circuit files in QASM format.
+        benchmarks: List of benchmark circuit paths to process.
         transpiler_passes: List of transpiler passes to apply for optimization.
         transpiler_passes_names: List of names corresponding to each transpiler pass.
         sdk_name: Name of the SDK to use ("qiskit" or "tket").
@@ -148,9 +146,8 @@ def generate_data_qiskit(
     )
 
     for benchmark in benchmarks:
-        file_path = benchmarks_dir / f"{benchmark}.qasm"
-
-        qc = QuantumCircuit.from_qasm_file(file_path)
+        benchmark_name = benchmark.stem
+        qc = QuantumCircuit.from_qasm_file(benchmark)
         transpiled_circuit = transpile(
             qc,
             basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES,
@@ -184,7 +181,7 @@ def generate_data_qiskit(
                     new_data = pd.DataFrame(
                         [
                             [
-                                benchmark,
+                                benchmark_name,
                                 num_qubits,
                                 transpiler_pass_str,
                                 original_ops,
@@ -206,8 +203,7 @@ def generate_data_qiskit(
 
 def generate_data_tket(
     csv_filename: pathlib.Path,
-    benchmarks: list[str],
-    benchmarks_dir: pathlib.Path,
+    benchmarks: list[pathlib.Path],
     transpiler_passes: list[BasePass],
     transpiler_passes_names: list[str],
 ) -> None:
@@ -219,8 +215,7 @@ def generate_data_tket(
 
     Args:
         csv_filename: Path to the Excel file where results will be stored.
-        benchmarks: List of benchmark circuit names to process.
-        benchmarks_dir: Directory containing the benchmark circuit files in QASM format.
+        benchmarks: List of benchmark circuit paths to process.
         transpiler_passes: List of transpiler passes to apply for optimization.
         transpiler_passes_names: List of names corresponding to each transpiler pass.
         sdk_name: Name of the SDK to use ("qiskit" or "tket").
@@ -244,8 +239,8 @@ def generate_data_tket(
     )
 
     for benchmark in benchmarks:
-        file_path = benchmarks_dir / f"{benchmark}.qasm"
-        read_qiskit_qc = QuantumCircuit.from_qasm_file(file_path)
+        benchmark_name = benchmark.stem
+        read_qiskit_qc = QuantumCircuit.from_qasm_file(benchmark)
         qc = qiskit_to_tk(read_qiskit_qc)
 
         auto_rebase_pass = AutoRebase(SINGLE_QUBIT_AND_CX_TKET_STDGATES)
@@ -296,7 +291,7 @@ def generate_data_tket(
                     new_data = pd.DataFrame(
                         [
                             [
-                                benchmark,
+                                benchmark_name,
                                 num_qubits,
                                 transpiler_pass_str,
                                 original_ops,
