@@ -17,7 +17,7 @@ authors = [
 keywords = ["MQT", "quantum computing"]
 license = "MIT"
 license-files = ["LICENSE.md"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dynamic = ["version"]
 
 dependencies = [
@@ -37,6 +37,12 @@ dependencies = [
     "python_tsp>=0.5.0",
     "docplex>=2.28.240",
     "joblib>=1.4.2",
+    "qsharp>=1.20.0",
+    "mqt-bench>=2.0.1",
+    "pytket>=2.9.1",
+    "pytket-qiskit>=0.71.0",
+    "z3-solver>=4.15.3.0",
+    "openpyxl>=3.1.5",
 ]
 
 classifiers = [
@@ -123,14 +129,14 @@ filterwarnings = [
 
 [tool.coverage]
 run.source = ["mqt.problemsolver"]
+run.disable_warnings = [
+    "no-sysmon",
+]
 report.exclude_also = [
     '\.\.\.',
     'if TYPE_CHECKING:',
     'raise AssertionError',
     'raise NotImplementedError',
-]
-run.disable_warnings = [
-    "no-sysmon",
 ]
 
 show_missing = true

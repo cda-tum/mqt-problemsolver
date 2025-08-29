@@ -26,7 +26,7 @@ In the current implementation, two case studies are conducted:
 
 ### A SAT Problem: Constraint Satisfaction Problem
 
-This exemplary implementation can be found in the [`csp_example.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/notebooks/csp_example.ipynb) Jupyter notebook.
+This exemplary implementation can be found in the [`csp_example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/csp_example.ipynb) Jupyter notebook.
 Here, the solution to a Kakuro riddle with a 2x2 grid can be solved for arbitrary sums `s0` to `s3`:
 
 <p align="center">
@@ -37,7 +37,7 @@ MQT ProblemSolver will return valid values to `a`, `b`, `c`, and `d` if a soluti
 
 ### A Graph-based Optimization Problem: Travelling Salesman Problem
 
-This exemplary implementation can be found in the [`tsp_example.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/notebooks/tsp_example.ipynb) Jupyter notebook.
+This exemplary implementation can be found in the [`tsp_example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/tsp_example.ipynb) Jupyter notebook.
 Here, the solution to a Travelling Salesman Problem with 4 cities can be solved for arbitrary distances `dist_1_2` to `dist_3_4`between the cities.
 
 <p align="center">
@@ -118,14 +118,15 @@ In the `equivalence_checking` module, our approach to this problem by utilizing 
 - A second one to actually input a miter expression (in form of a string) together with some parameters independent from the miter (shots and delta) and use our approach to find the counter examples (if the circuits are non-equivalent).
 
 These two implementations are provided by the functions `try_parameter_combinations()` and `find_counter_examples()`, respectively.
-Examples for their usages are shown in the [`equivalence_checking_example.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/notebooks/equivalence_checking/equivalence_checking_example.ipynb) Jupyter notebook.
+Examples for their usages are shown in the [`equivalence_checking_example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/equivalence_checking/equivalence_checking_example.ipynb) Jupyter notebook.
 
 For more details, see {cite:p}`quetschlich2024equivalence_checking`.
 
 ## Improving Hardware Requirements for Fault-Tolerant Quantum Computing by Optimizing Error Budget Distributions
 
 Applying error correction to execute quantum circuits fault-tolerantly induces massive overheads in the required physical resources, often in the orders of magnitude.
-This leads to thousands of qubits already for toy-sized quantum applications. Obviously, these need to be reduced, for which the so-called error budget can be a particular lever.
+This leads to thousands of qubits already for toy-sized quantum applications.
+Obviously, these need to be reduced, for which the so-called error budget can be a particular lever.
 Even though error correction is applied, a certain error rate still remains in the execution of the quantum circuit.
 Hence, the end user defines a maximum tolerated error rate, the error budget, for the quantum application to be considered by the compiler.
 Since an error-corrected quantum circuit consists of different parts, this error budget is distributed among these parts.
@@ -136,18 +137,20 @@ To find an efficient distribution, we use resource estimation to evaluate differ
 <img src="_static/error_budget_approach.svg" height=150px>
 </p>
 
-The implementation of the approach can be found under `resource_estimation/error_budget_optimization`.
-An example usage of the implementation is shown in the [`example_use.ipynb`](https://github.com/cda-tum/mqt-problemsolver/blob/main/resource_estimation/error_budget_optimization/example_use.ipynb) Jupyter notebook.
+An example usage of the implementation is shown in the [`example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/error_budget_optimization/example.ipynb) Jupyter notebook.
 
 For more details, see {cite:p}`forster2025error_budget_optimization`.
 
 ## Quantum Circuit Optimization for the Fault-Tolerance Era: Do We Have to Start from Scratch?
 
-Translating quantum circuits into a device's native gate set often increases gate count, amplifying noise in today's error-prone Noisy Intermediate-Scale Quantum (NISQ) devices. Although optimizations exist to reduce gate counts, scaling to larger qubit and circuit sizes will see hardware errors dominate, blocking industrial-scale use. Error correction can enable Fault-Tolerant Quantum Computing (FTQC) but demands massive qubit overheads, often tens of thousands for small problems.
+Translating quantum circuits into a device's native gate set often increases gate count, amplifying noise in today's error-prone Noisy Intermediate-Scale Quantum (NISQ) devices.
+Although optimizations exist to reduce gate counts, scaling to larger qubit and circuit sizes will see hardware errors dominate, blocking industrial-scale use. Error correction can enable Fault-Tolerant Quantum Computing (FTQC) but demands massive qubit overheads, often tens of thousands for small problems.
 
-This motivates FTQC-oriented optimization techniques and raises the question: can NISQ techniques be adapted, or must new ones be developed? We address this question by evaluating Qiskit and TKET optimization passes on benchmark circuits from MQT Bench. As tools to directly design and evaluate fault-tolerant quantum circuit instances, we use resource estimation to assess FTQC requirements.
+This motivates FTQC-oriented optimization techniques and raises the question: can NISQ techniques be adapted, or must new ones be developed?
+We address this question by evaluating Qiskit and TKET optimization passes on benchmark circuits from MQT Bench.
+As tools to directly design and evaluate fault-tolerant quantum circuit instances, we use resource estimation to assess FTQC requirements.
 
-The implementation of the approach can be found under `resource_estimation/ft_optimization`.
+An example usage of the implementation is shown in the [`example.ipynb`](https://github.com/munich-quantum-toolkit/problemsolver/blob/main/notebooks/resource_estimation/fault_tolerant_optimization/example.ipynb) Jupyter notebook.
 
 For more details, see {cite:p}`forster2025ft_circuit_optimization`.
 
