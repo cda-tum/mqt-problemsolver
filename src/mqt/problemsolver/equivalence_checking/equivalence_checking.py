@@ -221,16 +221,11 @@ def try_parameter_combinations(
 def verify_counter_examples(result_list: list[str], miter: str) -> list[str]:
     """Verifies the counter examples found by Grover's algorithm.
 
-    Parameters
-    ----------
-    result_list : list[str]
-        List of counter examples
-    miter : str
-        Miter condition string
+    Args:
+        result_list: List of counter examples
+        miter: Miter condition string
 
     Returns:
-    -------
-    list[str]
         List of actual counter examples
     """
     # Map 'a' to 'z' to bits

@@ -314,7 +314,7 @@ class CSP:
 
         found_sol = False
         for entry in counts:
-            if counts.get(entry) > 5 * mean_counts:
+            if counts[entry] > 5 * mean_counts:
                 found_sol = True
                 break
         if found_sol:
@@ -323,7 +323,7 @@ class CSP:
                 c = int(entry[2:4], 2)
                 b = int(entry[4:6], 2)
                 a = int(entry[6:8], 2)
-                if counts.get(entry) > 5 * mean_counts:
+                if counts[entry] > 5 * mean_counts:
                     return (a, b, c, d)
 
         print("Simulation was unsuccessful.")

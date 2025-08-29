@@ -109,13 +109,11 @@ def _cx_to_cx() -> Circuit:
     return circ
 
 
-def generate_data(
+def generate_data_qiskit(
     csv_filename: pathlib.Path,
     benchmarks: list[str],
     benchmarks_dir: pathlib.Path,
-    transpiler_passes: list[BasePass | TransformationPass],
-    transpiler_passes_names: list[str],
-    sdk_name: str,
+    transpiler_passes: list[TransformationPass],
 ) -> None:
     """Generates and stores resource estimation data for quantum circuits after applying transpiler passes.
 
@@ -131,8 +129,6 @@ def generate_data(
         transpiler_passes_names: List of names corresponding to each transpiler pass.
         sdk_name: Name of the SDK to use ("qiskit" or "tket").
     """
-    basis_gates = SINGLE_QUBIT_AND_CX_QISKIT_STDGATES
-
     column_order = [
         "Benchmark",
         "Number of Qubits",
@@ -151,124 +147,170 @@ def generate_data(
         pd.read_excel(csv_filename) if pathlib.Path(csv_filename).exists() else pd.DataFrame(columns=column_order)
     )
 
-    if sdk_name == "qiskit":
-        for benchmark in benchmarks:
-            file_path = benchmarks_dir / f"{benchmark}.qasm"
+    for benchmark in benchmarks:
+        file_path = benchmarks_dir / f"{benchmark}.qasm"
 
-            qc = QuantumCircuit.from_qasm_file(file_path)
-            transpiled_circuit = transpile(qc, basis_gates=basis_gates, optimization_level=0, seed_transpiler=0)
-            num_qubits = transpiled_circuit.num_qubits
-            original_ops = transpiled_circuit.count_ops()
-            gate_count_original = sum(original_ops.values())
+        qc = QuantumCircuit.from_qasm_file(file_path)
+        transpiled_circuit = transpile(
+            qc,
+            basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES,
+            optimization_level=0,
+            seed_transpiler=0,
+        )
+        num_qubits = transpiled_circuit.num_qubits
+        original_ops = transpiled_circuit.count_ops()
+        gate_count_original = sum(original_ops.values())
 
-            qubits, runtime = _estimate_resources(transpiled_circuit)
+        qubits, runtime = _estimate_resources(transpiled_circuit)
 
-            for transpiler_pass in transpiler_passes:
-                pass_manager = PassManager(transpiler_pass)
-                optimized_circuit = pass_manager.run(transpiled_circuit)
+        for transpiler_pass in transpiler_passes:
+            pass_manager = PassManager(transpiler_pass)
+            optimized_circuit = pass_manager.run(transpiled_circuit)
 
-                if transpiled_circuit != optimized_circuit:
-                    optimized_ops = optimized_circuit.count_ops()
+            if transpiled_circuit != optimized_circuit:
+                optimized_ops = optimized_circuit.count_ops()
 
-                    gate_count_optimized = sum(optimized_ops.values())
-                    gate_count_diff = (gate_count_optimized - gate_count_original) / gate_count_original
+                gate_count_optimized = sum(optimized_ops.values())
+                gate_count_diff = (gate_count_optimized - gate_count_original) / gate_count_original
 
-                    optimized_qubits, optimized_runtime = _estimate_resources(optimized_circuit)
+                optimized_qubits, optimized_runtime = _estimate_resources(optimized_circuit)
 
-                    relative_qubits_delta = (optimized_qubits - qubits) / qubits
-                    relative_runtime_delta = (optimized_runtime - runtime) / runtime
+                relative_qubits_delta = (optimized_qubits - qubits) / qubits
+                relative_runtime_delta = (optimized_runtime - runtime) / runtime
 
-                    if gate_count_diff != 0 or relative_qubits_delta != 0 or relative_runtime_delta != 0:
-                        transpiler_pass_str = str([pass_.name() for pass_ in transpiler_pass])
+                if gate_count_diff != 0 or relative_qubits_delta != 0 or relative_runtime_delta != 0:
+                    transpiler_pass_str = str([pass_.name() for pass_ in transpiler_pass])
 
-                        new_data = pd.DataFrame(
+                    new_data = pd.DataFrame(
+                        [
                             [
-                                [
-                                    benchmark,
-                                    num_qubits,
-                                    transpiler_pass_str,
-                                    original_ops,
-                                    optimized_ops,
-                                    gate_count_original,
-                                    gate_count_optimized,
-                                    qubits,
-                                    optimized_qubits,
-                                    runtime,
-                                    optimized_runtime,
-                                ]
-                            ],
-                            columns=column_order,
-                        )
-
-                        df_existing = pd.concat([df_existing, new_data], ignore_index=True)
-                        df_existing.to_excel(csv_filename, index=False)
-
-    elif sdk_name == "tket":
-        for benchmark in benchmarks:
-            file_path = benchmarks_dir / f"{benchmark}.qasm"
-            read_qiskit_qc = QuantumCircuit.from_qasm_file(file_path)
-            qc = qiskit_to_tk(read_qiskit_qc)
-
-            auto_rebase_pass = AutoRebase(SINGLE_QUBIT_AND_CX_TKET_STDGATES)
-            custom_rebase_pass = RebaseCustom(SINGLE_QUBIT_AND_CX_TKET_STDGATES, _cx_to_cx, _tk1_to_rzry)
-            auto_rebase_pass.apply(qc)
-
-            num_qubits = qc.n_qubits
-
-            qiskit_circuit = tk_to_qiskit(qc)
-
-            qiskit_circuit = transpile(
-                qiskit_circuit, basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES, optimization_level=0, seed_transpiler=0
-            )
-            original_ops = qiskit_circuit.count_ops()
-
-            gate_count_original = sum(original_ops.values())
-
-            qubits, runtime = _estimate_resources(qiskit_circuit)
-
-            for i, transpiler_pass in enumerate(transpiler_passes):
-                optimized_circuit = Circuit.from_dict(qc.to_dict())
-                transpiler_pass.apply(optimized_circuit)
-                custom_rebase_pass.apply(optimized_circuit)
-                auto_rebase_pass.apply(optimized_circuit)
-
-                if qc != optimized_circuit:
-                    optimized_qiskit_circuit = tk_to_qiskit(optimized_circuit)
-                    optimized_qiskit_circuit = transpile(
-                        optimized_qiskit_circuit, basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES, optimization_level=0
+                                benchmark,
+                                num_qubits,
+                                transpiler_pass_str,
+                                original_ops,
+                                optimized_ops,
+                                gate_count_original,
+                                gate_count_optimized,
+                                qubits,
+                                optimized_qubits,
+                                runtime,
+                                optimized_runtime,
+                            ]
+                        ],
+                        columns=column_order,
                     )
 
-                    optimized_ops = optimized_qiskit_circuit.count_ops()
+                    df_existing = pd.concat([df_existing, new_data], ignore_index=True)
+                    df_existing.to_excel(csv_filename, index=False)
 
-                    gate_count_optimized = sum(optimized_ops.values())
-                    gate_count_diff = (gate_count_optimized - gate_count_original) / gate_count_original
 
-                    optimized_qubits, optimized_runtime = _estimate_resources(optimized_qiskit_circuit)
+def generate_data_tket(
+    csv_filename: pathlib.Path,
+    benchmarks: list[str],
+    benchmarks_dir: pathlib.Path,
+    transpiler_passes: list[BasePass],
+    transpiler_passes_names: list[str],
+) -> None:
+    """Generates and stores resource estimation data for quantum circuits after applying transpiler passes.
 
-                    relative_qubits_delta = (optimized_qubits - qubits) / qubits
-                    relative_runtime_delta = (optimized_runtime - runtime) / runtime
+    This function reads quantum circuit benchmarks, applies specified transpiler passes using either Qiskit or TKET SDK,
+    estimates resources before and after optimization, and saves the results to an Excel file. Only cases where the
+    optimization changes the gate count, number of qubits, or runtime are recorded.
 
-                    if gate_count_diff != 0 or relative_qubits_delta != 0 or relative_runtime_delta != 0:
-                        transpiler_pass_str = transpiler_passes_names[i]
+    Args:
+        csv_filename: Path to the Excel file where results will be stored.
+        benchmarks: List of benchmark circuit names to process.
+        benchmarks_dir: Directory containing the benchmark circuit files in QASM format.
+        transpiler_passes: List of transpiler passes to apply for optimization.
+        transpiler_passes_names: List of names corresponding to each transpiler pass.
+        sdk_name: Name of the SDK to use ("qiskit" or "tket").
+    """
+    column_order = [
+        "Benchmark",
+        "Number of Qubits",
+        "Transpiler Pass",
+        "Original Ops",
+        "Optimized Ops",
+        "Gate Count (Original)",
+        "Gate Count (Optimized)",
+        "Physical Qubits",
+        "Optimized Physical Qubits",
+        "Runtime",
+        "Optimized Runtime",
+    ]
 
-                        new_data = pd.DataFrame(
+    df_existing = (
+        pd.read_excel(csv_filename) if pathlib.Path(csv_filename).exists() else pd.DataFrame(columns=column_order)
+    )
+
+    for benchmark in benchmarks:
+        file_path = benchmarks_dir / f"{benchmark}.qasm"
+        read_qiskit_qc = QuantumCircuit.from_qasm_file(file_path)
+        qc = qiskit_to_tk(read_qiskit_qc)
+
+        auto_rebase_pass = AutoRebase(SINGLE_QUBIT_AND_CX_TKET_STDGATES)
+        custom_rebase_pass = RebaseCustom(SINGLE_QUBIT_AND_CX_TKET_STDGATES, _cx_to_cx, _tk1_to_rzry)
+        auto_rebase_pass.apply(qc)
+
+        num_qubits = qc.n_qubits
+
+        qiskit_circuit = tk_to_qiskit(qc)
+
+        qiskit_circuit = transpile(
+            qiskit_circuit,
+            basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES,
+            optimization_level=0,
+            seed_transpiler=0,
+        )
+        original_ops = qiskit_circuit.count_ops()
+
+        gate_count_original = sum(original_ops.values())
+
+        qubits, runtime = _estimate_resources(qiskit_circuit)
+
+        for i, transpiler_pass in enumerate(transpiler_passes):
+            optimized_circuit = Circuit.from_dict(qc.to_dict())
+            transpiler_pass.apply(optimized_circuit)
+            custom_rebase_pass.apply(optimized_circuit)
+            auto_rebase_pass.apply(optimized_circuit)
+
+            if qc != optimized_circuit:
+                optimized_qiskit_circuit = tk_to_qiskit(optimized_circuit)
+                optimized_qiskit_circuit = transpile(
+                    optimized_qiskit_circuit, basis_gates=SINGLE_QUBIT_AND_CX_QISKIT_STDGATES, optimization_level=0
+                )
+
+                optimized_ops = optimized_qiskit_circuit.count_ops()
+
+                gate_count_optimized = sum(optimized_ops.values())
+                gate_count_diff = (gate_count_optimized - gate_count_original) / gate_count_original
+
+                optimized_qubits, optimized_runtime = _estimate_resources(optimized_qiskit_circuit)
+
+                relative_qubits_delta = (optimized_qubits - qubits) / qubits
+                relative_runtime_delta = (optimized_runtime - runtime) / runtime
+
+                if gate_count_diff != 0 or relative_qubits_delta != 0 or relative_runtime_delta != 0:
+                    transpiler_pass_str = transpiler_passes_names[i]
+
+                    new_data = pd.DataFrame(
+                        [
                             [
-                                [
-                                    benchmark,
-                                    num_qubits,
-                                    transpiler_pass_str,
-                                    original_ops,
-                                    optimized_ops,
-                                    gate_count_original,
-                                    gate_count_optimized,
-                                    qubits,
-                                    optimized_qubits,
-                                    runtime,
-                                    optimized_runtime,
-                                ]
-                            ],
-                            columns=column_order,
-                        )
+                                benchmark,
+                                num_qubits,
+                                transpiler_pass_str,
+                                original_ops,
+                                optimized_ops,
+                                gate_count_original,
+                                gate_count_optimized,
+                                qubits,
+                                optimized_qubits,
+                                runtime,
+                                optimized_runtime,
+                            ]
+                        ],
+                        columns=column_order,
+                    )
 
-                        df_existing = pd.concat([df_existing, new_data], ignore_index=True)
-                        df_existing.to_excel(csv_filename, index=False)
+                    df_existing = pd.concat([df_existing, new_data], ignore_index=True)
+                    df_existing.to_excel(csv_filename, index=False)

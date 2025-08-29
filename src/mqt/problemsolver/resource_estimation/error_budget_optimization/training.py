@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 def _process_data(
     data: list[OrderedDict[str, float | int]],
-) -> tuple[NDArray[float], NDArray[float], NDArray[float], NDArray[float]]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Splits the input data into training and testing sets.
 
     The function separates the features (x) and targets (y) from the input data,
@@ -47,7 +47,9 @@ def _process_data(
     return x_train, x_test, y_train, y_test
 
 
-def train(data: list[OrderedDict[str, float | int]]) -> tuple[RandomForestRegressor, NDArray[float], NDArray[float]]:
+def train(
+    data: list[OrderedDict[str, float | int]],
+) -> tuple[RandomForestRegressor, NDArray[np.float64], NDArray[np.float64]]:
     """Trains a Random Forest Regressor on the provided data.
 
     The function processes the input data to separate features and targets,

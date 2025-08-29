@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 
-def evaluate(x: NDArray[float], y: NDArray[float], total_budget: float) -> list[float]:
+def evaluate(x: NDArray[np.float64], y: NDArray[np.float64], total_budget: float) -> list[float]:
     """Evaluates the impact of different error budget partitions on quantum resource estimates.
 
     Args:
