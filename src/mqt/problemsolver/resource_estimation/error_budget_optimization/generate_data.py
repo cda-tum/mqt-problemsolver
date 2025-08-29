@@ -79,10 +79,9 @@ def _find_optimized_budgets(
         counts: LogicalCounts object containing circuit logical counts.
 
     Returns:
-        A tuple containing:
-            - List of optimal logical, T-state, and rotation budgets found.
-            - The best metric found (runtime * physical qubits).
-            - The default metric (runtime * physical qubits with default partition).
+        - List of optimal logical, T-state, and rotation budgets found.
+        - The best metric found (runtime * physical qubits).
+        - The default metric (runtime * physical qubits with default partition).
     """
     default_parameters = EstimatorParams()
     default_parameters.error_budget = total_budget

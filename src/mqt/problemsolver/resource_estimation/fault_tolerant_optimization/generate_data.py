@@ -54,7 +54,8 @@ def _estimate_resources(quantum_circuit: QuantumCircuit) -> tuple[int, int]:
         quantum_circuit: The quantum circuit to estimate.
 
     Returns:
-        A tuple containing the estimated number of physical qubits and the estimated runtime.
+        - Estimated number of physical qubits.
+        - Estimated runtime.
     """
     result = estimate(quantum_circuit, optimization_level=0, skip_transpilation=True)
     return result["physicalCounts"]["physicalQubits"], result["physicalCounts"]["runtime"]
@@ -116,16 +117,15 @@ def generate_data_qiskit(
 ) -> None:
     """Generates and stores resource estimation data for quantum circuits after applying transpiler passes.
 
-    This function reads quantum circuit benchmarks, applies specified transpiler passes using either Qiskit or TKET SDK,
-    estimates resources before and after optimization, and saves the results to an Excel file. Only cases where the
-    optimization changes the gate count, number of qubits, or runtime are recorded.
+    This function reads quantum circuit benchmarks, applies specified transpiler passes using Qiskit,
+    estimates resources before and after optimization, and saves the results to an Excel file.
+    Only cases where the optimization changes the gate count, number of qubits, or runtime are recorded.
 
     Args:
         csv_filename: Path to the Excel file where results will be stored.
         benchmarks: List of benchmark circuit paths to process.
         transpiler_passes: List of transpiler passes to apply for optimization.
         transpiler_passes_names: List of names corresponding to each transpiler pass.
-        sdk_name: Name of the SDK to use ("qiskit" or "tket").
     """
     column_order = [
         "Benchmark",
@@ -209,16 +209,15 @@ def generate_data_tket(
 ) -> None:
     """Generates and stores resource estimation data for quantum circuits after applying transpiler passes.
 
-    This function reads quantum circuit benchmarks, applies specified transpiler passes using either Qiskit or TKET SDK,
-    estimates resources before and after optimization, and saves the results to an Excel file. Only cases where the
-    optimization changes the gate count, number of qubits, or runtime are recorded.
+    This function reads quantum circuit benchmarks, applies specified transpiler passes using TKET,
+    estimates resources before and after optimization, and saves the results to an Excel file.
+    Only cases where the optimization changes the gate count, number of qubits, or runtime are recorded.
 
     Args:
         csv_filename: Path to the Excel file where results will be stored.
         benchmarks: List of benchmark circuit paths to process.
         transpiler_passes: List of transpiler passes to apply for optimization.
         transpiler_passes_names: List of names corresponding to each transpiler pass.
-        sdk_name: Name of the SDK to use ("qiskit" or "tket").
     """
     column_order = [
         "Benchmark",

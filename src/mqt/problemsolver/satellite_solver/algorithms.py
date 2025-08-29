@@ -145,7 +145,6 @@ def evaluate_result(
         qubo: The QUBO matrix representing the problem.
 
     Returns:
-        A tuple containing:
         - The found state as a bitstring.
         - The count of that state.
         - The energy computed from the QUBO matrix.
@@ -179,7 +178,8 @@ class QAOA:
         """Returns the quantum circuit of the QAOA algorithm and the resulting solution.
 
         Returns:
-            tuple: A tuple containing the QAOA circuit (QuantumCircuit) and the computed energy (float) of the solution.
+            - The QAOA circuit (QuantumCircuit) of the solution.
+            - The computed energy (float) of the solution.
         """
         circuit = self._qaoa_circuit_from_cost_op()
         circuit.measure_all()
@@ -210,7 +210,8 @@ class VQE:
         """Returns the quantum circuit of the VQE algorithm and the resulting solution.
 
         Returns:
-            tuple: A tuple containing the VQE circuit (QuantumCircuit) and the computed energy (float) of the solution.
+            - The VQE circuit (QuantumCircuit) of the solution.
+            - The computed energy (float) of the solution.
         """
         circuit = self.ansatz
         circuit.measure_all()

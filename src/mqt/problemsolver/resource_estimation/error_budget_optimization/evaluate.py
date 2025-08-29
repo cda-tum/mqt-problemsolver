@@ -19,8 +19,7 @@ def evaluate(x: NDArray[np.float64], y: NDArray[np.float64], total_budget: float
         total_budget: The total error budget to be distributed among components.
 
     Returns:
-        List of relative differences in the product of qubits and runtime compared to
-        the default budget distribution.
+        List of relative differences in the product of qubits and runtime compared to the default budget distribution.
     """
     if len(x) != len(y):
         msg = "Input arrays X and Y must have the same number of rows"
