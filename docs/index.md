@@ -159,7 +159,7 @@ total_error_budget = 0.1
 benchmarks_and_sizes = [("ae", [3, 4, 5, 6, 7, 8, 9, 10])]
 data = generate_data(
     total_error_budget=total_error_budget,
-    number_of_randomly_generated_distributions=10_000,
+    number_of_randomly_generated_distributions=1000,
     benchmarks_and_sizes=benchmarks_and_sizes,
 )
 model, x_test, y_test = train(data)
