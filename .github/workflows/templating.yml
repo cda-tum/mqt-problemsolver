@@ -18,11 +18,11 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: munich-quantum-toolkit/templates@aa244c8b5ea6b44f4834aebc8f8269c75e10be96 # v1.1.2
+      - uses: munich-quantum-toolkit/templates@has-changelog # v1.1.3
         with:
           token: ${{ steps.create-token.outputs.token }}
           name: ProblemSolver
           organization: ${{ github.repository_owner }}
           project-type: pure-python
           repository: ${{ github.event.repository.name }}
-          synchronize-pull-request-template: false
+          has-changelog-and-upgrade-guide: false
