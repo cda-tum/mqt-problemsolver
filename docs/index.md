@@ -193,17 +193,29 @@ self
 ```
 
 ```{toctree}
-:maxdepth: 1
 :caption: User Guide
+:glob:
 :hidden:
+:maxdepth: 1
 
 references
 ```
 
 ```{toctree}
-:caption: Python API Reference
-:maxdepth: 1
+:caption: Developers
+:glob:
 :hidden:
+:maxdepth: 1
+
+contributing
+support
+```
+
+```{toctree}
+:caption: Python API Reference
+:glob:
+:hidden:
+:maxdepth: 6
 
 api/mqt/problemsolver/index
 ```
