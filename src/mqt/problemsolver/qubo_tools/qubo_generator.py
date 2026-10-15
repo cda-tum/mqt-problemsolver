@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import functools
-from itertools import pairwise, starmap
+from itertools import pairwise
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
@@ -541,6 +541,36 @@ class QuboGenerator:
         variable_assignment.update(auxiliary_assignment)
         return expansion.subs(variable_assignment).evalf()  # ty: ignore[no-matching-overload]
 
+    def solve_brute_force(self) -> tuple[list[int], float]:
+        """Finds an optimal assignment for the QUBO problem by evaluating every possible assignment.
+
+        The search covers all variables of the QUBO matrix, including auxiliary variables. The runtime grows as
+        2^n for n variables, so this method is only practical for small problems.
+
+        Returns:
+            An optimal assignment in the variable order of the QUBO matrix, and its cost, including constant terms.
+        """
+        qubo = self.construct_qubo_matrix()
+        num_variables = len(qubo)
+        expansion = cast("sp.Expr", self.construct_expansion())
+        constant = float(dict(expansion.as_coefficients_dict()).get(sp.Integer(1), 0))
+
+        num_states = 1 << num_variables
+        batch_size = 1 << min(num_variables, 16)
+        positions = np.arange(num_variables)
+        best_state = 0
+        best_cost = np.inf
+        for start in range(0, num_states, batch_size):
+            states = np.arange(start, min(start + batch_size, num_states))
+            bits = (states[:, np.newaxis] >> positions) & 1
+            costs = np.sum((bits @ qubo) * bits, axis=1)
+            best_index = int(np.argmin(costs))
+            if costs[best_index] < best_cost:
+                best_cost = float(costs[best_index])
+                best_state = int(states[best_index])
+
+        return [(best_state >> i) & 1 for i in range(num_variables)], best_cost + constant
+
     def __get_auxiliary_assignment(
         self, assignment: list[int], auxiliary_expansions: SlackChainAssignment
     ) -> dict[sp.Expr, int]:
@@ -658,6 +688,10 @@ class QuboGenerator:
     ) -> qiskit.QuantumCircuit:
         """Constructs a QAOA circuit for the QUBO problem.
 
+        The cost layer applies the phase exp(-i 4 gamma f(x)) to each basis state x, up to a global phase.
+        Each `rzz` gate encodes a quadratic QUBO coefficient, and each `rz` gate encodes the linear field of a variable.
+        The mixer layer applies exp(-i beta X) to each qubit.
+
         Args:
             n_qubits: If given, sets the number of qubits for the full circuit.
             do_reuse: Attempt to reuse qubits to limit the number of variables. Defaults to False.
@@ -666,11 +700,24 @@ class QuboGenerator:
         Returns:
             The constructed QAOA circuit.
         """
-        interactions = self.construct_interaction_graph(for_embedding=False)
-        qubits = max(starmap(max, interactions)) + 1
+        qubo = self.construct_qubo_matrix(for_embedding=False)
+        qubits = len(qubo)
+        interactions = [(i, j) for i in range(qubits) for j in range(i + 1, qubits) if qubo[i][j] != 0]
+        # Substituting x_i = (1 - z_i) / 2 turns each Q_ij x_i x_j into Ising terms on z_i z_j, z_i, and z_j.
+        linear_fields = [
+            2 * float(qubo[i][i]) + sum(float(qubo[i][j] + qubo[j][i]) for j in range(qubits) if j != i)
+            for i in range(qubits)
+        ]
         circuit = qiskit.QuantumCircuit(n_qubits if n_qubits != -1 else qubits, qubits)
         gamma = qiskit.circuit.Parameter("gamma")
         beta = qiskit.circuit.Parameter("beta")
+
+        def add_rzz(i: int, j: int, qubit_i: int, qubit_j: int) -> None:
+            circuit.rzz(2 * gamma * float(qubo[min(i, j)][max(i, j)]), qubit_i, qubit_j)
+
+        def add_rz(i: int, qubit: int) -> None:
+            if linear_fields[i] != 0:
+                circuit.rz(-2 * gamma * linear_fields[i], qubit)
 
         if not do_reuse:
             for i in range(qubits):
@@ -679,12 +726,14 @@ class QuboGenerator:
                 circuit.barrier()
 
             for i, j in interactions:
-                circuit.rzz(gamma, i, j)
+                add_rzz(i, j, i, j)
+            for i in range(qubits):
+                add_rz(i, i)
             if include_barriers:
                 circuit.barrier()
 
             for i in range(qubits):
-                circuit.rx(beta, i)
+                circuit.rx(2 * beta, i)
             if include_barriers:
                 circuit.barrier()
             for i in range(qubits):
@@ -727,9 +776,10 @@ class QuboGenerator:
                         continue
                     if other not in substitution:
                         add_new_qubit(other)
-                    circuit.rzz(gamma, substitution[next_qubit], substitution[other])
+                    add_rzz(next_qubit, other, substitution[next_qubit], substitution[other])
+                add_rz(next_qubit, substitution[next_qubit])
                 covered.add(next_qubit)
-                circuit.rx(beta, substitution[next_qubit])
+                circuit.rx(2 * beta, substitution[next_qubit])
                 circuit.measure(substitution[next_qubit], next_qubit)
                 free_qubits.insert(0, substitution[next_qubit])
 
