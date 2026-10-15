@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import functools
-from itertools import pairwise, starmap
+from itertools import pairwise
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
@@ -658,6 +658,9 @@ class QuboGenerator:
     ) -> qiskit.QuantumCircuit:
         """Constructs a QAOA circuit for the QUBO problem.
 
+        The cost layer applies the phase exp(-i 4 gamma f(x)) to each basis state x, up to a global phase.
+        Each `rzz` gate encodes a quadratic QUBO coefficient, and each `rz` gate encodes the linear field of a variable.
+
         Args:
             n_qubits: If given, sets the number of qubits for the full circuit.
             do_reuse: Attempt to reuse qubits to limit the number of variables. Defaults to False.
@@ -666,11 +669,24 @@ class QuboGenerator:
         Returns:
             The constructed QAOA circuit.
         """
-        interactions = self.construct_interaction_graph(for_embedding=False)
-        qubits = max(starmap(max, interactions)) + 1
+        qubo = self.construct_qubo_matrix(for_embedding=False)
+        qubits = len(qubo)
+        interactions = [(i, j) for i in range(qubits) for j in range(i + 1, qubits) if qubo[i][j] != 0]
+        # Substituting x_i = (1 - z_i) / 2 turns each Q_ij x_i x_j into Ising terms on z_i z_j, z_i, and z_j.
+        linear_fields = [
+            2 * float(qubo[i][i]) + sum(float(qubo[i][j] + qubo[j][i]) for j in range(qubits) if j != i)
+            for i in range(qubits)
+        ]
         circuit = qiskit.QuantumCircuit(n_qubits if n_qubits != -1 else qubits, qubits)
         gamma = qiskit.circuit.Parameter("gamma")
         beta = qiskit.circuit.Parameter("beta")
+
+        def add_rzz(i: int, j: int, qubit_i: int, qubit_j: int) -> None:
+            circuit.rzz(2 * gamma * float(qubo[min(i, j)][max(i, j)]), qubit_i, qubit_j)
+
+        def add_rz(i: int, qubit: int) -> None:
+            if linear_fields[i] != 0:
+                circuit.rz(-2 * gamma * linear_fields[i], qubit)
 
         if not do_reuse:
             for i in range(qubits):
@@ -679,7 +695,9 @@ class QuboGenerator:
                 circuit.barrier()
 
             for i, j in interactions:
-                circuit.rzz(gamma, i, j)
+                add_rzz(i, j, i, j)
+            for i in range(qubits):
+                add_rz(i, i)
             if include_barriers:
                 circuit.barrier()
 
@@ -727,7 +745,8 @@ class QuboGenerator:
                         continue
                     if other not in substitution:
                         add_new_qubit(other)
-                    circuit.rzz(gamma, substitution[next_qubit], substitution[other])
+                    add_rzz(next_qubit, other, substitution[next_qubit], substitution[other])
+                add_rz(next_qubit, substitution[next_qubit])
                 covered.add(next_qubit)
                 circuit.rx(beta, substitution[next_qubit])
                 circuit.measure(substitution[next_qubit], next_qubit)
