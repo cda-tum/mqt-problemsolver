@@ -50,3 +50,11 @@ instance of the qiskit `QAOA` class that can be used to optimize the problem's
 hamiltonian operator. This allows end users to run the quantum algorithms
 without needing to interact with any quantum computing concepts directly
 themselves.
+
+## Brute-Force Solution
+
+The `solve_brute_force` method evaluates the QUBO matrix for every possible
+assignment and returns an optimal assignment together with its cost. The search
+also covers auxiliary variables. The runtime grows exponentially with the number
+of variables, so this method is only practical for small problem instances, for
+example to check the results of quantum algorithms.
