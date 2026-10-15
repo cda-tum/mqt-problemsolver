@@ -541,6 +541,36 @@ class QuboGenerator:
         variable_assignment.update(auxiliary_assignment)
         return expansion.subs(variable_assignment).evalf()  # ty: ignore[no-matching-overload]
 
+    def solve_brute_force(self) -> tuple[list[int], float]:
+        """Finds an optimal assignment for the QUBO problem by evaluating every possible assignment.
+
+        The search covers all variables of the QUBO matrix, including auxiliary variables. The runtime grows as
+        2^n for n variables, so this method is only practical for small problems.
+
+        Returns:
+            An optimal assignment in the variable order of the QUBO matrix, and its cost, including constant terms.
+        """
+        qubo = self.construct_qubo_matrix()
+        num_variables = len(qubo)
+        expansion = cast("sp.Expr", self.construct_expansion())
+        constant = float(dict(expansion.as_coefficients_dict()).get(sp.Integer(1), 0))
+
+        num_states = 1 << num_variables
+        batch_size = 1 << min(num_variables, 16)
+        positions = np.arange(num_variables)
+        best_state = 0
+        best_cost = np.inf
+        for start in range(0, num_states, batch_size):
+            states = np.arange(start, min(start + batch_size, num_states))
+            bits = (states[:, np.newaxis] >> positions) & 1
+            costs = np.sum((bits @ qubo) * bits, axis=1)
+            best_index = int(np.argmin(costs))
+            if costs[best_index] < best_cost:
+                best_cost = float(costs[best_index])
+                best_state = int(states[best_index])
+
+        return [(best_state >> i) & 1 for i in range(num_variables)], best_cost + constant
+
     def __get_auxiliary_assignment(
         self, assignment: list[int], auxiliary_expansions: SlackChainAssignment
     ) -> dict[sp.Expr, int]:
