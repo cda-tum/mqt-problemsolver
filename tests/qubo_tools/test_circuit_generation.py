@@ -270,3 +270,22 @@ def test_qaoa_includes_variables_without_interactions() -> None:
     assert circuit.num_qubits == 3
     assert frozenset({2}) in _cost_terms(circuit, 1.0)
 
+
+@pytest.mark.parametrize("do_reuse", [False, True])
+def test_qaoa_mixer_layer(weighted_generator: QuboGenerator, do_reuse: bool) -> None:
+    """Tests that each mixer gate applies exp(-i beta X) to its qubit.
+
+    Args:
+        weighted_generator (QuboGenerator): A QuboGenerator fixture with distinct coefficients.
+        do_reuse (bool): Whether the circuit reuses qubits.
+    """
+    circuit = weighted_generator.construct_qaoa_circuit(do_reuse=do_reuse)
+    beta_parameter = next(p for p in circuit.parameters if p.name == "beta")
+    beta = 0.4
+    expected = np.cos(beta) * np.eye(2) - 1j * np.sin(beta) * np.array([[0, 1], [1, 0]])
+    mixer_gates = [instruction.operation for instruction in circuit.data if instruction.operation.name == "rx"]
+    assert len(mixer_gates) == len(weighted_generator.construct_qubo_matrix())
+    for gate in mixer_gates:
+        bound = qiskit.QuantumCircuit(1)
+        bound.append(gate, [0])
+        np.testing.assert_allclose(Operator(bound.assign_parameters({beta_parameter: beta})).data, expected, atol=1e-9)

@@ -660,6 +660,7 @@ class QuboGenerator:
 
         The cost layer applies the phase exp(-i 4 gamma f(x)) to each basis state x, up to a global phase.
         Each `rzz` gate encodes a quadratic QUBO coefficient, and each `rz` gate encodes the linear field of a variable.
+        The mixer layer applies exp(-i beta X) to each qubit.
 
         Args:
             n_qubits: If given, sets the number of qubits for the full circuit.
@@ -702,7 +703,7 @@ class QuboGenerator:
                 circuit.barrier()
 
             for i in range(qubits):
-                circuit.rx(beta, i)
+                circuit.rx(2 * beta, i)
             if include_barriers:
                 circuit.barrier()
             for i in range(qubits):
@@ -748,7 +749,7 @@ class QuboGenerator:
                     add_rzz(next_qubit, other, substitution[next_qubit], substitution[other])
                 add_rz(next_qubit, substitution[next_qubit])
                 covered.add(next_qubit)
-                circuit.rx(beta, substitution[next_qubit])
+                circuit.rx(2 * beta, substitution[next_qubit])
                 circuit.measure(substitution[next_qubit], next_qubit)
                 free_qubits.insert(0, substitution[next_qubit])
 
