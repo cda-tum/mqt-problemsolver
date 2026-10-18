@@ -113,13 +113,10 @@ class Decompose(sp.Function):
 class ExpandingSum(sp.Sum):
     """Represents a sum that is always expanded into a sum of its elements when calling `doit()`."""
 
-    args: tuple[sp.Expr, tuple[sp.Symbol, sp.Expr, sp.Expr]]
-
     @override
     def doit(self, **_hints: Any) -> sp.Expr:
-        expr, *limits = self.args
-        limits = list(reversed(limits))
-        return self.__do_expansion(expr, limits[1:], limits[0])
+        limits = list(reversed(self.limits))
+        return self.__do_expansion(self.function, limits[1:], limits[0])
 
     def __do_expansion(
         self,
